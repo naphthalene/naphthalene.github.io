@@ -1,0 +1,166 @@
+<!--
+Copyright (C) 2014 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css">
+      body {
+        overflow:hidden;
+      }
+      div{
+            height:720PX;
+            width:1280PX;
+            text-align:center;
+            border:0px solid silver;
+            display: table-cell;
+            vertical-align:middle;
+            color:#FFFFFF;
+            background-color:#000000;
+            font-weight:bold;
+            font-family:Verdana, Geneva, sans-serif;
+            font-size:40px;
+      }
+    </style>
+    <title>Cast Hello Text</title>
+  </head>
+  <body>
+    <div id="message"></div>
+    <script type="text/javascript"
+            src="//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js"></script>
+    <script type="text/javascript">
+      window.onload = function() {
+        cast.receiver.logger.setLevelValue(0);
+        window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
+        console.log('Starting Receiver Manager');
+
+        // handler for the 'ready' event
+        castReceiverManager.onReady = function(event) {
+          // Ready to create games
+
+          console.log('Received Ready event: ' + JSON.stringify(event.data));
+          window.castReceiverManager.setApplicationState("Application status is ready...");
+        };
+
+        // handler for 'senderconnected' event
+        castReceiverManager.onSenderConnected = function(event) {
+          // TODO New player joining. Initiate buy-in on the client side.
+          // NOTE Buy-in is typically:
+          //        - 10x high limit
+          //        - 20x big blind for no-limit games
+          // If it is the only player, then make him the table owner
+          console.log('Received Sender Connected event: ' + event.data);
+          console.log(window.castReceiverManager.getSender(event.data).userAgent);
+        };
+
+        // handler for 'senderdisconnected' event
+        castReceiverManager.onSenderDisconnected = function(event) {
+          // TODO
+          // Player quit.
+          // Possibly keep their session in case their network died
+          // What happens to their bid/pot contribution if we're in a
+          // game?
+          console.log('Received Sender Disconnected event: ' + event.data);
+          if (window.castReceiverManager.getSenders().length == 0) {
+            window.close();
+          }
+        };
+
+        // handler for 'systemvolumechanged' event
+        castReceiverManager.onSystemVolumeChanged = function(event) {
+          console.log('Received System Volume Changed event: ' + event.data['level'] + ' ' +
+                      event.data['muted']);
+          // REVIEW likely don't need to handle this for MVP, since
+          // there will be nothing to really play
+        };
+
+        // create a CastMessageBus to handle messages for a custom namespace
+        window.messageBus =
+          window.castReceiverManager.getCastMessageBus(
+              'urn:x-cast:sadikov.apps.pokair');
+
+        // handler for the CastMessageBus message event
+        window.messageBus.onMessage = function(event) {
+          // TODO define message types valid during different
+          // even.data will be a json object that:
+          // 1. Confirms the client knows the current STATE
+          //    by sending the game state info.
+          // 2. Uses the senderId to confirm the correct player is
+          //    playing on this turn. Any other clients that try to make
+          //    a move while its the turn of someone else will get
+          //    dropped, rejected with error ID + message
+          // 3. Includes a payload specific to the current STATE
+          console.log('Message [' + event.senderId + ']: ' +
+                      event.data);
+
+          // display the message from the sender
+          // TODO replace this with a call to update the state or
+          // substate
+          // displayText(event.data);
+          // inform all senders on the CastMessageBus of the incoming message event
+          // sender message listener will be invoked
+
+          // TODO Instead here send out the new state to all of the
+          // clients.
+          window.messageBus.send(event.senderId, event.data);
+
+          // Make POST requests
+
+          // RECEIVER STATES
+          // Allow for state mixins for exceptions.
+          // Allow for substates
+          // *Use a state mixin for each different "Betting" type
+
+          // - Pre Game configuration. Use this time to change table
+          //   settings. Should be able to do this at almost any point
+          //   in time, but need to be smart about it - maybe use a
+          //   majority vote to all the other players at the table.
+
+          // & If someone joins after a round is played before the
+          // pre-flop bets are placed, then add this player's turn to
+          // the end of the list and deal them two cards. Withdraw their
+          // ante and add it to the pot
+
+          // - Deck Shuffle + Card dealing
+
+          // - Flop
+
+          // - Flop Betting*
+
+          // - Turn
+
+          // - Turn Betting*
+
+          // - River
+
+          // - River Betting*
+
+          // - Showdown
+        }
+
+        // initialize the CastReceiverManager with an application status message
+        window.castReceiverManager.start({statusText: "Application is starting"});
+        console.log('Receiver Manager started');
+      };
+
+      // utility function to display the text message in the input field
+      function displayText(text) {
+        console.log(text);
+        document.getElementById("message").innerHTML=text;
+        window.castReceiverManager.setApplicationState(text);
+      };
+    </script>
+  </body>
+</html>
