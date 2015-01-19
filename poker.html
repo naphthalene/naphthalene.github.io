@@ -34,7 +34,7 @@ limitations under the License.
             font-size:40px;
       }
     </style>
-    <title>Cast Hello Text</title>
+    <title>Texas holdem chromecast app</title>
   </head>
   <body>
     <div id="message"></div>
@@ -49,9 +49,9 @@ limitations under the License.
         // handler for the 'ready' event
         castReceiverManager.onReady = function(event) {
           // Ready to create games
-
           console.log('Received Ready event: ' + JSON.stringify(event.data));
           window.castReceiverManager.setApplicationState("Application status is ready...");
+          displayText('Received Ready event: ' + JSON.stringify(event.data));
         };
 
         // handler for 'senderconnected' event
@@ -63,12 +63,13 @@ limitations under the License.
           // If it is the only player, then make him the table owner
           console.log('Received Sender Connected event: ' + event.data);
           console.log(window.castReceiverManager.getSender(event.data).userAgent);
+          displayText('Received Sender Connected event: ' + event.data);
         };
 
         // handler for 'senderdisconnected' event
         castReceiverManager.onSenderDisconnected = function(event) {
           // TODO
-          // Player quit.
+          // Player left the table. Allow that specific person to rejoin
           // Possibly keep their session in case their network died
           // What happens to their bid/pot contribution if we're in a
           // game?
@@ -76,6 +77,7 @@ limitations under the License.
           if (window.castReceiverManager.getSenders().length == 0) {
             window.close();
           }
+          displayText('Received Sender Disconnected event: ' + event.data);
         };
 
         // handler for 'systemvolumechanged' event
@@ -108,7 +110,7 @@ limitations under the License.
           // display the message from the sender
           // TODO replace this with a call to update the state or
           // substate
-          // displayText(event.data);
+          displayText(event.data);
           // inform all senders on the CastMessageBus of the incoming message event
           // sender message listener will be invoked
 
