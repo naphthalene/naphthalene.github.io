@@ -160,8 +160,8 @@ limitations under the License.
 
       // utility function to display the text message in the input field
       function displayText(text) {
-        console.log(text);
-        document.getElementById("message").innerHTML=text;
+        var dw = document.getElementById("message");
+        dw.innerHTML += '\n' + text;
         window.castReceiverManager.setApplicationState(text);
       };
     </script>
