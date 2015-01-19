@@ -45,6 +45,7 @@ limitations under the License.
         cast.receiver.logger.setLevelValue(0);
         window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
         console.log('Starting Receiver Manager');
+        displayText('Starting Receiver Manager');
 
         // handler for the 'ready' event
         castReceiverManager.onReady = function(event) {
