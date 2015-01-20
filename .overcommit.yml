@@ -18,3 +18,6 @@
 PreCommit:
   JsHint:
     enabled: false
+  TrailingWhitespace:
+    enabled: true
+    exclude: ./poker/*.*
