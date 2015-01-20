@@ -6,7 +6,7 @@
   ],
   "description": "Poker chromecast",
   "main": "index.html",
-  "license": "MIT",
+  "license": "LGPL-3.0",
   "homepage": "https://naphthalene.github.io/poker/",
   "private": true,
   "ignore": [

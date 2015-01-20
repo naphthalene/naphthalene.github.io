@@ -92,7 +92,7 @@ var Turn = React.createClass(
   });
 
 var poker_cstates = {};
-var player = { state:'main' };
+var player = { state:'initializing' };
 
 /* <p><Button bsStyle="primary" bsSize="large">Join Table <img src="/images/casticon.on.png" id="casticon" width="30"/></Button></p> */
 

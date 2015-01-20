@@ -28,5 +28,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Pavel Sadikov",
-  "license": "MIT"
+  "license": "LGPL-3.0"
 }
