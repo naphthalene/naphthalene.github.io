@@ -12,6 +12,8 @@
     }
 })();
 
+console.log("test...");
+
 /**
  * REACT.JS CODE
  */
