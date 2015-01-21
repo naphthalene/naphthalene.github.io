@@ -4,6 +4,11 @@
  * REACT.JS CODE
  */
 
+var test_states = {
+  
+};
+var player = { state:'Initializing' };
+
 var DropdownButton = ReactBootstrap.DropdownButton;
 var ButtonGroup = ReactBootstrap.ButtonGroup;
 var PageHeader = ReactBootstrap.PageHeader;
@@ -22,11 +27,9 @@ var Nav = ReactBootstrap.Nav;
 var CardImage = React.createClass(
     {
         render: function() {
-
             return (
               <object data={'/images/' + this.props.img_name + '.svg'}
-                      type="image/svg+xml"
-                      className={this.props.className}>
+                      type="image/svg+xml">
               </object>
             );
         }
@@ -40,9 +43,13 @@ var Hand = React.createClass(
          }, */
         render: function() {
           return (
-            <div id="card-container">
-              <div id="card-left">< CardImage img_name="Hearts/2H"/></div>
-              <div id="card-right">< CardImage img_name="Hearts/AH"/></div>
+            <div id="card-container" className="center">
+              <div id="card-left">
+                < CardImage img_name={this.props.hand[0].type}/>
+              </div>
+              <div id="card-right">
+                < CardImage img_name={this.props.hand[1].type}/>
+              </div>
             </div>
           );
         }
@@ -50,6 +57,9 @@ var Hand = React.createClass(
 
 var MainActions = React.createClass(
   {
+    handleSelect: function(selectedKey) {
+      alert('selected ' + selectedKey);
+    },
     render: function() {
       return (
         <ButtonGroup>
@@ -69,83 +79,105 @@ var MainActions = React.createClass(
     }
   });
 
-var Pot = React.createClass(
+var LabelAmount = React.createClass(
   {
     render: function() {
       return (
-        <div className="pot">
-        <h3>Pot: <Label>$80</Label></h3>
+        <div className={this.props.labelClass}>
+          <h3>{this.props.label}: <Label bsStyle={this.props.dataClass}>{this.props.data}</Label>
+          </h3>
         </div>
       );
     }
   });
 
-var Turn = React.createClass(
+var JoinTableCast = React.createClass(
   {
     render: function() {
       return (
-        <div className="turn-indicator">
-          <h3>Turn: <Label bsStyle="success">Mine</Label></h3>
+        <div>
+          <Button bsStyle="link">
+            <img src="/images/casticon.on.png" id="casticon" width="30"></img>
+          </Button>
         </div>
       );
     }
   });
 
-var poker_cstates = {};
-var player = { state:'initializing' };
+// The react classes describing main game states
+var states = {};
 
-/* <p><Button bsStyle="primary" bsSize="large">Join Table <img src="/images/casticon.on.png" id="casticon" width="30"/></Button></p> */
+states.Initializing = React.createClass(
+  {
+    render: function() {
+      return (
+        <div>
+          <Navbar className="navbar-inverse">
+            <Nav>
+              <h1>Texas Holdem <small>is initializing...</small></h1>
+            </Nav>
+          </Navbar>
+          <img src="/images/chips.jpg" className="img-responsive"></img>
+        </div>
+      );
+    }
+  });
 
-poker_cstates.initializing = (
-  <div>
-    <Navbar className="navbar-inverse">
-      <Nav>
-        <h1>Texas Holdem <small>is initializing...</small></h1>
-      </Nav>
-    </Navbar>
-    <div className="chips-background">
-      <img src="/images/chips.jpg"></img>
-    </div>
-  </div>
-);
+var test_hand = [{
+  type: 'Clubs/2C'
+},{
+  type: 'Hearts/AH'
+}];
 
-poker_cstates.main = (
-  <div>
-    <Navbar className="navbar-inverse">
-      <Nav>
-        <h1>Texas Holdem</h1>
-        < MainActions/>
-      </Nav>
-    </Navbar>
-    <Grid>
-      <Row id="tbl-info" className="row-centered">
-        <Col xs={6} md={4} lg={4} className="col-centered">
-        <h3>Current bid <Label>$20</Label></h3>
-        </Col>
-        <Col xs={6} md={4} lg={4} className="col-centered">
-        < Pot/>
-        </Col>
-      </Row>
-      <Row id="cards-info" className="row-centered">
-        <Col xs={12} md={8} lg={8} className="col-centered">
-        < Hand/>
-        </Col>
-      </Row>
-      <Row id="pocket-info" className="row-centered">
-        <Col xs={6} md={4} lg={4} className="col-centered">
-        <h3>Remaining <Label>$500</Label></h3>
-        </Col>
-        <Col xs={6} md={4} lg={4} className="col-centered">
-        < Turn/>
-        </Col>
-      </Row>
-    </Grid>
-  </div>
-);
+states.Main = React.createClass(
+  {
+    render: function() {
+      var myhand = test_hand;
+      var amt_bid = 10;
+      var amt_bank = 500;
+      var amt_pot = 80;
+      var turn = {
+        whose:"Mine",
+        cls:"success"
+      };
+      return (
+        <div>
+          <Navbar className="navbar-inverse">
+            <Nav>
+              <h1>Texas Holdem</h1>
+            </Nav>
+          </Navbar>
+          <Grid>
+            <Row id="actions-info" className="row-centered">
+              <div className="span8 center">
+                < MainActions/>
+              </div>
+            </Row>
+            <Row id="tbl-info" className="row-centered">
+              < LabelAmount labelClass="center" label="Pot" data={amt_pot}/>
+              < LabelAmount labelClass="center" label="Current Bid" data={amt_bid}/>
+            </Row>
+            <Row id="cards-info" className="row-centered">
+              <div className="span8 center">
+                < Hand hand={myhand}/>
+              </div>
+            </Row>
+            <Row id="pocket-info" className="row-centered">
+              < LabelAmount labelClass="center" label="Remaining" data={amt_bank}/>
+              < LabelAmount labelClass="center" label="Turn"
+                            data={turn.whose} dataClass={turn.cls}/>
+            </Row>
+          </Grid>
+        </div>
+      );
+    }
+  });
 
 var render_state = function(state_name) {
-  React.render(poker_cstates[state_name],
-               document.getElementById('content'));
+  React.render(
+    React.createElement(states[state_name], null),
+    document.getElementById('content')
+  );
 };
 
 render_state(player.state);
@@ -178,7 +210,7 @@ function initializeCastApi() {
  */
 function onInitSuccess() {
   appendMessage("onInitSuccess");
-  player.state = 'main';
+  player.state = 'Main';
   render_state(player.state);
 }
 
@@ -241,6 +273,7 @@ function receiverListener(e) {
   if( e === 'available' ) {
     appendMessage("receiver found");
     // Show settings to join the table
+    
   }
   else {
     appendMessage("receiver list empty");

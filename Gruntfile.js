@@ -12,7 +12,7 @@ module.exports = function(grunt) {
             uglify: {
                 publish: {
                     files: {
-                        'poker/client.min.js':      ['poker/client.js'],
+                        // 'poker/client.min.js':      ['poker/client.js'],
                         'poker/receiver.min.js':    ['poker/receiver.js'],
                         'poker/cast_sender.min.js': ['src/lib/cast_sender.js']
                     }
