@@ -1,5 +1,17 @@
 // Poker + Chromecast
 
+(function () {
+    var old = console.log;
+    var logger = document.getElementById('debugmessage');
+    console.log = function (message) {
+        if (typeof message == 'object') {
+            logger.innerHTML += (JSON && JSON.stringify ? JSON.stringify(message) : message) + '\n';
+        } else {
+            logger.innerHTML += message + '\n';
+        }
+    }
+})();
+
 /**
  * REACT.JS CODE
  */
@@ -310,8 +322,8 @@ function sendMessage(message) {
  */
 function appendMessage(message) {
     console.log(message);
-    var dw = document.getElementById("debugmessage");
-    dw.innerHTML += '\n' + JSON.stringify(message);
+  /* var dw = document.getElementById("debugmessage");
+     dw.innerHTML += '\n' + JSON.stringify(message); */
 }
 
 /**
