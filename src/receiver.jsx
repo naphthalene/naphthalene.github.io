@@ -23,6 +23,9 @@ window.onload = function() {
     console.log(window.castReceiverManager.getSender(event.datxa).userAgent);
     displayText('Received Sender Connected event: ' + event.data);
 
+    window.messageBus.send(event.senderId, {
+      state:'main', state_data:{money:1000}
+    });
   };
 
   // handler for 'senderdisconnected' event
