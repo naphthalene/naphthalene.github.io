@@ -21,8 +21,9 @@ window.onload = function() {
     //        - 20x big blind for no-limit games
     // If it is the only player, then make him the table owner
     console.log('Received Sender Connected event: ' + event.data);
-    console.log(window.castReceiverManager.getSender(event.data).userAgent);
+    console.log(window.castReceiverManager.getSender(event.datxa).userAgent);
     displayText('Received Sender Connected event: ' + event.data);
+
   };
 
   // handler for 'senderdisconnected' event
@@ -75,7 +76,9 @@ window.onload = function() {
 
     // TODO Instead here send out the new state to all of the
     // clients.
-    window.messageBus.send(event.senderId, event.data);
+    window.messageBus.send(event.senderId, {
+      state:'main', state_data:{money:1000}
+    });
 
     // Make POST requests
 

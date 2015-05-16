@@ -12,7 +12,7 @@ module.exports = function(grunt) {
             uglify: {
                 publish: {
                     files: {
-                        // 'poker/client.min.js':      ['poker/client.js'],
+                        'poker/client.min.js':      ['poker/client.js'],
                         'poker/receiver.min.js':    ['poker/receiver.js'],
                         'poker/cast_sender.min.js': ['src/lib/cast_sender.js']
                     }
@@ -26,11 +26,15 @@ module.exports = function(grunt) {
                     }
                 }
             },
+            exec: {
+                compile_cjsx: "./node_modules/coffee-react/bin/cjsx -cb src/client.cjsx && mv src/client.js poker"
+            },
+            // TODO May want to use CJSX for the receiver page too.
+            // Can make some shared elements and use coffee concat grunt plugin
             browserify: {
                 options: {
                     transform:  [ require('grunt-react').browserify ]
                 },
-                app: { src: 'src/client.jsx', dest: 'poker/client.js' },
                 rcv: { src: 'src/receiver.jsx', dest: 'poker/receiver.js'}
             },
             less: {
@@ -50,7 +54,13 @@ module.exports = function(grunt) {
                 }
             },
             watch: {
-                js: {
+                cjsx: {
+                    files: ['src/*.cjsx'],
+                    tasks: ['exec',
+                            'uglify',
+                            'embed']
+                },
+                jsx: {
                     files: ['src/*.jsx'],
                     tasks: ['browserify',
                             'uglify',
@@ -72,12 +82,14 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-embed');
-    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-exec');
 
-    grunt.registerTask('default', ['browserify',
+    grunt.registerTask('default', ['exec',
+                                   'browserify',
                                    'less',
                                    'cssmin',
                                    'uglify',
