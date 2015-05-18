@@ -121,6 +121,10 @@ window.onload = ->
         displayText(message)
 
     console.error = console.debug = console.info = console.log
+
+    textarea = document.getElementById('debug');
+    textarea.scrollTop = textarea.scrollHeight;
+
     console.log('Starting Receiver Manager')
     # displayText('Starting Receiver Manager')
     table.setState('init', {})

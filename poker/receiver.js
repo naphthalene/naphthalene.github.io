@@ -133,6 +133,7 @@ table = {
 };
 
 window.onload = function() {
+  var textarea;
   cast.receiver.logger.setLevelValue(0);
   window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
   if (typeof console !== "undefined") {
@@ -149,6 +150,8 @@ window.onload = function() {
     return displayText(message);
   };
   console.error = console.debug = console.info = console.log;
+  textarea = document.getElementById('textarea_id');
+  textarea.scrollTop = textarea.scrollHeight;
   console.log('Starting Receiver Manager');
   table.setState('init', {});
   castReceiverManager.onReady = function(event) {
