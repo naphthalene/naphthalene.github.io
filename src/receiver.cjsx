@@ -107,6 +107,18 @@ table =
                 this.states[state_name], state_data),
                 document.getElementById('content'))
 
+if typeof console  != "undefined"
+    if typeof console.log != 'undefined'
+        console.olog = console.log
+    else
+        console.olog = () -> {}
+
+console.log = (message) ->
+    console.olog(message)
+    displayText(message)
+
+console.error = console.debug = console.info =  console.log
+
 window.onload = ->
     console.log('Before starting...')
     cast.receiver.logger.setLevelValue(0)

@@ -135,6 +135,23 @@ table = {
   }
 };
 
+if (typeof console !== "undefined") {
+  if (typeof console.log !== 'undefined') {
+    console.olog = console.log;
+  } else {
+    console.olog = function() {
+      return {};
+    };
+  }
+}
+
+console.log = function(message) {
+  console.olog(message);
+  return displayText(message);
+};
+
+console.error = console.debug = console.info = console.log;
+
 window.onload = function() {
   console.log('Before starting...');
   cast.receiver.logger.setLevelValue(0);
