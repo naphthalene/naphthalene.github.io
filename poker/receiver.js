@@ -71,9 +71,6 @@ WaitingForHost = React.createClass({
 });
 
 MainState = React.createClass({
-  handleMessage: function(tbl, msg) {
-    return "foo";
-  },
   render: function() {
     return React.createElement("div", null, React.createElement(Grid, {
       "id": "game-grid"
@@ -153,7 +150,6 @@ console.log = function(message) {
 console.error = console.debug = console.info = console.log;
 
 window.onload = function() {
-  console.log('Before starting...');
   cast.receiver.logger.setLevelValue(0);
   window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
   console.log('Starting Receiver Manager');
