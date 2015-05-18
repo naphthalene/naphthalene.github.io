@@ -32,19 +32,32 @@ CardImage = React.createClass
               className={this.props.className}>
       </object>
 
-WaitingForHost = React.createClass
-    handleMessage: (tbl, msg) ->
-        if msg.action == "join"
-            tbl.playerJoined(msg.data.name)
-            tbl.setState('main', {players: tbl.players})
-        else
-            displayText("Invalid command received: " + msg.action)
+ConnectedPlayers = React.createClass
+    render: ->
+      <Panel header="Connected players">
+        <ListGroup>
+          {this.props.players.map((name) ->
+            <ListGroupItem key={name}>{name}</ListGroupItem>)}
+        </ListGroup>
+      </Panel>
+
+
+# STATES
+
+WaitingForPlayers = React.createClass
+    handleMessage: (tbl, msg) -> {}
+    getInitialState: ->
+        players: this.props.players
     render: ->
       <div>
         <Grid id="game-grid">
           <Row id="row-game-main" className="row-centered">
             <Col xs={8} md={8} lg={6}>
-              <h3>Waiting for first player to join...</h3>
+              <h3>Waiting for players to join...</h3>
+            </Col>
+            <Col xs={3} md={3} lg={3}
+                 xsoffset={2} mdoffset={3} lgoffset={4}>
+              <ConnectedPlayers players={this.state.players}/>
             </Col>
           </Row>
         </Grid>
@@ -53,23 +66,13 @@ WaitingForHost = React.createClass
 
 
 MainState = React.createClass
-    # handleMessage: (tbl, msg) ->
-    #     "foo"
+    handleMessage: (tbl, msg) -> {}
     render: ->
       <div>
         <Grid id="game-grid">
           <Row id="row-game-main" className="row-centered">
             <Col xs={8} md={8} lg={6}>
               <h3>Table goes here</h3>
-            </Col>
-            <Col xs={3} md={3} lg={3}
-                 xsoffset={2} mdoffset={3} lgoffset={4}>
-              <Panel header="Connected players">
-                <ListGroup>
-                  {this.props.players.map((name) ->
-                    <ListGroupItem key={name}>{name}</ListGroupItem>)}
-                </ListGroup>
-              </Panel>
             </Col>
           </Row>
         </Grid>
@@ -79,22 +82,28 @@ table =
     state: null
     prevState: null
     container: null
-    state_data: null
     players: []
+    state_data: null
     host: null
     states:
-        init:          WaitingForHost
+        init:          WaitingForPlayers
         main:          MainState
 
-    playerJoined: (p) ->
-        if this.players.length == 0
-            displayText("First person joined: " + p)
-            this.host = p
-        this.players.push(p)
-
     handleMessage: (m) ->
-        # For now simply delegate message to the state
-        this.container.handleMessage(this, m)
+        switch m.action
+            when "join"
+                if this.state == "init"
+                    # TODO handle reconnect?
+                    if this.players.length == 0
+                        console.log("First person joined: " + m.data.name)
+                        this.host = m.data.name
+                    this.players.push(name: m.data.name)
+                    this.container.setState(players: this.players)
+                else
+                    console.error("Cannot join once game has begun!")
+                    # TODO relay this back to the user
+            else
+                this.container.handleMessage(this, m)
 
     setState: (state_name, state_data) ->
         if this.state == state_name and this.container != null
