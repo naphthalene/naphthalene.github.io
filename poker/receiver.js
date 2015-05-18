@@ -113,11 +113,11 @@ table = {
     if (this.players.length === 0) {
       displayText("First person joined: " + p);
       this.host = p;
-      return this.players.push(p);
     }
+    return this.players.push(p);
   },
   handleMessage: function(m) {
-    return this.state.handleMessage(this, m.state_data);
+    return this.container.handleMessage(this, m.state_data);
   },
   setState: function(state_name, state_data) {
     if (this.state === state_name && this.container !== null) {

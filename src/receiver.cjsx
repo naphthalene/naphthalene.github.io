@@ -90,10 +90,10 @@ table =
         if this.players.length == 0
             displayText("First person joined: " + p)
             this.host = p
-            this.players.push(p)
+        this.players.push(p)
 
     handleMessage: (m) ->
-        this.state.handleMessage(this, m.state_data)
+        this.container.handleMessage(this, m.state_data)
 
     setState: (state_name, state_data) ->
         if this.state == state_name and this.container != null
