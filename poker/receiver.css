@@ -3,41 +3,12 @@
 /* TEXAS HOLDEM */
 body {
   background: url("/images/table_felt.png") repeat;
-}
-#banner {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  right: 0px;
-  width: 100%;
-  height: 200px;
-  z-index: -1;
+  overflow: hidden;
 }
 h3 {
   color: #ffffff;
 }
-/* This is the handheld card display*/
-#card-container {
-  width: 400px;
-}
-#card-left {
-  width: 250px;
-  display: inline;
-  float: left;
-  margin-right: -154px;
-}
-#card-right {
-  width: 250px;
-  display: inline;
-  float: left;
-  margin-top: 10px;
-}
-body {
-  overflow: hidden;
-}
-div {
-  height: 720PX;
-  width: 1280PX;
+#debug {
   text-align: center;
   border: 0px solid silver;
   display: table-cell;
@@ -46,5 +17,5 @@ div {
   background-color: #000000;
   font-weight: bold;
   font-family: Verdana, Geneva, sans-serif;
-  font-size: 40px;
+  font-size: 20px;
 }

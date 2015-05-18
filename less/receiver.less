@@ -1,11 +1,17 @@
-@import "poker.less";
+/* TEXAS HOLDEM */
+
+@import (css) "reset.css";
+@import (css) "style.css";
+@import "colors.less";
 
 body {
+    background: url("/images/table_felt.png") repeat;
     overflow:hidden;
 }
-div{
-    height:720PX;
-    width:1280PX;
+
+h3 { color: @label-text; }
+
+#debug {
     text-align:center;
     border:0px solid silver;
     display: table-cell;
@@ -14,5 +20,5 @@ div{
     background-color:#000000;
     font-weight:bold;
     font-family:Verdana, Geneva, sans-serif;
-    font-size:40px;
+    font-size:20px;
 }

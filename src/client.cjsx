@@ -20,34 +20,29 @@ Row = ReactBootstrap.Row
 Col = ReactBootstrap.Col
 Nav = ReactBootstrap.Nav
 
-# Sample...
-# NeatComponent = React.createClass
-#     render: ->
-#     <div className="neat-component">
-#       {<h1>A Component is I</h1> if @props.showTitle}
-#       <hr />
-#       {<p key={n}>This line has been printed {n} times</p> for n in [1..5]}
-#     </div>
-
 CardImage = React.createClass
     render: ->
-      <object data={'/images/' + this.props.img_name + '.svg'}
-          type="image/svg+xml"
-          className={this.props.className}>
+      <object data={'/images/' + (
+                if       this.props.card[1] == "H" then "Hearts"
+                else (if this.props.card[1] == "S" then "Spades"
+                else (if this.props.card[1] == "C" then "Clubs"
+                else (if this.props.card[1] == "D" then "Diamonds")))) +
+                    "/" + this.props.card + '.svg'}
+              type="image/svg+xml"
+              className={this.props.className}>
       </object>
 
-# getInitialState: function() {
-# return {cards: Array.apply(null, new Array(2))
-# .map(function(){return null;})};
-# }, */
+
 Hand = React.createClass
     render: ->
       <div id="card-container">
-        <div id="card-left"><CardImage img_name="Hearts/2H"/></div>
-        <div id="card-right"><CardImage img_name="Hearts/AH"/></div>
+        {this.props.hand.map((card, i, _) ->
+          <div id={"card-" + (if i == 0 then "left" else "right")}>
+            <CardImage card={card}/>
+          </div>)}
       </div>
 
-MainActions = React.createClass
+WagerActions = React.createClass
     render: ->
       <ButtonGroup className="btn-group-vertical">
         <Button bsStyle="primary" bsSize="large">Call</Button>
@@ -76,11 +71,19 @@ Turn = React.createClass
       </div>
 
 GameNavigation = React.createClass
+    handleSelect: (key) ->
+        if key == 2
+            client.setState('help', {})
+        if client.state == 'help' and key != 2
+            client.setState(client.prevState)
     render: ->
-     <Navbar className="navbar">
-       <Nav>
-         <h1>Texas Holdem</h1>
-       </Nav>
+      <Navbar className="navbar">
+        <Nav onSelect={this.handleSelect}>
+          <NavItem href="#"
+                   eventkey={1}>Texas Holdem</NavItem>
+          <NavItem href="../poker/help.html"
+                   eventKey={2}>Help</NavItem>
+        </Nav>
      </Navbar>
 
 
@@ -98,7 +101,10 @@ UsernameInput = React.createClass
     onSubmit: ->
         sendMessage("Connected: " + this.state.value)
         localStorage["username"] = this.state.value
-        client.setState("main", {money: 1000})
+        # Dummy data for now
+        client.setState("main",
+            remaining: 1000
+            hand: ["AH", "2S"])
     render: ->
        <Panel header="Enter username">
          <Input type="text"
@@ -153,6 +159,20 @@ JoinedState = React.createClass
         </Grid>
       </div>
 
+WaitingForPlayersState = React.createClass
+    render: ->
+      <div>
+        <GameNavigation/>
+        <Grid>
+          <Row>
+            <Col xs={4} md={4} lg={4}
+                 xsoffset={8} mdoffset={8} lgoffset={8}>
+              <h3>Waiting for additional players or for the host to start the game!</h3>
+            </Col>
+          </Row>
+        </Grid>
+      </div>
+
 MainState = React.createClass
     render: ->
       <div>
@@ -160,14 +180,14 @@ MainState = React.createClass
         <Grid id="game-grid">
           <Row id="row-game-main" className="row-centered">
             <Col xs={8} md={8} lg={6}>
-              <Hand/>
+              { if this.props.hand then <Hand hand={this.props.hand}/> else null }
             </Col>
             <Col xs={3} md={3} lg={3}
                  xsoffset={2} mdoffset={3} lgoffset={4}>
               <Row>
                 <Turn/>
-                <h3>Remaining <Label>$1111</Label></h3>
-                <MainActions/>
+                <h3>Remaining <Label>${this.props.remaining}</Label></h3>
+                <WagerActions/>
               </Row>
             </Col>
           </Row>
@@ -180,11 +200,13 @@ MainState = React.createClass
 
 client =
     state: null
+    prevState: null
     container: null
     state_data: null
     states:
         main:         MainState
         joined:       JoinedState
+        waiting:      WaitingForPlayersState
         initializing: InitializingState
 
     handleMessage: (m) ->
@@ -195,6 +217,7 @@ client =
             console.log("Updating state: " + state_data)
             this.container.setProps(state_data)
         else
+            this.prevState = this.state
             this.state = state_name
             this.container = React.render(React.createElement(
                 this.states[state_name], state_data),

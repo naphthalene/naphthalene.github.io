@@ -27,7 +27,7 @@ module.exports = function(grunt) {
                 }
             },
             exec: {
-                compile_cjsx: "./node_modules/coffee-react/bin/cjsx -cb src/client.cjsx && mv src/client.js poker"
+                compile_cjsx: "./node_modules/coffee-react/bin/cjsx -cb src/*.cjsx && mv src/client.js src/receiver.js poker"
             },
             // TODO May want to use CJSX for the receiver page too.
             // Can make some shared elements and use coffee concat grunt plugin
