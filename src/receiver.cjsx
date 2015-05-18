@@ -36,8 +36,8 @@ ConnectedPlayers = React.createClass
     render: ->
       <Panel header="Connected players">
         <ListGroup>
-          {this.props.players.map((name) ->
-            <ListGroupItem key={name}>{name}</ListGroupItem>)}
+          {this.props.players.map((p) ->
+            <ListGroupItem key={p.name}>{p.name}</ListGroupItem>)}
         </ListGroup>
       </Panel>
 
@@ -141,7 +141,6 @@ window.onload = ->
         # Ready to create games
         console.log('Received Ready event: ' + JSON.stringify(event.data))
         window.castReceiverManager.setApplicationState("Application status is ready...")
-        displayText('Received Ready event: ' + JSON.stringify(event.data))
 
     # handler for 'senderconnected' event
     castReceiverManager.onSenderConnected = (event) ->
@@ -152,7 +151,6 @@ window.onload = ->
         # If it is the only player, then make him the table owner
         console.log('Received Sender Connected event: ' + event.data)
         console.log(window.castReceiverManager.getSender(event.datxa).userAgent)
-        displayText('Received Sender Connected event: ' + event.data)
 
     # handler for 'senderdisconnected' event
     castReceiverManager.onSenderDisconnected = (event) ->
@@ -164,7 +162,6 @@ window.onload = ->
         console.log('Received Sender Disconnected event: ' + event.data)
         if window.castReceiverManager.getSenders().length == 0
             window.close()
-        displayText('Received Sender Disconnected event: ' + event.data)
 
     # handler for 'systemvolumechanged' event
     castReceiverManager.onSystemVolumeChanged = (event) ->
@@ -247,6 +244,3 @@ displayText = (text) ->
     dw = document.getElementById("message")
     dw.innerHTML += '\n' + text
     dw.scrollTop = dw.scrollHeight
-    #window.castReceiverManager.setApplicationState(text)
-
-# textarea = document.getElementById('message')

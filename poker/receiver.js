@@ -49,10 +49,10 @@ ConnectedPlayers = React.createClass({
   render: function() {
     return React.createElement(Panel, {
       "header": "Connected players"
-    }, React.createElement(ListGroup, null, this.props.players.map(function(name) {
+    }, React.createElement(ListGroup, null, this.props.players.map(function(p) {
       return React.createElement(ListGroupItem, {
-        "key": name
-      }, name);
+        "key": p.name
+      }, p.name);
     })));
   }
 });
@@ -174,20 +174,17 @@ window.onload = function() {
   table.setState('init', {});
   castReceiverManager.onReady = function(event) {
     console.log('Received Ready event: ' + JSON.stringify(event.data));
-    window.castReceiverManager.setApplicationState("Application status is ready...");
-    return displayText('Received Ready event: ' + JSON.stringify(event.data));
+    return window.castReceiverManager.setApplicationState("Application status is ready...");
   };
   castReceiverManager.onSenderConnected = function(event) {
     console.log('Received Sender Connected event: ' + event.data);
-    console.log(window.castReceiverManager.getSender(event.datxa).userAgent);
-    return displayText('Received Sender Connected event: ' + event.data);
+    return console.log(window.castReceiverManager.getSender(event.datxa).userAgent);
   };
   castReceiverManager.onSenderDisconnected = function(event) {
     console.log('Received Sender Disconnected event: ' + event.data);
     if (window.castReceiverManager.getSenders().length === 0) {
-      window.close();
+      return window.close();
     }
-    return displayText('Received Sender Disconnected event: ' + event.data);
   };
   castReceiverManager.onSystemVolumeChanged = function(event) {
     return console.log('Received System Volume Changed event: ' + event.data.level + ' ' + event.data.muted);
