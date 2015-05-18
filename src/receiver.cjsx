@@ -214,11 +214,11 @@ window.onload = ->
 
         # TODO Instead here send out the new state to all of the
         # clients.
-        # window.messageBus.send(event.senderId,
-        #     state:'main'
-        #     state_data:
-        #         money:1000
-        # )
+        window.messageBus.send(event.senderId,
+            status:'sdfsdf'
+            data:
+                blah:12312
+        )
 
         # Make POST requests
 

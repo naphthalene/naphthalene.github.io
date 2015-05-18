@@ -203,7 +203,13 @@ window.onload = function() {
   window.messageBus = window.castReceiverManager.getCastMessageBus('urn:x-cast:sadikov.apps.pokair');
   window.messageBus.onMessage = function(event) {
     console.log('Message [' + event.senderId + ']: ' + event.data);
-    return table.handleMessage(event.senderId, JSON.parse(event.data));
+    table.handleMessage(event.senderId, JSON.parse(event.data));
+    return window.messageBus.send(event.senderId, {
+      status: 'sdfsdf',
+      data: {
+        blah: 12312
+      }
+    });
   };
   window.castReceiverManager.start({
     statusText: "Application is starting"
