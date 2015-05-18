@@ -154,7 +154,12 @@ UsernameInput = React.createClass({
     });
   },
   onSubmit: function() {
-    sendMessage("Connected: " + this.state.value);
+    sendMessage({
+      action: "join",
+      data: {
+        name: this.state.value
+      }
+    });
     localStorage["username"] = this.state.value;
     return client.setState("main", {
       remaining: 1000,

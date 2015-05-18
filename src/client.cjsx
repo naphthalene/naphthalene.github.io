@@ -99,7 +99,10 @@ UsernameInput = React.createClass
             value: this.refs.uname_input.getValue()
         )
     onSubmit: ->
-        sendMessage("Connected: " + this.state.value)
+        sendMessage(
+            action: "join"
+            data:
+                name: this.state.value)
         localStorage["username"] = this.state.value
         # Dummy data for now
         client.setState("main",

@@ -33,12 +33,18 @@ CardImage = React.createClass
       </object>
 
 WaitingForHost = React.createClass
+    handleMessage: (tbl, msg) ->
+        if msg.action == "join"
+            tbl.playerJoined(msg.data.name)
+            tbl.setState(MainState, {players: tbl.players})
+        else
+            displayText("Invalid command received: " + msg.action)
     render: ->
       <div>
         <Grid id="game-grid">
           <Row id="row-game-main" className="row-centered">
             <Col xs={8} md={8} lg={6}>
-              <h3>Waiting for first player to join</h3>
+              <h3>Waiting for first player to join...</h3>
             </Col>
           </Row>
         </Grid>
@@ -47,6 +53,8 @@ WaitingForHost = React.createClass
 
 
 MainState = React.createClass
+    handleMessage: (tbl, msg) ->
+        "foo"
     render: ->
       <div>
         <Grid id="game-grid">
@@ -56,7 +64,12 @@ MainState = React.createClass
             </Col>
             <Col xs={3} md={3} lg={3}
                  xsoffset={2} mdoffset={3} lgoffset={4}>
-              <h3>Player list goes here</h3>
+              <Panel header="Connected players">
+                <ListGroup>
+                  {this.props.players.map((name) ->
+                    <ListGroupItem key={name}>{name}</ListGroupItem>)}
+                </ListGroup>
+              </Panel>
             </Col>
           </Row>
         </Grid>
@@ -67,18 +80,27 @@ table =
     prevState: null
     container: null
     state_data: null
+    players: []
+    host: null
     states:
         init:          WaitingForHost
         main:          MainState
 
+    playerJoined: (p) ->
+        if this.players.length == 0
+            displayText("First person joined: " + p)
+            this.host = p
+            this.players.push(p)
+
     handleMessage: (m) ->
-        this.setState(m.state, m.state_data)
+        this.state.handleMessage(this, m.state_data)
 
     setState: (state_name, state_data) ->
         if this.state == state_name and this.container != null
-            console.log("Updating state: " + state_data)
+            displayText("Updating state: " + state_data)
             this.container.setProps(state_data)
         else
+            displayText("Setting state to: " + state)
             this.prevState = this.state
             this.state = state_name
             this.container = React.render(React.createElement(
@@ -151,16 +173,17 @@ window.onload = ->
         # TODO replace this with a call to update the state or
         # substate
         displayText(event.data)
+        table.handleMessage(m)
         # inform all senders on the CastMessageBus of the incoming message event
         # sender message listener will be invoked
 
         # TODO Instead here send out the new state to all of the
         # clients.
-        window.messageBus.send(event.senderId,
-            state:'main'
-            state_data:
-                money:1000
-        )
+        # window.messageBus.send(event.senderId,
+        #     state:'main'
+        #     state_data:
+        #         money:1000
+        # )
 
         # Make POST requests
 

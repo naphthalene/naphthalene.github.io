@@ -46,6 +46,16 @@ CardImage = React.createClass({
 });
 
 WaitingForHost = React.createClass({
+  handleMessage: function(tbl, msg) {
+    if (msg.action === "join") {
+      tbl.playerJoined(msg.data.name);
+      return tbl.setState(MainState, {
+        players: tbl.players
+      });
+    } else {
+      return displayText("Invalid command received: " + msg.action);
+    }
+  },
   render: function() {
     return React.createElement("div", null, React.createElement(Grid, {
       "id": "game-grid"
@@ -56,11 +66,14 @@ WaitingForHost = React.createClass({
       "xs": 8.,
       "md": 8.,
       "lg": 6.
-    }, React.createElement("h3", null, "Waiting for first player to join")))));
+    }, React.createElement("h3", null, "Waiting for first player to join...")))));
   }
 });
 
 MainState = React.createClass({
+  handleMessage: function(tbl, msg) {
+    return "foo";
+  },
   render: function() {
     return React.createElement("div", null, React.createElement(Grid, {
       "id": "game-grid"
@@ -78,7 +91,13 @@ MainState = React.createClass({
       "xsoffset": 2.,
       "mdoffset": 3.,
       "lgoffset": 4.
-    }, React.createElement("h3", null, "Player list goes here")))));
+    }, React.createElement(Panel, {
+      "header": "Connected players"
+    }, React.createElement(ListGroup, null, this.props.players.map(function(name) {
+      return React.createElement(ListGroupItem, {
+        "key": name
+      }, name);
+    })))))));
   }
 });
 
@@ -87,18 +106,28 @@ table = {
   prevState: null,
   container: null,
   state_data: null,
+  players: [],
+  host: null,
   states: {
     init: WaitingForHost,
     main: MainState
   },
+  playerJoined: function(p) {
+    if (this.players.length === 0) {
+      displayText("First person joined: " + p);
+      this.host = p;
+      return this.players.push(p);
+    }
+  },
   handleMessage: function(m) {
-    return this.setState(m.state, m.state_data);
+    return this.state.handleMessage(this, m.state_data);
   },
   setState: function(state_name, state_data) {
     if (this.state === state_name && this.container !== null) {
-      console.log("Updating state: " + state_data);
+      displayText("Updating state: " + state_data);
       return this.container.setProps(state_data);
     } else {
+      displayText("Setting state to: " + state);
       this.prevState = this.state;
       this.state = state_name;
       return this.container = React.render(React.createElement(this.states[state_name], state_data), document.getElementById('content'));
@@ -137,12 +166,7 @@ window.onload = function() {
   window.messageBus.onMessage = function(event) {
     console.log('Message [' + event.senderId + ']: ' + event.data);
     displayText(event.data);
-    return window.messageBus.send(event.senderId, {
-      state: 'main',
-      state_data: {
-        money: 1000
-      }
-    });
+    return table.handleMessage(m);
   };
   window.castReceiverManager.start({
     statusText: "Application is starting"
