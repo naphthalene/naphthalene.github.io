@@ -129,6 +129,7 @@ table = {
           if (this.players.length === 0) {
             console.log("First person joined: " + m.data.name);
             this.host = m.data.name;
+            console.log("sender: " + sender);
             window.messageBus.send(sender, {
               status: "host",
               data: {}
@@ -138,6 +139,7 @@ table = {
             name: m.data.name,
             id: sender
           });
+          console.log(this.players);
           return this.container.setState({
             players: this.players
           });

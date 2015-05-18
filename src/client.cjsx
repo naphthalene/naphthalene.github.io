@@ -105,9 +105,9 @@ UsernameInput = React.createClass
                 name: this.state.value)
         localStorage["username"] = this.state.value
         # Dummy data for now
-        client.setState("main",
-            remaining: 1000
-            hand: ["AH", "2S"])
+        # client.setState("main",
+        #     remaining: 1000
+        #     hand: ["AH", "2S"])
     render: ->
        <Panel header="Enter username">
          <Input type="text"
@@ -256,6 +256,7 @@ client =
         #             console.error("Cannot join once game has begun!")
         #             # TODO relay this back to the user
         #     else
+        console.log("Received message from receiver")
         this.container.handleMessage(this, m)
 
     setState: (state_name, state_data) ->

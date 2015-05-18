@@ -160,11 +160,7 @@ UsernameInput = React.createClass({
         name: this.state.value
       }
     });
-    localStorage["username"] = this.state.value;
-    return client.setState("main", {
-      remaining: 1000,
-      hand: ["AH", "2S"]
-    });
+    return localStorage["username"] = this.state.value;
   },
   render: function() {
     return React.createElement(Panel, {
@@ -316,6 +312,7 @@ client = {
     initializing: InitializingState
   },
   handleMessage: function(m) {
+    console.log("Received message from receiver");
     return this.container.handleMessage(this, m);
   },
   setState: function(state_name, state_data) {
