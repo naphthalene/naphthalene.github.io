@@ -47,7 +47,7 @@ ConnectedPlayers = React.createClass
 WaitingForPlayers = React.createClass
     handleMessage: (tbl, msg) -> {}
     getInitialState: ->
-        players: this.props.players
+        players: []
     render: ->
       <div>
         <Grid id="game-grid">

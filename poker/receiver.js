@@ -63,7 +63,7 @@ WaitingForPlayers = React.createClass({
   },
   getInitialState: function() {
     return {
-      players: this.props.players
+      players: []
     };
   },
   render: function() {
