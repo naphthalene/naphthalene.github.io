@@ -237,4 +237,4 @@ window.onload = ->
 displayText = (text) ->
     dw = document.getElementById("message")
     dw.innerHTML += '\n' + text
-    window.castReceiverManager.setApplicationState(text)
+    #window.castReceiverManager.setApplicationState(text)

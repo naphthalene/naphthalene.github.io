@@ -186,6 +186,5 @@ window.onload = function() {
 displayText = function(text) {
   var dw;
   dw = document.getElementById("message");
-  dw.innerHTML += '\n' + text;
-  return window.castReceiverManager.setApplicationState(text);
+  return dw.innerHTML += '\n' + text;
 };
