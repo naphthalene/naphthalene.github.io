@@ -122,9 +122,6 @@ window.onload = ->
 
     console.error = console.debug = console.info = console.log
 
-    textarea = document.getElementById('debug');
-    textarea.scrollTop = textarea.scrollHeight;
-
     console.log('Starting Receiver Manager')
     # displayText('Starting Receiver Manager')
     table.setState('init', {})
@@ -235,6 +232,9 @@ window.onload = ->
     # initialize the CastReceiverManager with an application status message
     window.castReceiverManager.start({statusText: "Application is starting"})
     console.log('Receiver Manager started')
+
+textarea = document.getElementById('debug');
+textarea.scrollTop = textarea.scrollHeight;
 
 
 # utility function to display the text message in the input field
