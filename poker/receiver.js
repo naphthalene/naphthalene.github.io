@@ -47,10 +47,9 @@ CardImage = React.createClass({
 
 WaitingForHost = React.createClass({
   handleMessage: function(tbl, msg) {
-    console.log(msg.action);
     if (msg.action === "join") {
       tbl.playerJoined(msg.data.name);
-      return tbl.setState(MainState, {
+      return tbl.setState('main', {
         players: tbl.players
       });
     } else {
