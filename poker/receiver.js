@@ -174,7 +174,6 @@ window.onload = function() {
   window.messageBus = window.castReceiverManager.getCastMessageBus('urn:x-cast:sadikov.apps.pokair');
   window.messageBus.onMessage = function(event) {
     console.log('Message [' + event.senderId + ']: ' + event.data);
-    displayText(event.data);
     return table.handleMessage(event.data);
   };
   window.castReceiverManager.start({
