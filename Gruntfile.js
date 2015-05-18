@@ -31,12 +31,12 @@ module.exports = function(grunt) {
             },
             // TODO May want to use CJSX for the receiver page too.
             // Can make some shared elements and use coffee concat grunt plugin
-            browserify: {
-                options: {
-                    transform:  [ require('grunt-react').browserify ]
-                },
-                rcv: { src: 'src/receiver.jsx', dest: 'poker/receiver.js'}
-            },
+            // browserify: {
+            //     options: {
+            //         transform:  [ require('grunt-react').browserify ]
+            //     },
+            //     rcv: { src: 'src/receiver.jsx', dest: 'poker/receiver.js'}
+            // },
             less: {
                 publish: {
                     files: {
@@ -60,12 +60,12 @@ module.exports = function(grunt) {
                             'uglify',
                             'embed']
                 },
-                jsx: {
-                    files: ['src/*.jsx'],
-                    tasks: ['browserify',
-                            'uglify',
-                            'embed']
-                },
+                // jsx: {
+                //     files: ['src/*.jsx'],
+                //     tasks: ['browserify',
+                //             'uglify',
+                //             'embed']
+                // },
                 css: {
                     files: ['less/*.less'],
                     tasks: ['less',
@@ -89,7 +89,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-exec');
 
     grunt.registerTask('default', ['exec',
-                                   'browserify',
                                    'less',
                                    'cssmin',
                                    'uglify',
