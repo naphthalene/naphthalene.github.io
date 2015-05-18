@@ -185,7 +185,7 @@ window.onload = ->
         # TODO replace this with a call to update the state or
         # substate
         displayText(event.data)
-        table.handleMessage(m)
+        table.handleMessage(event.data)
         # inform all senders on the CastMessageBus of the incoming message event
         # sender message listener will be invoked
 

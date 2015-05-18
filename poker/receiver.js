@@ -175,7 +175,7 @@ window.onload = function() {
   window.messageBus.onMessage = function(event) {
     console.log('Message [' + event.senderId + ']: ' + event.data);
     displayText(event.data);
-    return table.handleMessage(m);
+    return table.handleMessage(event.data);
   };
   window.castReceiverManager.start({
     statusText: "Application is starting"
