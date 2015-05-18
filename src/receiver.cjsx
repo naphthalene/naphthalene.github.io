@@ -93,7 +93,8 @@ table =
         this.players.push(p)
 
     handleMessage: (m) ->
-        this.container.handleMessage(this, m.state_data)
+        # For now simply delegate message to the state
+        this.container.handleMessage(this, m)
 
     setState: (state_name, state_data) ->
         if this.state == state_name and this.container != null

@@ -117,7 +117,7 @@ table = {
     return this.players.push(p);
   },
   handleMessage: function(m) {
-    return this.container.handleMessage(this, m.state_data);
+    return this.container.handleMessage(this, m);
   },
   setState: function(state_name, state_data) {
     if (this.state === state_name && this.container !== null) {
