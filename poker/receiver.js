@@ -124,7 +124,7 @@ table = {
       displayText("Updating state: " + state_data);
       return this.container.setProps(state_data);
     } else {
-      displayText("Setting state to: " + state);
+      displayText("Setting state to: " + state_name);
       this.prevState = this.state;
       this.state = state_name;
       return this.container = React.render(React.createElement(this.states[state_name], state_data), document.getElementById('content'));

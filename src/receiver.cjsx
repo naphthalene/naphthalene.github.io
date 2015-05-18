@@ -100,7 +100,7 @@ table =
             displayText("Updating state: " + state_data)
             this.container.setProps(state_data)
         else
-            displayText("Setting state to: " + state)
+            displayText("Setting state to: " + state_name)
             this.prevState = this.state
             this.state = state_name
             this.container = React.render(React.createElement(
