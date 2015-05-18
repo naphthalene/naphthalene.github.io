@@ -11,6 +11,7 @@ NavItem = ReactBootstrap.NavItem
 Button = ReactBootstrap.Button
 Navbar = ReactBootstrap.Navbar
 Input = ReactBootstrap.Input
+Table = ReactBootstrap.Table
 Label = ReactBootstrap.Label
 Panel = ReactBootstrap.Panel
 Grid = ReactBootstrap.Grid
@@ -35,17 +36,26 @@ CardImage = React.createClass
 ConnectedPlayers = React.createClass
     render: ->
       <Panel header="Connected players">
-        <ListGroup>
+        <Table striped bordered condensed>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>name</th>
+            </tr>
+          </thead>
           {this.props.players.map((p) ->
-            <ListGroupItem key={p.name}>{p.name}</ListGroupItem>)}
-        </ListGroup>
+            <tr>
+              <td>{p.id}</td>
+              <td>{p.name}</td>
+            </tr>)}
+        </Table>
       </Panel>
 
 
 # STATES
 
 WaitingForPlayers = React.createClass
-    handleMessage: (tbl, msg) -> {}
+    handleMessage: (tbl, sender, msg) -> {}
     getInitialState: ->
         players: []
     render: ->
@@ -66,7 +76,7 @@ WaitingForPlayers = React.createClass
 
 
 MainState = React.createClass
-    handleMessage: (tbl, msg) -> {}
+    handleMessage: (tbl, sender, msg) -> {}
     render: ->
       <div>
         <Grid id="game-grid">
@@ -89,7 +99,7 @@ table =
         init:          WaitingForPlayers
         main:          MainState
 
-    handleMessage: (m) ->
+    handleMessage: (sender, m) ->
         switch m.action
             when "join"
                 if this.state == "init"
@@ -97,13 +107,19 @@ table =
                     if this.players.length == 0
                         console.log("First person joined: " + m.data.name)
                         this.host = m.data.name
-                    this.players.push(name: m.data.name)
+                        window.messageBus.send(sender,
+                            status:"host"
+                            data:{})
+                    this.players.push(
+                        name: m.data.name
+                        id: sender
+                    )
                     this.container.setState(players: this.players)
                 else
                     console.error("Cannot join once game has begun!")
                     # TODO relay this back to the user
             else
-                this.container.handleMessage(this, m)
+                this.container.handleMessage(this, sender, m)
 
     setState: (state_name, state_data) ->
         if this.state == state_name and this.container != null
@@ -190,7 +206,7 @@ window.onload = ->
         # display the message from the sender
         # TODO replace this with a call to update the state or
         # substate
-        table.handleMessage(JSON.parse(event.data))
+        table.handleMessage(event.senderId, JSON.parse(event.data))
         # inform all senders on the CastMessageBus of the incoming message event
         # sender message listener will be invoked
 

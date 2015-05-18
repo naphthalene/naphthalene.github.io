@@ -131,6 +131,7 @@ PlayerOverview = React.createClass
 # STATES
 
 InitializingState = React.createClass
+    handleMessage: (cli, msg) -> {}
     render: ->
       <div>
         <GameNavigation/>
@@ -146,6 +147,7 @@ InitializingState = React.createClass
       </div>
 
 JoinedState = React.createClass
+    handleMessage: (cli, msg) -> {}
     render: ->
       <div>
         <GameNavigation/>
@@ -162,7 +164,28 @@ JoinedState = React.createClass
         </Grid>
       </div>
 
+HostConfigState = React.createClass
+    handleMessage: (cli, msg) -> {}
+    render: ->
+      <div>
+        <GameNavigation/>
+        <Grid>
+          <Row>
+            <Col xs={4} md={4} lg={4}
+                 xsoffset={8} mdoffset={8} lgoffset={8}>
+              <h3>You are the host. Please configure the table</h3>
+              Confirm using the button below once all players have joined
+            </Col>
+          </Row>
+        </Grid>
+      </div>
+
 WaitingForPlayersState = React.createClass
+    handleMessage: (cli, msg) ->
+        if msg.status == "host"
+            client.setState("host", {})
+        else
+            console.log("Unrecognized status received: " + msg.status)
     render: ->
       <div>
         <GameNavigation/>
@@ -177,6 +200,7 @@ WaitingForPlayersState = React.createClass
       </div>
 
 MainState = React.createClass
+    handleMessage: (cli, msg) -> {}
     render: ->
       <div>
         <GameNavigation/>
@@ -208,12 +232,31 @@ client =
     state_data: null
     states:
         main:         MainState
+        host:         HostConfigState
         joined:       JoinedState
         waiting:      WaitingForPlayersState
         initializing: InitializingState
 
     handleMessage: (m) ->
-        this.setState(m.state, m.state_data)
+        # Incoming messages will have a status and some data
+        # switch m.status
+        #     when "host"
+        #         if this.state == "waiting"
+        #             # TODO handle reconnect?
+        #             if this.players.length == 0
+        #                 console.log("First person joined: " + m.data.name)
+        #                 this.host = m.data.name
+        #                 window.messageBus.send(sender, status:"host")
+        #             this.players.push(
+        #                 name: m.data.name
+        #                 id: sender
+        #             )
+        #             this.container.setState(players: this.players)
+        #         else
+        #             console.error("Cannot join once game has begun!")
+        #             # TODO relay this back to the user
+        #     else
+        this.container.handleMessage(this, m)
 
     setState: (state_name, state_data) ->
         if this.state == state_name and this.container != null
