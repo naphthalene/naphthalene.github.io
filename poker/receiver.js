@@ -132,28 +132,24 @@ table = {
   }
 };
 
-if (typeof console !== "undefined") {
-  if (typeof console.log !== 'undefined') {
-    console.olog = console.log;
-  } else {
-    console.olog = function() {
-      return {};
-    };
-  }
-}
-
-console.log = function(message) {
-  console.olog(message);
-  return displayText(message);
-};
-
-console.error = console.debug = console.info = console.log;
-
 window.onload = function() {
   cast.receiver.logger.setLevelValue(0);
   window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
+  if (typeof console !== "undefined") {
+    if (typeof console.log !== 'undefined') {
+      console.olog = console.log;
+    } else {
+      console.olog = function() {
+        return {};
+      };
+    }
+  }
+  console.log = function(message) {
+    console.olog(message);
+    return displayText(message);
+  };
+  console.error = console.debug = console.info = console.log;
   console.log('Starting Receiver Manager');
-  displayText('Starting Receiver Manager');
   table.setState('init', {});
   castReceiverManager.onReady = function(event) {
     console.log('Received Ready event: ' + JSON.stringify(event.data));

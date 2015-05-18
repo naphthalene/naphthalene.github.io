@@ -107,23 +107,22 @@ table =
                 this.states[state_name], state_data),
                 document.getElementById('content'))
 
-if typeof console  != "undefined"
-    if typeof console.log != 'undefined'
-        console.olog = console.log
-    else
-        console.olog = () -> {}
-
-console.log = (message) ->
-    console.olog(message)
-    displayText(message)
-
-console.error = console.debug = console.info = console.log
-
 window.onload = ->
     cast.receiver.logger.setLevelValue(0)
     window.castReceiverManager = cast.receiver.CastReceiverManager.getInstance()
+    if typeof console  != "undefined"
+        if typeof console.log != 'undefined'
+            console.olog = console.log
+        else
+            console.olog = () -> {}
+
+    console.log = (message) ->
+        console.olog(message)
+        displayText(message)
+
+    console.error = console.debug = console.info = console.log
     console.log('Starting Receiver Manager')
-    displayText('Starting Receiver Manager')
+    # displayText('Starting Receiver Manager')
     table.setState('init', {})
 
     # handler for the 'ready' event
