@@ -204,7 +204,7 @@ window.onload = function() {
   window.messageBus.onMessage = function(event) {
     console.log('Message [' + event.senderId + ']: ' + event.data);
     table.handleMessage(event.senderId, JSON.parse(event.data));
-    return window.messageBus.send(event.senderId, {
+    return window.messageBus.broadcast({
       status: 'sdfsdf',
       data: {
         blah: 12312

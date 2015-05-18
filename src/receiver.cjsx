@@ -214,7 +214,7 @@ window.onload = ->
 
         # TODO Instead here send out the new state to all of the
         # clients.
-        window.messageBus.send(event.senderId,
+        window.messageBus.broadcast(
             status:'sdfsdf'
             data:
                 blah:12312
