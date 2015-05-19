@@ -23,6 +23,19 @@ h3 {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* justify-content: center; */
   flex-direction: column;
+}
+.semicircle {
+  position: absolute;
+}
+.panel-transparent {
+  background: none;
+}
+.panel-transparent .panel-heading {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+.panel-transparent .panel-body {
+  background: rgba(255, 255, 255, 0.2);
 }

@@ -62,6 +62,22 @@ ConnectedPlayers = React.createClass
         </Table>
       </Panel>
 
+Players = React.createClass
+    render: ->
+        startAngle = Math.PI / this.props.players;
+        angle = startAngle / 2;
+        radius = 200;
+        offset = window.innerWidth / 2;
+        spans = []
+        for p in this.props.players
+            leftStyle = radius * Math.cos( angle ) + offset + 'px'
+            topStyle  = radius * Math.sin( angle ) + 'px'
+            style = "left=" + leftStyle + ";top=" + topStyle + ";"
+            angle += startAngle
+            spans.push(<span className="semicircle" style={style}>{p.name}</span>)
+        console.log(spans[0])
+        <div>{spans}</div>
+
 
 # STATES
 
@@ -90,8 +106,6 @@ WaitingForPlayers = React.createClass
           </Row>
         </Grid>
       </div>
-
-
 
 MainState = React.createClass
     handleMessage: (tbl, sender, msg) -> {}
@@ -124,7 +138,11 @@ MainState = React.createClass
         hand: 1
     render: ->
       <div className="vertical-center">
-        <CommunityCards cards={this.state.communityCards}/>
+        <Panel header="Community Cards"
+               className="panel-transparent">
+          <CommunityCards cards={this.state.communityCards}/>
+        </Panel>
+        <Players players={this.state.players}/>
       </div>
 
 table =
