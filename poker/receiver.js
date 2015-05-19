@@ -193,11 +193,10 @@ table = {
   },
   handleMessage: function(sender, m) {
     var e, isReconnecting;
-    isReconnecting = function() {
-      var i, len, p, ref;
-      ref = this.players;
-      for (i = 0, len = ref.length; i < len; i++) {
-        p = ref[i];
+    isReconnecting = function(players) {
+      var i, len, p;
+      for (i = 0, len = players.length; i < len; i++) {
+        p = players[i];
         if (p.name === m.data.name && p.id.split(':')[0] === sender.split(':')[0]) {
           console.log("Reconnecting user " + p.name);
           return true;
@@ -210,7 +209,7 @@ table = {
         if (this.state === "init") {
           console.log("join>init");
           try {
-            if (isReconnecting()) {
+            if (isReconnecting(this.players)) {
               console.log("join>init>reconn");
               if (this.host === m.data.name) {
                 console.log("join>init>reconn>host");
