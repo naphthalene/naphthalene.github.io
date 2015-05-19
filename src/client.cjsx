@@ -338,8 +338,6 @@ sessionUpdateListener = (isAlive) ->
 # @param {string} message A message string
 
 receiverMessage = (namespace, message) ->
-    # Validate its for the right state
-    #
     appendMessage("receiverMessage: "+namespace+", "+message)
     client.handleMessage(message)
 

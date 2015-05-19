@@ -123,6 +123,7 @@ table = {
     main: MainState
   },
   handleMessage: function(sender, m) {
+    var e;
     switch (m.action) {
       case "join":
         if (this.state === "init") {
@@ -130,10 +131,15 @@ table = {
             console.log("First person joined: " + m.data.name);
             this.host = m.data.name;
             console.log("sender: " + sender);
-            window.messageBus.send(sender, {
-              status: "host",
-              data: {}
-            });
+            try {
+              window.messageBus.send(sender, {
+                status: "host",
+                data: {}
+              });
+            } catch (_error) {
+              e = _error;
+              console.error(e);
+            }
             console.log("afterwards...");
           }
           this.players.push({
@@ -204,13 +210,7 @@ window.onload = function() {
   window.messageBus = window.castReceiverManager.getCastMessageBus('urn:x-cast:sadikov.apps.pokair');
   window.messageBus.onMessage = function(event) {
     console.log('Message [' + event.senderId + ']: ' + event.data);
-    table.handleMessage(event.senderId, JSON.parse(event.data));
-    return window.messageBus.broadcast({
-      status: 'sdfsdf',
-      data: {
-        blah: 12312
-      }
-    });
+    return table.handleMessage(event.senderId, JSON.parse(event.data));
   };
   window.castReceiverManager.start({
     statusText: "Application is starting"

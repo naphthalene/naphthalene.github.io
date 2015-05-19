@@ -108,9 +108,13 @@ table =
                         console.log("First person joined: " + m.data.name)
                         this.host = m.data.name
                         console.log("sender: " + sender)
-                        window.messageBus.send(sender,
-                            status:"host"
-                            data:{})
+                        try
+                            window.messageBus.send(sender,
+                                status:"host"
+                                data:{}
+                            )
+                        catch e
+                            console.error(e)
                         console.log("afterwards...")
                     this.players.push(
                         name: m.data.name
@@ -215,11 +219,11 @@ window.onload = ->
 
         # TODO Instead here send out the new state to all of the
         # clients.
-        window.messageBus.broadcast(
-            status:'sdfsdf'
-            data:
-                blah:12312
-        )
+        # window.messageBus.broadcast(
+        #     status:'sdfsdf'
+        #     data:
+        #         blah:12312
+        # )
 
         # Make POST requests
 
