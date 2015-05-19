@@ -77,18 +77,18 @@ Players = React.createClass
         i = 0
         for p in this.props.players
             leftStyle = radius * Math.cos( angle ) + offset + 'px'
-            topStyle  = radius * Math.sin( angle ) - 100 + 'px'
+            topStyle  = radius * Math.sin( angle ) + 100 + 'px'
             style =
                 left: leftStyle
                 top: topStyle
             angle += startAngle
+            hdr = p.name + (if p.dealer then " - Dealer" else \
+                if p.blind == "S" then " - Small Blind" else \
+                if p.blind == "B" then " - Big Blind" else "")
             spans.push(<Panel key={i} className="semicircle panel-transparent"
-                              style={style} header={p.name}>
-                         <div>
-                           {if p.dealer then <h3>Dealer</h3> else \
-                            if p.blind == "S" then <h3>Small Blind</h3> else \
-                            if p.blind == "B" then <h3>Big Blind</h3> else null}
-                         </div>
+                              style={style}
+                              header={hdr}>
+                         {if !p.fold then <p>{"HAND " + p.bet}</p> else <p>FOLD</p>}
                        </Panel>)
             i += 1
         <div>{spans}</div>
@@ -165,6 +165,7 @@ MainState = React.createClass
                        if bigBlind == i then "B" else "N"
                 bet: bet
                 remaining: table.rules.buyIn - bet
+                fold: false
                 hand: [table.deck.shift(), table.deck.shift()]
             players.push(player)
             window.messageBus.send(player.id, JSON.stringify(

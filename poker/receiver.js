@@ -87,7 +87,7 @@ ConnectedPlayers = React.createClass({
 
 Players = React.createClass({
   render: function() {
-    var angle, i, j, leftStyle, len, offset, p, radius, ref, spans, startAngle, style, topStyle;
+    var angle, hdr, i, j, leftStyle, len, offset, p, radius, ref, spans, startAngle, style, topStyle;
     startAngle = Math.PI / this.props.players.length;
     angle = startAngle / 2;
     radius = 500;
@@ -98,18 +98,19 @@ Players = React.createClass({
     for (j = 0, len = ref.length; j < len; j++) {
       p = ref[j];
       leftStyle = radius * Math.cos(angle) + offset + 'px';
-      topStyle = radius * Math.sin(angle) - 100 + 'px';
+      topStyle = radius * Math.sin(angle) + 100 + 'px';
       style = {
         left: leftStyle,
         top: topStyle
       };
       angle += startAngle;
+      hdr = p.name + (p.dealer ? " - Dealer" : p.blind === "S" ? " - Small Blind" : p.blind === "B" ? " - Big Blind" : "");
       spans.push(React.createElement(Panel, {
         "key": i,
         "className": "semicircle panel-transparent",
         "style": style,
-        "header": p.name
-      }, React.createElement("div", null, (p.dealer ? React.createElement("h3", null, "Dealer") : p.blind === "S" ? React.createElement("h3", null, "Small Blind") : p.blind === "B" ? React.createElement("h3", null, "Big Blind") : null))));
+        "header": hdr
+      }, (!p.fold ? React.createElement("p", null, "HAND " + p.bet) : React.createElement("p", null, "FOLD"))));
       i += 1;
     }
     return React.createElement("div", null, spans);
@@ -198,6 +199,7 @@ MainState = React.createClass({
         blind: smallBlind === i ? "S" : bigBlind === i ? "B" : "N",
         bet: bet,
         remaining: table.rules.buyIn - bet,
+        fold: false,
         hand: [table.deck.shift(), table.deck.shift()]
       };
       players.push(player);
