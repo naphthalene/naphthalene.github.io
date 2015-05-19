@@ -297,7 +297,7 @@ MainState = React.createClass({
   },
   getInitialState: function() {
     return {
-      hand: null,
+      hand: ["2S", "JD"],
       remaining: this.props.initialRemaining
     };
   },

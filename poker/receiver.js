@@ -192,35 +192,37 @@ table = {
     main: MainState
   },
   handleMessage: function(sender, m) {
-    var host_msg, i, len, p, reconnect, ref;
+    var isReconnecting;
+    isReconnecting = function() {
+      var i, len, p, ref;
+      ref = this.players;
+      for (i = 0, len = ref.length; i < len; i++) {
+        p = ref[i];
+        if (p.name === m.data.name && p.id.split(':')[0] === sender.split(':')[0]) {
+          console.log("Reconnecting user " + p.name);
+          return true;
+        }
+      }
+      return false;
+    };
     switch (m.action) {
       case "join":
         if (this.state === "init") {
-          reconnect = false;
-          ref = this.players;
-          for (i = 0, len = ref.length; i < len; i++) {
-            p = ref[i];
-            if (p.name === m.data.name && p.id.split(':')[0] === sender.split(':')[0]) {
-              console.log("Reconnecting user " + p.name);
-              reconnect = true;
-              if (this.host === p.name) {
-                host_msg = {
-                  status: "host",
-                  data: {}
-                };
-                window.messageBus.send(sender, JSON.stringify(host_msg));
-              }
+          if (isReconnecting()) {
+            if (this.host === m.data.name) {
+              return window.messageBus.send(sender, JSON.stringify({
+                status: "host",
+                data: {}
+              }));
             }
-          }
-          if (!reconnect) {
+          } else {
             if (this.players.length === 0) {
               console.log("First person joined: " + m.data.name);
               this.host = m.data.name;
-              host_msg = {
+              window.messageBus.send(sender, JSON.stringify({
                 status: "host",
                 data: {}
-              };
-              window.messageBus.send(sender, JSON.stringify(host_msg));
+              }));
             }
             this.players.push({
               name: m.data.name,
@@ -230,6 +232,13 @@ table = {
             return this.container.setState({
               players: this.players
             });
+          }
+        } else if (this.state === "main") {
+          if (isReconnecting()) {
+            return window.messageBus.send(sender, JSON.stringify({
+              status: "start",
+              data: {}
+            }));
           }
         } else {
           return console.error("Cannot join once game has begun!");

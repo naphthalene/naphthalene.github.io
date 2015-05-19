@@ -211,7 +211,7 @@ WaitingForPlayersState = React.createClass
 MainState = React.createClass
     handleMessage: (cli, msg) -> {}
     getInitialState: ->
-        hand: null
+        hand: ["2S", "JD"]
         remaining: this.props.initialRemaining
     render: ->
       <div>
