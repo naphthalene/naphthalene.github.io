@@ -208,14 +208,19 @@ table = {
     switch (m.action) {
       case "join":
         if (this.state === "init") {
+          console.log("join>init");
           if (isReconnecting()) {
+            console.log("join>init>reconn");
             if (this.host === m.data.name) {
-              return window.messageBus.send(sender, JSON.stringify({
+              console.log("join>init>reconn>host");
+              window.messageBus.send(sender, JSON.stringify({
                 status: "host",
                 data: {}
               }));
+              console.log("join>init>reconn>host>done");
             }
           } else {
+            console.log("join>init>new");
             if (this.players.length === 0) {
               console.log("First person joined: " + m.data.name);
               this.host = m.data.name;
@@ -229,10 +234,11 @@ table = {
               id: sender
             });
             console.log(this.players);
-            return this.container.setState({
+            this.container.setState({
               players: this.players
             });
           }
+          return console.log("join>init>done");
         } else if (this.state === "main") {
           if (isReconnecting()) {
             return window.messageBus.send(sender, JSON.stringify({

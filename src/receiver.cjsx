@@ -152,13 +152,18 @@ table =
         switch m.action
             when "join"
                 if this.state == "init"
+                    console.log("join>init")
                     if isReconnecting()
+                        console.log("join>init>reconn")
                         if this.host == m.data.name
+                            console.log("join>init>reconn>host")
                             window.messageBus.send(sender, JSON.stringify(
                                 status:"host"
                                 data:{}))
+                            console.log("join>init>reconn>host>done")
 
                     else
+                        console.log("join>init>new")
                         # This is a new user
                         if this.players.length == 0
                             console.log("First person joined: " + m.data.name)
@@ -173,6 +178,7 @@ table =
                         )
                         console.log(this.players)
                         this.container.setState(players: this.players)
+                    console.log("join>init>done")
                 else if this.state == "main"
                     if isReconnecting()
                         window.messageBus.send(sender, JSON.stringify(
