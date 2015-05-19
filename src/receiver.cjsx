@@ -55,7 +55,13 @@ ConnectedPlayers = React.createClass
 # STATES
 
 WaitingForPlayers = React.createClass
-    handleMessage: (tbl, sender, msg) -> {}
+    handleMessage: (tbl, sender, msg) ->
+        if msg.action == "start"
+            # Received the go ahead to start the round from the table host
+            window.messageBus.broadcast(JSON.stringify(
+                status: "start"
+                data: msg.data)
+            )
     getInitialState: ->
         players: []
     render: ->
@@ -104,25 +110,34 @@ table =
             when "join"
                 if this.state == "init"
                     # TODO handle reconnect?
-                    if this.players.length == 0
-                        console.log("First person joined: " + m.data.name)
-                        this.host = m.data.name
-                        console.log("sender: " + sender)
-                        try
+                    reconnect = false
+                    for p in this.players
+                        if p.name == m.data.name \
+                        and p.id.split(':')[0] == sender.split(':')[0]
+                            console.log("Reconnecting user " + p.name)
+                            reconnect = true
+                            if this.host == p.name
+                                host_msg =
+                                    status:"host"
+                                    data:{}
+                                # TODO make a helper for this
+                                window.messageBus.send(sender, JSON.stringify(host_msg))
+                    if !reconnect
+                        # This is a new user
+                        if this.players.length == 0
+                            console.log("First person joined: " + m.data.name)
+                            this.host = m.data.name
                             host_msg =
                                 status:"host"
                                 data:{}
                             # TODO make a helper for this
                             window.messageBus.send(sender, JSON.stringify(host_msg))
-                        catch e
-                            console.error(e)
-                        console.log("afterwards...")
-                    this.players.push(
-                        name: m.data.name
-                        id: sender
-                    )
-                    console.log(this.players)
-                    this.container.setState(players: this.players)
+                        this.players.push(
+                            name: m.data.name
+                            id: sender
+                        )
+                        console.log(this.players)
+                        this.container.setState(players: this.players)
                 else
                     console.error("Cannot join once game has begun!")
                     # TODO relay this back to the user

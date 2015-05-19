@@ -160,7 +160,8 @@ UsernameInput = React.createClass({
         name: this.state.value
       }
     });
-    return localStorage["username"] = this.state.value;
+    localStorage["username"] = this.state.value;
+    return client.setState("waiting", {});
   },
   render: function() {
     return React.createElement(Panel, {
@@ -240,6 +241,15 @@ HostConfigState = React.createClass({
   handleMessage: function(cli, msg) {
     return {};
   },
+  onSubmit: function() {
+    sendMessage({
+      action: "start",
+      data: {}
+    });
+    return client.setState("main", {
+      initialRemaining: 1000
+    });
+  },
   render: function() {
     return React.createElement("div", null, React.createElement(GameNavigation, null), React.createElement(Grid, null, React.createElement(Row, null, React.createElement(Col, {
       "xs": 4.,
@@ -248,16 +258,25 @@ HostConfigState = React.createClass({
       "xsoffset": 8.,
       "mdoffset": 8.,
       "lgoffset": 8.
-    }, React.createElement("h3", null, "You are the host. Please configure the table"), "Confirm using the button below once all players have joined"))));
+    }, React.createElement("h3", null, "You are the host. Please configure the table"), React.createElement("h3", null, "Confirm using the button below once all players have joined"))), React.createElement(Button, {
+      "bsStyle": "primary",
+      "bsSize": "large",
+      "onClick": this.onSubmit
+    }, "Done")));
   }
 });
 
 WaitingForPlayersState = React.createClass({
   handleMessage: function(cli, msg) {
-    if (msg.status === "host") {
-      return client.setState("host", {});
-    } else {
-      return console.log("Unrecognized status received: " + msg.status);
+    switch (msg.status) {
+      case "host":
+        return client.setState("host", {});
+      case "start":
+        return client.setState("main", {
+          initialRemaining: 1000
+        });
+      default:
+        return console.log("Unrecognized status received: " + msg.status);
     }
   },
   render: function() {
@@ -276,6 +295,12 @@ MainState = React.createClass({
   handleMessage: function(cli, msg) {
     return {};
   },
+  getInitialState: function() {
+    return {
+      hand: null,
+      remaining: this.props.initialRemaining
+    };
+  },
   render: function() {
     return React.createElement("div", null, React.createElement(GameNavigation, null), React.createElement(Grid, {
       "id": "game-grid"
@@ -286,8 +311,8 @@ MainState = React.createClass({
       "xs": 8.,
       "md": 8.,
       "lg": 6.
-    }, (this.props.hand ? React.createElement(Hand, {
-      "hand": this.props.hand
+    }, (this.state.hand ? React.createElement(Hand, {
+      "hand": this.state.hand
     }) : null)), React.createElement(Col, {
       "xs": 3.,
       "md": 3.,
@@ -295,7 +320,7 @@ MainState = React.createClass({
       "xsoffset": 2.,
       "mdoffset": 3.,
       "lgoffset": 4.
-    }, React.createElement(Row, null, React.createElement(Turn, null), React.createElement("h3", null, "Remaining ", React.createElement(Label, null, "$", this.props.remaining)), React.createElement(WagerActions, null))))));
+    }, React.createElement(Row, null, React.createElement(Turn, null), React.createElement("h3", null, "Remaining ", React.createElement(Label, null, "$", this.state.remaining)), React.createElement(WagerActions, null))))));
   }
 });
 
@@ -312,7 +337,6 @@ client = {
     initializing: InitializingState
   },
   handleMessage: function(m) {
-    console.log("Received message from receiver");
     return this.container.handleMessage(this, m);
   },
   setState: function(state_name, state_data) {
@@ -381,7 +405,7 @@ sessionUpdateListener = function(isAlive) {
 
 receiverMessage = function(namespace, message) {
   appendMessage("receiverMessage: " + namespace + ", " + message);
-  return client.handleMessage(message);
+  return client.handleMessage(JSON.parse(message));
 };
 
 receiverListener = function(e) {

@@ -105,9 +105,7 @@ UsernameInput = React.createClass
                 name: this.state.value)
         localStorage["username"] = this.state.value
         # Dummy data for now
-        # client.setState("main",
-        #     remaining: 1000
-        #     hand: ["AH", "2S"])
+        client.setState("waiting",{})
     render: ->
        <Panel header="Enter username">
          <Input type="text"
@@ -166,6 +164,13 @@ JoinedState = React.createClass
 
 HostConfigState = React.createClass
     handleMessage: (cli, msg) -> {}
+    onSubmit: ->
+        sendMessage(
+            action: "start"
+            data: {})
+        # Dummy data for now
+        client.setState("main", initialRemaining: 1000)
+
     render: ->
       <div>
         <GameNavigation/>
@@ -174,18 +179,22 @@ HostConfigState = React.createClass
             <Col xs={4} md={4} lg={4}
                  xsoffset={8} mdoffset={8} lgoffset={8}>
               <h3>You are the host. Please configure the table</h3>
-              Confirm using the button below once all players have joined
+              <h3>Confirm using the button below once all players have joined</h3>
             </Col>
           </Row>
+          <Button bsStyle="primary" bsSize="large" onClick={this.onSubmit}>Done</Button>
         </Grid>
       </div>
 
 WaitingForPlayersState = React.createClass
     handleMessage: (cli, msg) ->
-        if msg.status == "host"
-            client.setState("host", {})
-        else
-            console.log("Unrecognized status received: " + msg.status)
+        switch msg.status
+            when "host"
+                client.setState("host", {})
+            when "start"
+                client.setState("main", initialRemaining: 1000)
+            else
+                console.log("Unrecognized status received: " + msg.status)
     render: ->
       <div>
         <GameNavigation/>
@@ -201,19 +210,22 @@ WaitingForPlayersState = React.createClass
 
 MainState = React.createClass
     handleMessage: (cli, msg) -> {}
+    getInitialState: ->
+        hand: null
+        remaining: this.props.initialRemaining
     render: ->
       <div>
         <GameNavigation/>
         <Grid id="game-grid">
           <Row id="row-game-main" className="row-centered">
             <Col xs={8} md={8} lg={6}>
-              { if this.props.hand then <Hand hand={this.props.hand}/> else null }
+              { if this.state.hand then <Hand hand={this.state.hand}/> else null }
             </Col>
             <Col xs={3} md={3} lg={3}
                  xsoffset={2} mdoffset={3} lgoffset={4}>
               <Row>
                 <Turn/>
-                <h3>Remaining <Label>${this.props.remaining}</Label></h3>
+                <h3>Remaining <Label>${this.state.remaining}</Label></h3>
                 <WagerActions/>
               </Row>
             </Col>
@@ -225,11 +237,12 @@ MainState = React.createClass
 
 # CLIENT
 
+# TODO Handle reconnect to arbitrary state!
 client =
     state: null
     prevState: null
     container: null
-    state_data: null
+    state_data: null ## REVIEW
     states:
         main:         MainState
         host:         HostConfigState
@@ -238,25 +251,6 @@ client =
         initializing: InitializingState
 
     handleMessage: (m) ->
-        # Incoming messages will have a status and some data
-        # switch m.status
-        #     when "host"
-        #         if this.state == "waiting"
-        #             # TODO handle reconnect?
-        #             if this.players.length == 0
-        #                 console.log("First person joined: " + m.data.name)
-        #                 this.host = m.data.name
-        #                 window.messageBus.send(sender, status:"host")
-        #             this.players.push(
-        #                 name: m.data.name
-        #                 id: sender
-        #             )
-        #             this.container.setState(players: this.players)
-        #         else
-        #             console.error("Cannot join once game has begun!")
-        #             # TODO relay this back to the user
-        #     else
-        console.log("Received message from receiver")
         this.container.handleMessage(this, m)
 
     setState: (state_name, state_data) ->
@@ -339,7 +333,7 @@ sessionUpdateListener = (isAlive) ->
 
 receiverMessage = (namespace, message) ->
     appendMessage("receiverMessage: "+namespace+", "+message)
-    client.handleMessage(message)
+    client.handleMessage(JSON.parse(message))
 
 
 # receiver listener during initialization

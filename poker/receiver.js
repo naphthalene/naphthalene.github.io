@@ -63,7 +63,12 @@ ConnectedPlayers = React.createClass({
 
 WaitingForPlayers = React.createClass({
   handleMessage: function(tbl, sender, msg) {
-    return {};
+    if (msg.action === "start") {
+      return window.messageBus.broadcast(JSON.stringify({
+        status: "start",
+        data: msg.data
+      }));
+    }
   },
   getInitialState: function() {
     return {
@@ -123,34 +128,45 @@ table = {
     main: MainState
   },
   handleMessage: function(sender, m) {
-    var e, host_msg;
+    var host_msg, i, len, p, reconnect, ref;
     switch (m.action) {
       case "join":
         if (this.state === "init") {
-          if (this.players.length === 0) {
-            console.log("First person joined: " + m.data.name);
-            this.host = m.data.name;
-            console.log("sender: " + sender);
-            try {
+          reconnect = false;
+          ref = this.players;
+          for (i = 0, len = ref.length; i < len; i++) {
+            p = ref[i];
+            if (p.name === m.data.name && p.id.split(':')[0] === sender.split(':')[0]) {
+              console.log("Reconnecting user " + p.name);
+              reconnect = true;
+              if (this.host === p.name) {
+                host_msg = {
+                  status: "host",
+                  data: {}
+                };
+                window.messageBus.send(sender, JSON.stringify(host_msg));
+              }
+            }
+          }
+          if (!reconnect) {
+            if (this.players.length === 0) {
+              console.log("First person joined: " + m.data.name);
+              this.host = m.data.name;
               host_msg = {
                 status: "host",
                 data: {}
               };
               window.messageBus.send(sender, JSON.stringify(host_msg));
-            } catch (_error) {
-              e = _error;
-              console.error(e);
             }
-            console.log("afterwards...");
+            this.players.push({
+              name: m.data.name,
+              id: sender
+            });
+            console.log(this.players);
+            return this.container.setState({
+              players: this.players
+            });
           }
-          this.players.push({
-            name: m.data.name,
-            id: sender
-          });
-          console.log(this.players);
-          return this.container.setState({
-            players: this.players
-          });
         } else {
           return console.error("Cannot join once game has begun!");
         }
