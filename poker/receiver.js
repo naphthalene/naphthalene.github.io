@@ -244,7 +244,7 @@ table = {
             return console.error(e);
           }
         } else if (this.state === "main") {
-          if (isReconnecting()) {
+          if (isReconnecting(this.players)) {
             return window.messageBus.send(sender, JSON.stringify({
               status: "start",
               data: {}
