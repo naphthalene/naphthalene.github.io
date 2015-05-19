@@ -72,12 +72,12 @@ Players = React.createClass
         startAngle = Math.PI / this.props.players.length;
         angle = startAngle / 2;
         radius = 500;
-        offset = window.innerWidth / 2;
+        offset = window.innerWidth / 2 - 100;
         spans = []
         i = 0
         for p in this.props.players
             leftStyle = radius * Math.cos( angle ) + offset + 'px'
-            topStyle  = radius * Math.sin( angle ) + 100 + 'px'
+            topStyle  = radius * Math.sin( angle ) - 100 + 'px'
             style =
                 left: leftStyle
                 top: topStyle
