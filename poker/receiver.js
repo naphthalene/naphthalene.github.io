@@ -64,10 +64,11 @@ ConnectedPlayers = React.createClass({
 WaitingForPlayers = React.createClass({
   handleMessage: function(tbl, sender, msg) {
     if (msg.action === "start") {
-      return window.messageBus.broadcast(JSON.stringify({
+      window.messageBus.broadcast(JSON.stringify({
         status: "start",
         data: msg.data
       }));
+      return table.setState('main', {});
     }
   },
   getInitialState: function() {
@@ -101,6 +102,46 @@ WaitingForPlayers = React.createClass({
 MainState = React.createClass({
   handleMessage: function(tbl, sender, msg) {
     return {};
+  },
+  generateSortedDeck: function() {
+    var c, cards, i, len, results, s, suits;
+    suits = ["H", "D", "S", "C"];
+    cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+    results = [];
+    for (i = 0, len = suits.length; i < len; i++) {
+      s = suits[i];
+      results.push((function() {
+        var j, len1, results1;
+        results1 = [];
+        for (j = 0, len1 = cards.length; j < len1; j++) {
+          c = cards[j];
+          results1.push(s + c);
+        }
+        return results1;
+      })());
+    }
+    return results;
+  },
+  shuffle: function(cards) {
+    var counter, index, temp;
+    counter = cards.length;
+    while (counter > 0) {
+      index = Math.floor(Math.random() * counter);
+      counter--;
+      temp = cards[counter];
+      cards[counter] = cards[index];
+      cards[index] = temp;
+    }
+    return cards;
+  },
+  getInitialState: function() {
+    return {
+      community: "preflop",
+      players: table.players,
+      dealer: table.players[Math.floor(Math.random() * table.players.length)],
+      deck: this.shuffle(this.generateSortedDeck()),
+      hand: 1
+    };
   },
   render: function() {
     return React.createElement("div", null, React.createElement(Grid, {

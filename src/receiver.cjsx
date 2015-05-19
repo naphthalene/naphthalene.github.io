@@ -62,6 +62,7 @@ WaitingForPlayers = React.createClass
                 status: "start"
                 data: msg.data)
             )
+            table.setState('main', {})
     getInitialState: ->
         players: []
     render: ->
@@ -83,6 +84,36 @@ WaitingForPlayers = React.createClass
 
 MainState = React.createClass
     handleMessage: (tbl, sender, msg) -> {}
+    generateSortedDeck: ->
+        suits = ["H", "D", "S", "C"]
+        cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+        for s in suits
+            for c in cards
+                s+c
+    shuffle: (cards) ->
+        counter = cards.length
+
+        # While there are elements in the array
+        while (counter > 0)
+            # Pick a random index
+            index = Math.floor(Math.random() * counter)
+
+            # Decrease counter by 1
+            counter--
+
+            # And swap the last element with it
+            temp = cards[counter]
+            cards[counter] = cards[index]
+            cards[index] = temp
+
+        cards
+
+    getInitialState: ->
+        community: "preflop"
+        players: table.players
+        dealer: table.players[Math.floor(Math.random() * table.players.length)]
+        deck: this.shuffle(this.generateSortedDeck())
+        hand: 1
     render: ->
       <div>
         <Grid id="game-grid">
