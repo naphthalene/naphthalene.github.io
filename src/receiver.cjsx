@@ -109,7 +109,7 @@ table =
                         this.host = m.data.name
                         console.log("sender: " + sender)
                         try
-                            host_msg:
+                            host_msg =
                                 status:"host"
                                 data:{}
                             # TODO make a helper for this

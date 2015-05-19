@@ -123,7 +123,7 @@ table = {
     main: MainState
   },
   handleMessage: function(sender, m) {
-    var e;
+    var e, host_msg;
     switch (m.action) {
       case "join":
         if (this.state === "init") {
@@ -132,12 +132,10 @@ table = {
             this.host = m.data.name;
             console.log("sender: " + sender);
             try {
-              ({
-                host_msg: {
-                  status: "host",
-                  data: {}
-                }
-              });
+              host_msg = {
+                status: "host",
+                data: {}
+              };
               window.messageBus.send(sender, JSON.stringify(host_msg));
             } catch (_error) {
               e = _error;
