@@ -64,18 +64,26 @@ ConnectedPlayers = React.createClass
 
 Players = React.createClass
     render: ->
-        startAngle = Math.PI / this.props.players;
+        startAngle = Math.PI / this.props.players.length;
         angle = startAngle / 2;
-        radius = 200;
+        radius = 500;
         offset = window.innerWidth / 2;
         spans = []
+        i = 0
         for p in this.props.players
             leftStyle = radius * Math.cos( angle ) + offset + 'px'
             topStyle  = radius * Math.sin( angle ) + 'px'
-            style = "left=" + leftStyle + ";top=" + topStyle + ";"
+            style =
+                left: leftStyle
+                top: topStyle
             angle += startAngle
-            spans.push(<span className="semicircle" style={style}>{p.name}</span>)
-        console.log(spans[0])
+            spans.push(<Panel key={i} className="semicircle panel-transparent"
+                              style={style} header={p.name}>
+                         <div>
+                           <h3> YUSS </h3>
+                         </div>
+                       </Panel>)
+            i += 1
         <div>{spans}</div>
 
 

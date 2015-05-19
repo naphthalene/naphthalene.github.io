@@ -82,25 +82,31 @@ ConnectedPlayers = React.createClass({
 
 Players = React.createClass({
   render: function() {
-    var angle, i, leftStyle, len, offset, p, radius, ref, spans, startAngle, style, topStyle;
-    startAngle = Math.PI / this.props.players;
+    var angle, i, j, leftStyle, len, offset, p, radius, ref, spans, startAngle, style, topStyle;
+    startAngle = Math.PI / this.props.players.length;
     angle = startAngle / 2;
-    radius = 200;
+    radius = 500;
     offset = window.innerWidth / 2;
     spans = [];
+    i = 0;
     ref = this.props.players;
-    for (i = 0, len = ref.length; i < len; i++) {
-      p = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      p = ref[j];
       leftStyle = radius * Math.cos(angle) + offset + 'px';
       topStyle = radius * Math.sin(angle) + 'px';
-      style = "left=" + leftStyle + ";top=" + topStyle + ";";
+      style = {
+        left: leftStyle,
+        top: topStyle
+      };
       angle += startAngle;
-      spans.push(React.createElement("span", {
-        "className": "semicircle",
-        "style": style
-      }, p.name));
+      spans.push(React.createElement(Panel, {
+        "key": i,
+        "className": "semicircle panel-transparent",
+        "style": style,
+        "header": p.name
+      }, React.createElement("div", null, React.createElement("h3", null, " YUSS "))));
+      i += 1;
     }
-    console.log(spans[0]);
     return React.createElement("div", null, spans);
   }
 });
@@ -148,17 +154,17 @@ MainState = React.createClass({
     return {};
   },
   generateSortedDeck: function() {
-    var c, cards, i, len, results, s, suits;
+    var c, cards, j, len, results, s, suits;
     suits = ["H", "D", "S", "C"];
     cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
     results = [];
-    for (i = 0, len = suits.length; i < len; i++) {
-      s = suits[i];
+    for (j = 0, len = suits.length; j < len; j++) {
+      s = suits[j];
       results.push((function() {
-        var j, len1, results1;
+        var k, len1, results1;
         results1 = [];
-        for (j = 0, len1 = cards.length; j < len1; j++) {
-          c = cards[j];
+        for (k = 0, len1 = cards.length; k < len1; k++) {
+          c = cards[k];
           results1.push(s + c);
         }
         return results1;
@@ -220,9 +226,9 @@ table = {
   handleMessage: function(sender, m) {
     var e, isReconnecting;
     isReconnecting = function(players) {
-      var i, len, p;
-      for (i = 0, len = players.length; i < len; i++) {
-        p = players[i];
+      var j, len, p;
+      for (j = 0, len = players.length; j < len; j++) {
+        p = players[j];
         if (p.name === m.data.name && p.id.split(':')[0] === sender.split(':')[0]) {
           console.log("Reconnecting user " + p.name);
           return true;
