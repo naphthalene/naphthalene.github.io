@@ -50,7 +50,12 @@ CardImage = React.createClass({
 
 CommunityCards = React.createClass({
   render: function() {
-    return React.createElement("ul", {
+    return React.createElement("div", {
+      "className": "vertical-center"
+    }, React.createElement(Panel, {
+      "header": "Community Cards - " + this.props.communityState,
+      "className": "panel-transparent"
+    }, React.createElement("ul", {
       "className": "list-inline"
     }, React.createElement("li", null, React.createElement(CardImage, {
       "card": this.props.cards.flop[0]
@@ -62,7 +67,7 @@ CommunityCards = React.createClass({
       "card": this.props.cards.turn
     })), React.createElement("li", null, React.createElement(CardImage, {
       "card": this.props.cards.river
-    })));
+    })))));
   }
 });
 
@@ -104,7 +109,7 @@ Players = React.createClass({
         "className": "semicircle panel-transparent",
         "style": style,
         "header": p.name
-      }, React.createElement("div", null, React.createElement("h3", null, " YUSS "))));
+      }, React.createElement("div", null, "\x3C\x3E")));
       i += 1;
     }
     return React.createElement("div", null, spans);
@@ -150,27 +155,19 @@ WaitingForPlayers = React.createClass({
 });
 
 MainState = React.createClass({
-  handleMessage: function(tbl, sender, msg) {
-    return {};
-  },
   generateSortedDeck: function() {
-    var c, cards, j, len, results, s, suits;
+    var allCards, c, cards, j, k, len, len1, s, suits;
     suits = ["H", "D", "S", "C"];
     cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
-    results = [];
+    allCards = [];
     for (j = 0, len = suits.length; j < len; j++) {
       s = suits[j];
-      results.push((function() {
-        var k, len1, results1;
-        results1 = [];
-        for (k = 0, len1 = cards.length; k < len1; k++) {
-          c = cards[k];
-          results1.push(s + c);
-        }
-        return results1;
-      })());
+      for (k = 0, len1 = cards.length; k < len1; k++) {
+        c = cards[k];
+        allCards.push(c + s);
+      }
     }
-    return results;
+    return allCards;
   },
   shuffle: function(cards) {
     var counter, index, temp;
@@ -184,29 +181,53 @@ MainState = React.createClass({
     }
     return cards;
   },
+  dealHand: function(dealer) {
+    var bet, bigBlind, i, j, len, p, player, players, ref, smallBlind;
+    smallBlind = (dealer + 1) % table.players.length;
+    bigBlind = (smallBlind + 1) % table.players.length;
+    i = 0;
+    players = [];
+    ref = table.players;
+    for (j = 0, len = ref.length; j < len; j++) {
+      p = ref[j];
+      bet = smallBlind === i ? table.rules.smallBlind : bigBlind === i ? table.rules.bigBlind : 0;
+      player = {
+        id: p.id,
+        name: p.name,
+        dealer: dealer === i ? true : false,
+        blind: smallBlind === i ? "S" : bigBlind === i ? "B" : void 0,
+        bet: bet,
+        remaining: table.rules.buyIn - bet,
+        hand: [table.deck.shift(), table.deck.shift()]
+      };
+      players.push(player);
+      window.messageBus.send(player.id, JSON.stringify({
+        status: "deal",
+        data: player
+      }));
+      i++;
+    }
+    return players;
+  },
   getInitialState: function() {
+    table.deck = this.shuffle(this.generateSortedDeck());
     return {
-      community: "preflop",
+      community: "Preflop",
       communityCards: {
-        flop: ["AH", "4D", "8H"],
+        flop: [null, null, null],
         turn: null,
         river: null
       },
-      players: table.players,
-      dealer: table.players[Math.floor(Math.random() * table.players.length)],
-      deck: this.shuffle(this.generateSortedDeck()),
+      players: this.dealHand(Math.floor(Math.random() * table.players.length)),
+      deck: table.deck,
       hand: 1
     };
   },
   render: function() {
-    return React.createElement("div", {
-      "className": "vertical-center"
-    }, React.createElement(Panel, {
-      "header": "Community Cards",
-      "className": "panel-transparent"
-    }, React.createElement(CommunityCards, {
-      "cards": this.state.communityCards
-    })), React.createElement(Players, {
+    return React.createElement("div", null, React.createElement(CommunityCards, {
+      "cards": this.state.communityCards,
+      "communityState": this.state.community
+    }), React.createElement(Players, {
       "players": this.state.players
     }));
   }
@@ -219,6 +240,11 @@ table = {
   players: [],
   state_data: null,
   host: null,
+  rules: {
+    buyIn: 1000,
+    bigBlind: 10,
+    smallBlind: 5
+  },
   states: {
     init: WaitingForPlayers,
     main: MainState
@@ -239,20 +265,15 @@ table = {
     switch (m.action) {
       case "join":
         if (this.state === "init") {
-          console.log("join>init");
           try {
             if (isReconnecting(this.players)) {
-              console.log("join>init>reconn");
               if (this.host === m.data.name) {
-                console.log("join>init>reconn>host");
-                window.messageBus.send(sender, JSON.stringify({
+                return window.messageBus.send(sender, JSON.stringify({
                   status: "host",
                   data: {}
                 }));
-                console.log("join>init>reconn>host>done");
               }
             } else {
-              console.log("join>init>new");
               if (this.players.length === 0) {
                 console.log("First person joined: " + m.data.name);
                 this.host = m.data.name;
@@ -265,12 +286,10 @@ table = {
                 name: m.data.name,
                 id: sender
               });
-              console.log(this.players);
-              this.container.setState({
+              return this.container.setState({
                 players: this.players
               });
             }
-            return console.log("join>init>done");
           } catch (_error) {
             e = _error;
             return console.error(e);

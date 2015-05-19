@@ -36,13 +36,18 @@ CardImage = React.createClass
 
 CommunityCards = React.createClass
     render: ->
-      <ul className="list-inline">
-        <li><CardImage card={this.props.cards.flop[0]}/></li>
-        <li><CardImage card={this.props.cards.flop[1]}/></li>
-        <li><CardImage card={this.props.cards.flop[2]}/></li>
-        <li><CardImage card={this.props.cards.turn}/></li>
-        <li><CardImage card={this.props.cards.river}/></li>
-      </ul>
+      <div className="vertical-center">
+        <Panel header={"Community Cards - " + this.props.communityState}
+               className="panel-transparent">
+          <ul className="list-inline">
+            <li><CardImage card={this.props.cards.flop[0]}/></li>
+            <li><CardImage card={this.props.cards.flop[1]}/></li>
+            <li><CardImage card={this.props.cards.flop[2]}/></li>
+            <li><CardImage card={this.props.cards.turn}/></li>
+            <li><CardImage card={this.props.cards.river}/></li>
+          </ul>
+        </Panel>
+      </div>
 
 ConnectedPlayers = React.createClass
     render: ->
@@ -80,7 +85,7 @@ Players = React.createClass
             spans.push(<Panel key={i} className="semicircle panel-transparent"
                               style={style} header={p.name}>
                          <div>
-                           <h3> YUSS </h3>
+                           <>
                          </div>
                        </Panel>)
             i += 1
@@ -116,14 +121,22 @@ WaitingForPlayers = React.createClass
       </div>
 
 MainState = React.createClass
-    handleMessage: (tbl, sender, msg) -> {}
+    # handleMessage: (tbl, sender, msg) ->
+    #     switch msg.action
+    #         when "fold"
+    #             this.foldPlayer(sender)
+    #         when "call"
+    #             this.callPlayer(sender)
     generateSortedDeck: ->
         suits = ["H", "D", "S", "C"]
         cards = ["2", "3", "4", "5", "6", "7", "8",
                  "9", "10", "J", "Q", "K", "A"]
+        allCards = []
         for s in suits
             for c in cards
-                s+c
+                allCards.push(c+s)
+        allCards
+
     shuffle: (cards) ->
         counter = cards.length
         while (counter > 0)
@@ -134,22 +147,44 @@ MainState = React.createClass
             cards[index] = temp
         cards
 
+    dealHand: (dealer) ->
+        smallBlind = (dealer + 1) % table.players.length
+        bigBlind = (smallBlind + 1) % table.players.length
+        i = 0
+        players = []
+        for p in table.players
+            bet = if smallBlind == i then table.rules.smallBlind else \
+                 if bigBlind == i then table.rules.bigBlind else 0
+            player =
+                id: p.id
+                name: p.name
+                dealer: if dealer == i then true else false
+                blind: if smallBlind == i then "S" else \
+                       if bigBlind == i then "B"
+                bet: bet
+                remaining: table.rules.buyIn - bet
+                hand: [table.deck.shift(), table.deck.shift()]
+            players.push(player)
+            window.messageBus.send(player.id, JSON.stringify(
+                status: "deal"
+                data: player))
+            i++
+        players
+
     getInitialState: ->
-        community: "preflop"
+        table.deck = this.shuffle(this.generateSortedDeck())
+        community: "Preflop"
         communityCards:
-            flop: ["AH", "4D", "8H"]
+            flop: [null, null, null]
             turn: null
             river: null
-        players: table.players
-        dealer: table.players[Math.floor(Math.random() * table.players.length)]
-        deck: this.shuffle(this.generateSortedDeck())
+        players: this.dealHand(Math.floor(Math.random()*table.players.length))
+        deck: table.deck ## REVIEW
         hand: 1
     render: ->
-      <div className="vertical-center">
-        <Panel header="Community Cards"
-               className="panel-transparent">
-          <CommunityCards cards={this.state.communityCards}/>
-        </Panel>
+      <div>
+        <CommunityCards cards={this.state.communityCards}
+                        communityState={this.state.community}/>
         <Players players={this.state.players}/>
       </div>
 
@@ -160,6 +195,10 @@ table =
     players: []
     state_data: null
     host: null
+    rules:
+        buyIn:   1000
+        bigBlind:  10
+        smallBlind: 5
     states:
         init:          WaitingForPlayers
         main:          MainState
@@ -175,19 +214,14 @@ table =
         switch m.action
             when "join"
                 if this.state == "init"
-                    console.log("join>init")
                     try
                         if isReconnecting(this.players)
-                            console.log("join>init>reconn")
                             if this.host == m.data.name
-                                console.log("join>init>reconn>host")
                                 window.messageBus.send(sender, JSON.stringify(
                                     status:"host"
                                     data:{}))
-                                console.log("join>init>reconn>host>done")
 
                         else
-                            console.log("join>init>new")
                             # This is a new user
                             if this.players.length == 0
                                 console.log("First person joined: " + m.data.name)
@@ -200,9 +234,7 @@ table =
                                 name: m.data.name
                                 id: sender
                             )
-                            console.log(this.players)
                             this.container.setState(players: this.players)
-                        console.log("join>init>done")
                     catch e
                         console.error e
                 else if this.state == "main"

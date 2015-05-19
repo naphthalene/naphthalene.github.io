@@ -293,7 +293,9 @@ WaitingForPlayersState = React.createClass({
 
 MainState = React.createClass({
   handleMessage: function(cli, msg) {
-    return {};
+    if (msg.status === "deal") {
+      return this.setState(msg.data);
+    }
   },
   getInitialState: function() {
     return {

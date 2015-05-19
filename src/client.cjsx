@@ -209,7 +209,9 @@ WaitingForPlayersState = React.createClass
       </div>
 
 MainState = React.createClass
-    handleMessage: (cli, msg) -> {}
+    handleMessage: (cli, msg) ->
+        if msg.status == "deal"
+            this.setState(msg.data)
     getInitialState: ->
         hand: ["2S", "JD"]
         remaining: this.props.initialRemaining
