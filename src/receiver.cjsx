@@ -23,10 +23,7 @@ Nav = ReactBootstrap.Nav
 
 CardImage = React.createClass
     render: ->
-      if this.props.card == null
-          <h3> NO CARD </h3>
-      else
-          <object data={'/images/' + (
+          <object data={if !this.props.card then '/images/card_outline.svg' else '/images/' + (
                 if       this.props.card[1] == "H" then "Hearts"
                 else (if this.props.card[1] == "S" then "Spades"
                 else (if this.props.card[1] == "C" then "Clubs"
@@ -119,8 +116,8 @@ MainState = React.createClass
         community: "preflop"
         communityCards:
             flop: ["AH", "4D", "8H"]
-            turn: "7S"
-            river: "8C"
+            turn: null
+            river: null
         players: table.players
         dealer: table.players[Math.floor(Math.random() * table.players.length)]
         deck: this.shuffle(this.generateSortedDeck())

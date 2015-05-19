@@ -39,16 +39,12 @@ Nav = ReactBootstrap.Nav;
 
 CardImage = React.createClass({
   render: function() {
-    if (this.props.card === null) {
-      return React.createElement("h3", null, " NO CARD ");
-    } else {
-      return React.createElement("object", {
-        "data": '/images/' + (this.props.card[1] === "H" ? "Hearts" : (this.props.card[1] === "S" ? "Spades" : (this.props.card[1] === "C" ? "Clubs" : (this.props.card[1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg',
-        "type": "image/svg+xml",
-        "width": "100px",
-        "className": this.props.className
-      });
-    }
+    return React.createElement("object", {
+      "data": (!this.props.card ? '/images/card_outline.svg' : '/images/' + (this.props.card[1] === "H" ? "Hearts" : (this.props.card[1] === "S" ? "Spades" : (this.props.card[1] === "C" ? "Clubs" : (this.props.card[1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg'),
+      "type": "image/svg+xml",
+      "width": "100px",
+      "className": this.props.className
+    });
   }
 });
 
@@ -162,8 +158,8 @@ MainState = React.createClass({
       community: "preflop",
       communityCards: {
         flop: ["AH", "4D", "8H"],
-        turn: "7S",
-        river: "8C"
+        turn: null,
+        river: null
       },
       players: table.players,
       dealer: table.players[Math.floor(Math.random() * table.players.length)],
