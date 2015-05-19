@@ -132,10 +132,13 @@ table = {
             this.host = m.data.name;
             console.log("sender: " + sender);
             try {
-              window.messageBus.send(sender, {
-                status: "host",
-                data: {}
+              ({
+                host_msg: {
+                  status: "host",
+                  data: {}
+                }
               });
+              window.messageBus.send(sender, JSON.stringify(host_msg));
             } catch (_error) {
               e = _error;
               console.error(e);

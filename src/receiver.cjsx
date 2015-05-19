@@ -109,10 +109,11 @@ table =
                         this.host = m.data.name
                         console.log("sender: " + sender)
                         try
-                            window.messageBus.send(sender,
+                            host_msg:
                                 status:"host"
                                 data:{}
-                            )
+                            # TODO make a helper for this
+                            window.messageBus.send(sender, JSON.stringify(host_msg))
                         catch e
                             console.error(e)
                         console.log("afterwards...")
