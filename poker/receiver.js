@@ -40,7 +40,7 @@ Nav = ReactBootstrap.Nav;
 CardImage = React.createClass({
   render: function() {
     return React.createElement("object", {
-      "data": (!this.props.card ? '/images/card_outline.svg' : '/images/' + (this.props.card[1] === "H" ? "Hearts" : (this.props.card[1] === "S" ? "Spades" : (this.props.card[1] === "C" ? "Clubs" : (this.props.card[1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg'),
+      "data": (!this.props.card ? '/images/card_outline.svg' : '/images/' + (this.props.card[this.props.card.length - 1] === "H" ? "Hearts" : (this.props.card[this.props.card.length - 1] === "S" ? "Spades" : (this.props.card[this.props.card.length - 1] === "C" ? "Clubs" : (this.props.card[this.props.card.length - 1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg'),
       "type": "image/svg+xml",
       "width": "100px",
       "className": this.props.className
@@ -98,7 +98,7 @@ Players = React.createClass({
     for (j = 0, len = ref.length; j < len; j++) {
       p = ref[j];
       leftStyle = radius * Math.cos(angle) + offset + 'px';
-      topStyle = radius * Math.sin(angle) + 'px';
+      topStyle = radius * Math.sin(angle) - 100 + 'px';
       style = {
         left: leftStyle,
         top: topStyle
@@ -109,7 +109,7 @@ Players = React.createClass({
         "className": "semicircle panel-transparent",
         "style": style,
         "header": p.name
-      }, React.createElement("div", null, "\x3C\x3E")));
+      }, React.createElement("div", null, (p.dealer ? React.createElement("h3", null, "Dealer") : p.blind === "S" ? React.createElement("h3", null, "Small Blind") : p.blind === "B" ? React.createElement("h3", null, "Big Blind") : null))));
       i += 1;
     }
     return React.createElement("div", null, spans);
@@ -195,7 +195,7 @@ MainState = React.createClass({
         id: p.id,
         name: p.name,
         dealer: dealer === i ? true : false,
-        blind: smallBlind === i ? "S" : bigBlind === i ? "B" : void 0,
+        blind: smallBlind === i ? "S" : bigBlind === i ? "B" : "N",
         bet: bet,
         remaining: table.rules.buyIn - bet,
         hand: [table.deck.shift(), table.deck.shift()]

@@ -24,10 +24,10 @@ Nav = ReactBootstrap.Nav
 CardImage = React.createClass
     render: ->
           <object data={if !this.props.card then '/images/card_outline.svg' else '/images/' + (
-                if       this.props.card[1] == "H" then "Hearts"
-                else (if this.props.card[1] == "S" then "Spades"
-                else (if this.props.card[1] == "C" then "Clubs"
-                else (if this.props.card[1] == "D" then "Diamonds")))) +
+                if       this.props.card[this.props.card.length-1] == "H" then "Hearts"
+                else (if this.props.card[this.props.card.length-1] == "S" then "Spades"
+                else (if this.props.card[this.props.card.length-1] == "C" then "Clubs"
+                else (if this.props.card[this.props.card.length-1] == "D" then "Diamonds")))) +
                     "/" + this.props.card + '.svg'}
               type="image/svg+xml"
               width="100px"
@@ -77,7 +77,7 @@ Players = React.createClass
         i = 0
         for p in this.props.players
             leftStyle = radius * Math.cos( angle ) + offset + 'px'
-            topStyle  = radius * Math.sin( angle ) + 'px'
+            topStyle  = radius * Math.sin( angle ) - 100 + 'px'
             style =
                 left: leftStyle
                 top: topStyle
@@ -85,7 +85,9 @@ Players = React.createClass
             spans.push(<Panel key={i} className="semicircle panel-transparent"
                               style={style} header={p.name}>
                          <div>
-                           <>
+                           {if p.dealer then <h3>Dealer</h3> else \
+                            if p.blind == "S" then <h3>Small Blind</h3> else \
+                            if p.blind == "B" then <h3>Big Blind</h3> else null}
                          </div>
                        </Panel>)
             i += 1
@@ -160,7 +162,7 @@ MainState = React.createClass
                 name: p.name
                 dealer: if dealer == i then true else false
                 blind: if smallBlind == i then "S" else \
-                       if bigBlind == i then "B"
+                       if bigBlind == i then "B" else "N"
                 bet: bet
                 remaining: table.rules.buyIn - bet
                 hand: [table.deck.shift(), table.deck.shift()]

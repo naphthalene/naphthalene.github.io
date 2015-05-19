@@ -22,13 +22,14 @@ Nav = ReactBootstrap.Nav
 
 CardImage = React.createClass
     render: ->
-      <object data={'/images/' + (
-                if       this.props.card[1] == "H" then "Hearts"
-                else (if this.props.card[1] == "S" then "Spades"
-                else (if this.props.card[1] == "C" then "Clubs"
-                else (if this.props.card[1] == "D" then "Diamonds")))) +
+      <object data={if !this.props.card then '/images/card_outline.svg' else '/images/' + (
+                if       this.props.card[this.props.card.length-1] == "H" then "Hearts"
+                else (if this.props.card[this.props.card.length-1] == "S" then "Spades"
+                else (if this.props.card[this.props.card.length-1] == "C" then "Clubs"
+                else (if this.props.card[this.props.card.length-1] == "D" then "Diamonds")))) +
                     "/" + this.props.card + '.svg'}
               type="image/svg+xml"
+              width="290"
               className={this.props.className}>
       </object>
 
@@ -213,7 +214,7 @@ MainState = React.createClass
         if msg.status == "deal"
             this.setState(msg.data)
     getInitialState: ->
-        hand: ["2S", "JD"]
+        hand: [null, null]
         remaining: this.props.initialRemaining
     render: ->
       <div>

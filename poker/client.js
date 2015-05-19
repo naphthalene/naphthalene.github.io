@@ -38,8 +38,9 @@ Nav = ReactBootstrap.Nav;
 CardImage = React.createClass({
   render: function() {
     return React.createElement("object", {
-      "data": '/images/' + (this.props.card[1] === "H" ? "Hearts" : (this.props.card[1] === "S" ? "Spades" : (this.props.card[1] === "C" ? "Clubs" : (this.props.card[1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg',
+      "data": (!this.props.card ? '/images/card_outline.svg' : '/images/' + (this.props.card[this.props.card.length - 1] === "H" ? "Hearts" : (this.props.card[this.props.card.length - 1] === "S" ? "Spades" : (this.props.card[this.props.card.length - 1] === "C" ? "Clubs" : (this.props.card[this.props.card.length - 1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg'),
       "type": "image/svg+xml",
+      "width": "290",
       "className": this.props.className
     });
   }
@@ -299,7 +300,7 @@ MainState = React.createClass({
   },
   getInitialState: function() {
     return {
-      hand: ["2S", "JD"],
+      hand: [null, null],
       remaining: this.props.initialRemaining
     };
   },
