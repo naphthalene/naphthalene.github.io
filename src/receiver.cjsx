@@ -23,15 +23,29 @@ Nav = ReactBootstrap.Nav
 
 CardImage = React.createClass
     render: ->
-      <object data={'/images/' + (
+      if this.props.card == null
+          <h3> NO CARD </h3>
+      else
+          <object data={'/images/' + (
                 if       this.props.card[1] == "H" then "Hearts"
                 else (if this.props.card[1] == "S" then "Spades"
                 else (if this.props.card[1] == "C" then "Clubs"
                 else (if this.props.card[1] == "D" then "Diamonds")))) +
                     "/" + this.props.card + '.svg'}
               type="image/svg+xml"
+              width="100px"
               className={this.props.className}>
-      </object>
+          </object>
+
+CommunityCards = React.createClass
+    render: ->
+      <ul className="list-inline">
+        <li><CardImage card={this.props.cards.flop[0]}/></li>
+        <li><CardImage card={this.props.cards.flop[1]}/></li>
+        <li><CardImage card={this.props.cards.flop[2]}/></li>
+        <li><CardImage card={this.props.cards.turn}/></li>
+        <li><CardImage card={this.props.cards.river}/></li>
+      </ul>
 
 ConnectedPlayers = React.createClass
     render: ->
@@ -103,15 +117,17 @@ MainState = React.createClass
 
     getInitialState: ->
         community: "preflop"
+        communityCards:
+            flop: ["AH", "4D", "8H"]
+            turn: "7S"
+            river: "8C"
         players: table.players
         dealer: table.players[Math.floor(Math.random() * table.players.length)]
         deck: this.shuffle(this.generateSortedDeck())
         hand: 1
     render: ->
-      <div>
-        <div class="vertical-center">
-          <button class="btn btn-default btn-lg spacer">Discover the Button</button>
-        </div>
+      <div className="vertical-center">
+        <CommunityCards cards={this.state.communityCards}/>
       </div>
 
 table =
