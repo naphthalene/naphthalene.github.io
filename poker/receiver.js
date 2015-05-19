@@ -134,6 +134,7 @@ table = {
               status: "host",
               data: {}
             });
+            console.log("afterwards...");
           }
           this.players.push({
             name: m.data.name,

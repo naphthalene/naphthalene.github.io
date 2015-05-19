@@ -111,6 +111,7 @@ table =
                         window.messageBus.send(sender,
                             status:"host"
                             data:{})
+                        console.log("afterwards...")
                     this.players.push(
                         name: m.data.name
                         id: sender
