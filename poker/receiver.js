@@ -144,16 +144,11 @@ MainState = React.createClass({
     };
   },
   render: function() {
-    return React.createElement("div", null, React.createElement(Grid, {
-      "id": "game-grid"
-    }, React.createElement(Row, {
-      "id": "row-game-main",
-      "className": "row-centered"
-    }, React.createElement(Col, {
-      "xs": 8.,
-      "md": 8.,
-      "lg": 6.
-    }, React.createElement("h3", null, "Table goes here")))));
+    return React.createElement("div", null, React.createElement("div", {
+      "class": "vertical-center"
+    }, React.createElement("button", {
+      "class": "btn btn-default btn-lg spacer"
+    }, "Discover the Button")));
   }
 });
 

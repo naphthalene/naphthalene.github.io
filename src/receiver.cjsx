@@ -86,26 +86,19 @@ MainState = React.createClass
     handleMessage: (tbl, sender, msg) -> {}
     generateSortedDeck: ->
         suits = ["H", "D", "S", "C"]
-        cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+        cards = ["2", "3", "4", "5", "6", "7", "8",
+                 "9", "10", "J", "Q", "K", "A"]
         for s in suits
             for c in cards
                 s+c
     shuffle: (cards) ->
         counter = cards.length
-
-        # While there are elements in the array
         while (counter > 0)
-            # Pick a random index
             index = Math.floor(Math.random() * counter)
-
-            # Decrease counter by 1
             counter--
-
-            # And swap the last element with it
             temp = cards[counter]
             cards[counter] = cards[index]
             cards[index] = temp
-
         cards
 
     getInitialState: ->
@@ -116,13 +109,9 @@ MainState = React.createClass
         hand: 1
     render: ->
       <div>
-        <Grid id="game-grid">
-          <Row id="row-game-main" className="row-centered">
-            <Col xs={8} md={8} lg={6}>
-              <h3>Table goes here</h3>
-            </Col>
-          </Row>
-        </Grid>
+        <div class="vertical-center">
+          <button class="btn btn-default btn-lg spacer">Discover the Button</button>
+        </div>
       </div>
 
 table =
