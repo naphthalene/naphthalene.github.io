@@ -153,32 +153,35 @@ table =
             when "join"
                 if this.state == "init"
                     console.log("join>init")
-                    if isReconnecting()
-                        console.log("join>init>reconn")
-                        if this.host == m.data.name
-                            console.log("join>init>reconn>host")
-                            window.messageBus.send(sender, JSON.stringify(
-                                status:"host"
-                                data:{}))
-                            console.log("join>init>reconn>host>done")
+                    try
+                        if isReconnecting()
+                            console.log("join>init>reconn")
+                            if this.host == m.data.name
+                                console.log("join>init>reconn>host")
+                                window.messageBus.send(sender, JSON.stringify(
+                                    status:"host"
+                                    data:{}))
+                                console.log("join>init>reconn>host>done")
 
-                    else
-                        console.log("join>init>new")
-                        # This is a new user
-                        if this.players.length == 0
-                            console.log("First person joined: " + m.data.name)
-                            this.host = m.data.name
-                            # TODO make a helper for this
-                            window.messageBus.send(sender, JSON.stringify(
-                                status:"host"
-                                data:{}))
-                        this.players.push(
-                            name: m.data.name
-                            id: sender
-                        )
-                        console.log(this.players)
-                        this.container.setState(players: this.players)
-                    console.log("join>init>done")
+                        else
+                            console.log("join>init>new")
+                            # This is a new user
+                            if this.players.length == 0
+                                console.log("First person joined: " + m.data.name)
+                                this.host = m.data.name
+                                # TODO make a helper for this
+                                window.messageBus.send(sender, JSON.stringify(
+                                    status:"host"
+                                    data:{}))
+                            this.players.push(
+                                name: m.data.name
+                                id: sender
+                            )
+                            console.log(this.players)
+                            this.container.setState(players: this.players)
+                        console.log("join>init>done")
+                    catch e
+                        console.error e
                 else if this.state == "main"
                     if isReconnecting()
                         window.messageBus.send(sender, JSON.stringify(

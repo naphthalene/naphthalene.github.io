@@ -192,7 +192,7 @@ table = {
     main: MainState
   },
   handleMessage: function(sender, m) {
-    var isReconnecting;
+    var e, isReconnecting;
     isReconnecting = function() {
       var i, len, p, ref;
       ref = this.players;
@@ -209,36 +209,41 @@ table = {
       case "join":
         if (this.state === "init") {
           console.log("join>init");
-          if (isReconnecting()) {
-            console.log("join>init>reconn");
-            if (this.host === m.data.name) {
-              console.log("join>init>reconn>host");
-              window.messageBus.send(sender, JSON.stringify({
-                status: "host",
-                data: {}
-              }));
-              console.log("join>init>reconn>host>done");
+          try {
+            if (isReconnecting()) {
+              console.log("join>init>reconn");
+              if (this.host === m.data.name) {
+                console.log("join>init>reconn>host");
+                window.messageBus.send(sender, JSON.stringify({
+                  status: "host",
+                  data: {}
+                }));
+                console.log("join>init>reconn>host>done");
+              }
+            } else {
+              console.log("join>init>new");
+              if (this.players.length === 0) {
+                console.log("First person joined: " + m.data.name);
+                this.host = m.data.name;
+                window.messageBus.send(sender, JSON.stringify({
+                  status: "host",
+                  data: {}
+                }));
+              }
+              this.players.push({
+                name: m.data.name,
+                id: sender
+              });
+              console.log(this.players);
+              this.container.setState({
+                players: this.players
+              });
             }
-          } else {
-            console.log("join>init>new");
-            if (this.players.length === 0) {
-              console.log("First person joined: " + m.data.name);
-              this.host = m.data.name;
-              window.messageBus.send(sender, JSON.stringify({
-                status: "host",
-                data: {}
-              }));
-            }
-            this.players.push({
-              name: m.data.name,
-              id: sender
-            });
-            console.log(this.players);
-            this.container.setState({
-              players: this.players
-            });
+            return console.log("join>init>done");
+          } catch (_error) {
+            e = _error;
+            return console.error(e);
           }
-          return console.log("join>init>done");
         } else if (this.state === "main") {
           if (isReconnecting()) {
             return window.messageBus.send(sender, JSON.stringify({
