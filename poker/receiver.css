@@ -8,14 +8,13 @@ body {
 h3 {
   color: #ffffff;
 }
-#debug {
-  text-align: center;
-  border: 0px solid silver;
-  display: table-cell;
-  vertical-align: middle;
+#message {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
   color: #000000;
-  background-color: #000000;
+  background-color: #ffffff;
   font-weight: bold;
   font-family: Verdana, Geneva, sans-serif;
-  font-size: 12px;
+  font-size: 10px;
 }

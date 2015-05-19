@@ -176,8 +176,8 @@ HostConfigState = React.createClass
         <GameNavigation/>
         <Grid>
           <Row>
-            <Col xs={4} md={4} lg={4}
-                 xsoffset={8} mdoffset={8} lgoffset={8}>
+            <Col xs={8} md={8} lg={8}
+                 xsoffset={4} mdoffset={4} lgoffset={4}>
               <h3>You are the host. Please configure the table</h3>
               <h3>Confirm using the button below once all players have joined</h3>
             </Col>

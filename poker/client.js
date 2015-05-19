@@ -252,12 +252,12 @@ HostConfigState = React.createClass({
   },
   render: function() {
     return React.createElement("div", null, React.createElement(GameNavigation, null), React.createElement(Grid, null, React.createElement(Row, null, React.createElement(Col, {
-      "xs": 4.,
-      "md": 4.,
-      "lg": 4.,
-      "xsoffset": 8.,
-      "mdoffset": 8.,
-      "lgoffset": 8.
+      "xs": 8.,
+      "md": 8.,
+      "lg": 8.,
+      "xsoffset": 4.,
+      "mdoffset": 4.,
+      "lgoffset": 4.
     }, React.createElement("h3", null, "You are the host. Please configure the table"), React.createElement("h3", null, "Confirm using the button below once all players have joined"))), React.createElement(Button, {
       "bsStyle": "primary",
       "bsSize": "large",
