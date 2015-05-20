@@ -164,7 +164,7 @@ MainState = React.createClass({
       pi = this.state.players.map(function(e) {
         return e.id;
       }).indexOf(sender);
-      console.log("Player " + this.state.players[pi].name(" is trying to fold"));
+      console.log("Player " + this.state.players[pi].name + " is trying to fold");
       return this.setState(function(prev, curr) {
         var p, players;
         p = prev.players[pi];
