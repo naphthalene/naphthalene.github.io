@@ -48,6 +48,7 @@ TableInfo = React.createClass
             <li><CardImage card={this.props.cards.river}/></li>
           </ul>
           <ul className="list-inline">
+            <li>Hand <Label bsStyle="default">{"#"+this.props.hand}</Label></li>
             <li>Current bid: <Label bsStyle="danger">{"$"+this.props.bid}</Label></li>
             <li>Total pot: <Label bsStyle="success">{"$"+this.props.pot}</Label></li>
           </ul>
@@ -227,7 +228,8 @@ MainState = React.createClass
         <TableInfo cards={this.state.communityCards}
                    communityState={this.state.community}
                    bid={this.state.bid}
-                   pot={this.state.pot}/>
+                   pot={this.state.pot}
+                   hand={this.state.hand}/>
         <Players players={this.state.players} turn={this.state.turn}/>
       </div>
 

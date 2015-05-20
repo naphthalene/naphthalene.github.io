@@ -71,7 +71,9 @@ TableInfo = React.createClass({
       "card": this.props.cards.river
     }))), React.createElement("ul", {
       "className": "list-inline"
-    }, React.createElement("li", null, "Current bid: ", React.createElement(Label, {
+    }, React.createElement("li", null, "Hand ", React.createElement(Label, {
+      "bsStyle": "default"
+    }, "#" + this.props.hand)), React.createElement("li", null, "Current bid: ", React.createElement(Label, {
       "bsStyle": "danger"
     }, "$" + this.props.bid)), React.createElement("li", null, "Total pot: ", React.createElement(Label, {
       "bsStyle": "success"
@@ -290,7 +292,8 @@ MainState = React.createClass({
       "cards": this.state.communityCards,
       "communityState": this.state.community,
       "bid": this.state.bid,
-      "pot": this.state.pot
+      "pot": this.state.pot,
+      "hand": this.state.hand
     }), React.createElement(Players, {
       "players": this.state.players,
       "turn": this.state.turn
