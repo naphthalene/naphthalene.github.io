@@ -167,11 +167,11 @@ MainState = React.createClass({
       nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
       foundNextPlayer = false;
       while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
-        nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
         foundNextPlayer = !this.state.players[nextActivePlayer].fold;
         if (foundNextPlayer) {
           break;
         }
+        nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
       }
       if (foundNextPlayer) {
         this.setState({
