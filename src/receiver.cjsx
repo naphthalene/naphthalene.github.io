@@ -15,6 +15,7 @@ Table = ReactBootstrap.Table
 Label = ReactBootstrap.Label
 Panel = ReactBootstrap.Panel
 Grid = ReactBootstrap.Grid
+Well = ReactBootstrap.Well
 Row = ReactBootstrap.Row
 Col = ReactBootstrap.Col
 Nav = ReactBootstrap.Nav
@@ -34,7 +35,7 @@ CardImage = React.createClass
               className={this.props.className}>
           </object>
 
-CommunityCards = React.createClass
+TableInfo = React.createClass
     render: ->
       <div className="vertical-center">
         <Panel header={"Community Cards - " + this.props.communityState}
@@ -46,6 +47,10 @@ CommunityCards = React.createClass
             <li><CardImage card={this.props.cards.turn}/></li>
             <li><CardImage card={this.props.cards.river}/></li>
           </ul>
+          <ul className="list-inline">
+            <li>{"Current bid: $" + this.props.bid}</li>
+            <li>{"Total pot: $" + this.props.pot}</li>
+          </ul>
         </Panel>
       </div>
 
@@ -55,13 +60,11 @@ ConnectedPlayers = React.createClass
         <Table striped bordered condensed>
           <thead>
             <tr>
-              <th>ID</th>
               <th>name</th>
             </tr>
           </thead>
           {this.props.players.map((p) ->
             <tr>
-              <td>{p.id}</td>
               <td>{p.name}</td>
             </tr>)}
         </Table>
@@ -117,9 +120,6 @@ WaitingForPlayers = React.createClass
           <Row id="row-game-main" className="row-centered">
             <Col xs={8} md={8} lg={6}>
               <h3>Waiting for players to join...</h3>
-            </Col>
-            <Col xs={3} md={3} lg={3}
-                 xsoffset={2} mdoffset={3} lgoffset={4}>
               <ConnectedPlayers players={this.state.players}/>
             </Col>
           </Row>
@@ -200,7 +200,6 @@ MainState = React.createClass
                 console.error(e)
             i++
         firstTurn = players[(bigBlind + 1) % players.length].name
-        this.setState(turn: firstTurn)
         try
             window.messageBus.broadcast(JSON.stringify(
                 status: "turn"
@@ -208,22 +207,27 @@ MainState = React.createClass
                     turn: firstTurn))
         catch e
             console.error(e)
-        players
+        [firstTurn, players]
 
     getInitialState: ->
         table.deck = this.shuffle(this.generateSortedDeck())
+        [firstTurn, players] = this.dealHand(Math.floor(Math.random()*table.players.length))
         community: "Preflop"
         communityCards:
             flop: [null, null, null]
             turn: null
             river: null
-        players: this.dealHand(Math.floor(Math.random()*table.players.length))
-        turn: null
+        players: players
+        turn: firstTurn
+        bid: table.rules.bigBlind
+        pot: table.rules.bigBlind + table.rules.smallBlind
         hand: 1
     render: ->
       <div>
-        <CommunityCards cards={this.state.communityCards}
-                        communityState={this.state.community}/>
+        <TableInfo cards={this.state.communityCards}
+                   communityState={this.state.community}
+                   bid={this.state.bid}
+                   pot={this.state.pot}/>
         <Players players={this.state.players} turn={this.state.turn}/>
       </div>
 

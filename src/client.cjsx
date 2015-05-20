@@ -22,7 +22,8 @@ Nav = ReactBootstrap.Nav
 
 CardImage = React.createClass
     render: ->
-      <object data={if !this.props.card then '/images/card_outline.svg' else '/images/' + (
+      <object data={if !this.props.card then '/images/card_outline.svg' else \
+                    if !this.props.handVisible then '/images/card_back.svg' else '/images/' + (
                 if       this.props.card[this.props.card.length-1] == "H" then "Hearts"
                 else (if this.props.card[this.props.card.length-1] == "S" then "Spades"
                 else (if this.props.card[this.props.card.length-1] == "C" then "Clubs"
@@ -36,20 +37,17 @@ CardImage = React.createClass
 
 Hand = React.createClass
     render: ->
+      handVisible = this.props.handVisible
       <div id="card-container">
         {this.props.hand.map((card, i, _) ->
           <div id={"card-" + (if i == 0 then "left" else "right")}>
-            <CardImage card={card}/>
+            <CardImage card={card} handVisible={handVisible}/>
           </div>)}
       </div>
 
 WagerActions = React.createClass
-    onFold: ->
-        sendMessage(
-            action: "fold"
-            data: {})
     render: ->
-      buttonsDisabled = this.props.turn != client.name
+      buttonsDisabled = this.props.turn != client.name or this.props.folded
       <ButtonGroup className="btn-group-vertical">
         <Button bsStyle="primary" bsSize="large" disabled={buttonsDisabled}>Call</Button>
         <DropdownButton bsStyle="warning" bsSize="large"
@@ -62,8 +60,11 @@ WagerActions = React.createClass
           <MenuItem eventKey="4">Enter</MenuItem>
         </DropdownButton>
         <Button bsStyle="danger" bsSize="large"
-                onClick={this.onFold} disabled={buttonsDisabled}>Fold</Button>
-        <Button bsStyle="default" bsSize="large">Show/Hide Cards</Button>
+                onClick={this.props.onFold} disabled={buttonsDisabled}>Fold</Button>
+        <Button bsStyle="default" bsSize="large"
+                onClick={this.props.toggleCards}>
+          {if this.props.handVisible then "Hide Cards" else "Show Cards"}
+        </Button>
       </ButtonGroup>
 
 Pot = React.createClass
@@ -82,18 +83,10 @@ Turn = React.createClass
       </div>
 
 GameNavigation = React.createClass
-    handleSelect: (key) ->
-        if key == 2
-            client.setState('help', {})
-        if client.state == 'help' and key != 2
-            client.setState(client.prevState)
     render: ->
-      <Navbar className="navbar">
-        <Nav onSelect={this.handleSelect}>
-          <NavItem href="#"
-                   eventkey={1}>Texas Holdem</NavItem>
-          <NavItem href="../poker/help.html"
-                   eventKey={2}>Help</NavItem>
+      <Navbar className="navbar" brand="Texas Holdem">
+        <Nav>
+          {if client.name then <NavItem href="#">{"You are: " + client.name}</NavItem>}
         </Nav>
      </Navbar>
 
@@ -214,7 +207,8 @@ WaitingForPlayersState = React.createClass
           <Row>
             <Col xs={4} md={4} lg={4}
                  xsoffset={8} mdoffset={8} lgoffset={8}>
-              <h3>Waiting for additional players or for the host to start the game!</h3>
+              <h3>Waiting for additional players or
+                  for the host to start the game!</h3>
             </Col>
           </Row>
         </Grid>
@@ -227,8 +221,18 @@ MainState = React.createClass
                 this.setState(msg.data)
             when "turn"
                 this.setState(msg.data)
+    onFold: ->
+        this.setState(folded: true)
+        sendMessage(
+            action: "fold"
+            data: {})
+
+    toggleCards: ->
+        this.setState(handVisible: !this.state.handVisible)
     getInitialState: ->
         hand: [null, null]
+        handVisible: false
+        folded: false
         remaining: this.props.initialRemaining
         turn: null
     render: ->
@@ -237,14 +241,21 @@ MainState = React.createClass
         <Grid id="game-grid">
           <Row id="row-game-main" className="row-centered">
             <Col xs={8} md={8} lg={6}>
-              { if this.state.hand then <Hand hand={this.state.hand}/> else null }
+              { if this.state.folded then <h3>"You have folded"</h3> else \
+                if this.state.hand then \
+                  <Hand hand={this.state.hand}
+                        handVisible={this.state.handVisible}/> else null }
             </Col>
             <Col xs={3} md={3} lg={3}
                  xsoffset={2} mdoffset={3} lgoffset={4}>
               <Row>
                 <Turn turn={this.state.turn}/>
                 <h3>Remaining <Label>${this.state.remaining}</Label></h3>
-                <WagerActions turn={this.state.turn}/>
+                <WagerActions turn={this.state.turn}
+                              toggleCards={this.toggleCards}
+                              onFold={this.onFold}
+                              folded={this.state.folded}
+                              handVisible={this.state.handVisible}/>
               </Row>
             </Col>
           </Row>

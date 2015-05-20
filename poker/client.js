@@ -38,7 +38,7 @@ Nav = ReactBootstrap.Nav;
 CardImage = React.createClass({
   render: function() {
     return React.createElement("object", {
-      "data": (!this.props.card ? '/images/card_outline.svg' : '/images/' + (this.props.card[this.props.card.length - 1] === "H" ? "Hearts" : (this.props.card[this.props.card.length - 1] === "S" ? "Spades" : (this.props.card[this.props.card.length - 1] === "C" ? "Clubs" : (this.props.card[this.props.card.length - 1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg'),
+      "data": (!this.props.card ? '/images/card_outline.svg' : !this.props.handVisible ? '/images/card_back.svg' : '/images/' + (this.props.card[this.props.card.length - 1] === "H" ? "Hearts" : (this.props.card[this.props.card.length - 1] === "S" ? "Spades" : (this.props.card[this.props.card.length - 1] === "C" ? "Clubs" : (this.props.card[this.props.card.length - 1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg'),
       "type": "image/svg+xml",
       "width": "290",
       "className": this.props.className
@@ -48,28 +48,25 @@ CardImage = React.createClass({
 
 Hand = React.createClass({
   render: function() {
+    var handVisible;
+    handVisible = this.props.handVisible;
     return React.createElement("div", {
       "id": "card-container"
     }, this.props.hand.map(function(card, i, _) {
       return React.createElement("div", {
         "id": "card-" + (i === 0 ? "left" : "right")
       }, React.createElement(CardImage, {
-        "card": card
+        "card": card,
+        "handVisible": handVisible
       }));
     }));
   }
 });
 
 WagerActions = React.createClass({
-  onFold: function() {
-    return sendMessage({
-      action: "fold",
-      data: {}
-    });
-  },
   render: function() {
     var buttonsDisabled;
-    buttonsDisabled = this.props.turn !== client.name;
+    buttonsDisabled = this.props.turn !== client.name || this.props.folded;
     return React.createElement(ButtonGroup, {
       "className": "btn-group-vertical"
     }, React.createElement(Button, {
@@ -96,12 +93,13 @@ WagerActions = React.createClass({
     }, "Enter")), React.createElement(Button, {
       "bsStyle": "danger",
       "bsSize": "large",
-      "onClick": this.onFold,
+      "onClick": this.props.onFold,
       "disabled": buttonsDisabled
     }, "Fold"), React.createElement(Button, {
       "bsStyle": "default",
-      "bsSize": "large"
-    }, "Show\x2FHide Cards"));
+      "bsSize": "large",
+      "onClick": this.props.toggleCards
+    }, (this.props.handVisible ? "Hide Cards" : "Show Cards")));
   }
 });
 
@@ -124,26 +122,13 @@ Turn = React.createClass({
 });
 
 GameNavigation = React.createClass({
-  handleSelect: function(key) {
-    if (key === 2) {
-      client.setState('help', {});
-    }
-    if (client.state === 'help' && key !== 2) {
-      return client.setState(client.prevState);
-    }
-  },
   render: function() {
     return React.createElement(Navbar, {
-      "className": "navbar"
-    }, React.createElement(Nav, {
-      "onSelect": this.handleSelect
-    }, React.createElement(NavItem, {
-      "href": "#",
-      "eventkey": 1.
-    }, "Texas Holdem"), React.createElement(NavItem, {
-      "href": "../poker/help.html",
-      "eventKey": 2.
-    }, "Help")));
+      "className": "navbar",
+      "brand": "Texas Holdem"
+    }, React.createElement(Nav, null, (client.name ? React.createElement(NavItem, {
+      "href": "#"
+    }, "You are: " + client.name) : void 0)));
   }
 });
 
@@ -301,7 +286,7 @@ WaitingForPlayersState = React.createClass({
       "xsoffset": 8.,
       "mdoffset": 8.,
       "lgoffset": 8.
-    }, React.createElement("h3", null, "Waiting for additional players or for the host to start the game!")))));
+    }, React.createElement("h3", null, "Waiting for additional players or\nfor the host to start the game!")))));
   }
 });
 
@@ -314,9 +299,25 @@ MainState = React.createClass({
         return this.setState(msg.data);
     }
   },
+  onFold: function() {
+    this.setState({
+      folded: true
+    });
+    return sendMessage({
+      action: "fold",
+      data: {}
+    });
+  },
+  toggleCards: function() {
+    return this.setState({
+      handVisible: !this.state.handVisible
+    });
+  },
   getInitialState: function() {
     return {
       hand: [null, null],
+      handVisible: false,
+      folded: false,
       remaining: this.props.initialRemaining,
       turn: null
     };
@@ -331,8 +332,9 @@ MainState = React.createClass({
       "xs": 8.,
       "md": 8.,
       "lg": 6.
-    }, (this.state.hand ? React.createElement(Hand, {
-      "hand": this.state.hand
+    }, (this.state.folded ? React.createElement("h3", null, "\"You have folded\"") : this.state.hand ? React.createElement(Hand, {
+      "hand": this.state.hand,
+      "handVisible": this.state.handVisible
     }) : null)), React.createElement(Col, {
       "xs": 3.,
       "md": 3.,
@@ -343,7 +345,11 @@ MainState = React.createClass({
     }, React.createElement(Row, null, React.createElement(Turn, {
       "turn": this.state.turn
     }), React.createElement("h3", null, "Remaining ", React.createElement(Label, null, "$", this.state.remaining)), React.createElement(WagerActions, {
-      "turn": this.state.turn
+      "turn": this.state.turn,
+      "toggleCards": this.toggleCards,
+      "onFold": this.onFold,
+      "folded": this.state.folded,
+      "handVisible": this.state.handVisible
     }))))));
   }
 });

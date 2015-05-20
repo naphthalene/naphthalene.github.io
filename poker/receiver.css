@@ -38,10 +38,11 @@ h3 {
 }
 .player-turn {
   background: rgba(255, 100, 100, 0.4);
-  color: #ffff77;
+  color: #ffff00 !important;
 }
 .panel-transparent .panel-body {
   background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 .panel-transparent p {
   color: #ffffff;
