@@ -71,9 +71,11 @@ TableInfo = React.createClass({
       "card": this.props.cards.river
     }))), React.createElement("ul", {
       "className": "list-inline"
-    }, React.createElement("li", null, "\"Current bid: \"", React.createElement(Label, {
+    }, React.createElement("li", null, "Current bid: ", React.createElement(Label, {
       "bsStyle": "danger"
-    }, "$" + this.props.bid)), React.createElement("li", null, "\"Total pot: \"\x3CLabel bsStyle=\"success\"\x3E", "$" + this.props.pot, "\x3CLabel\x3E"))));
+    }, "$" + this.props.bid)), React.createElement("li", null, "Total pot: ", React.createElement(Label, {
+      "bsStyle": "success"
+    }, "$" + this.props.pot)))));
   }
 });
 

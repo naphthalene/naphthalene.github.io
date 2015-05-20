@@ -48,8 +48,8 @@ TableInfo = React.createClass
             <li><CardImage card={this.props.cards.river}/></li>
           </ul>
           <ul className="list-inline">
-            <li>"Current bid: "<Label bsStyle="danger">{"$"+this.props.bid}</Label></li>
-            <li>"Total pot: "<Label bsStyle="success">{"$"+this.props.pot}<Label></li>
+            <li>Current bid: <Label bsStyle="danger">{"$"+this.props.bid}</Label></li>
+            <li>Total pot: <Label bsStyle="success">{"$"+this.props.pot}</Label></li>
           </ul>
         </Panel>
       </div>
