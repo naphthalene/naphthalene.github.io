@@ -156,6 +156,26 @@ WaitingForPlayers = React.createClass({
 });
 
 MainState = React.createClass({
+  foldPlayer: function(sender) {
+    var pi;
+    pi = this.state.players.findIndex(function(e, i, a) {
+      return e.id === sender;
+    });
+    return this.setState(function(s) {
+      s.players[pi].fold = true;
+      return {
+        players: s.players
+      };
+    });
+  },
+  handleMessage: function(tbl, sender, msg) {
+    switch (msg.action) {
+      case "fold":
+        return this.foldPlayer(sender);
+      default:
+        return console.error("Unknown message received");
+    }
+  },
   generateSortedDeck: function() {
     var allCards, c, cards, j, k, len, len1, s, suits;
     suits = ["H", "D", "S", "C"];

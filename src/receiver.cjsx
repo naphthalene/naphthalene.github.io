@@ -123,12 +123,20 @@ WaitingForPlayers = React.createClass
       </div>
 
 MainState = React.createClass
-    # handleMessage: (tbl, sender, msg) ->
-    #     switch msg.action
-    #         when "fold"
-    #             this.foldPlayer(sender)
-    #         when "call"
-    #             this.callPlayer(sender)
+    foldPlayer: (sender) ->
+        pi = this.state.players.findIndex((e, i, a) -> e.id == sender)
+        this.setState((s) ->
+            s.players[pi].fold = true
+            players: s.players
+        )
+        # player.fold = true
+        # this.setState()
+    handleMessage: (tbl, sender, msg) ->
+        switch msg.action
+            when "fold"
+                this.foldPlayer(sender)
+            else
+                console.error("Unknown message received")
     generateSortedDeck: ->
         suits = ["H", "D", "S", "C"]
         cards = ["2", "3", "4", "5", "6", "7", "8",

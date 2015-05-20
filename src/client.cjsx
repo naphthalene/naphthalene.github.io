@@ -44,6 +44,10 @@ Hand = React.createClass
       </div>
 
 WagerActions = React.createClass
+    onFold: ->
+        sendMessage(
+            action: "fold"
+            data: {})
     render: ->
       <ButtonGroup className="btn-group-vertical">
         <Button bsStyle="primary" bsSize="large">Call</Button>
@@ -55,7 +59,7 @@ WagerActions = React.createClass
           <MenuItem divider />
           <MenuItem eventKey="4">Enter</MenuItem>
         </DropdownButton>
-        <Button bsStyle="danger" bsSize="large">Fold</Button>
+        <Button bsStyle="danger" bsSize="large" onClick={this.onFold}>Fold</Button>
         <Button bsStyle="default" bsSize="large">Show/Hide Cards</Button>
       </ButtonGroup>
 

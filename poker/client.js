@@ -61,6 +61,12 @@ Hand = React.createClass({
 });
 
 WagerActions = React.createClass({
+  onFold: function() {
+    return sendMessage({
+      action: "fold",
+      data: {}
+    });
+  },
   render: function() {
     return React.createElement(ButtonGroup, {
       "className": "btn-group-vertical"
@@ -85,7 +91,8 @@ WagerActions = React.createClass({
       "eventKey": "4"
     }, "Enter")), React.createElement(Button, {
       "bsStyle": "danger",
-      "bsSize": "large"
+      "bsSize": "large",
+      "onClick": this.onFold
     }, "Fold"), React.createElement(Button, {
       "bsStyle": "default",
       "bsSize": "large"
