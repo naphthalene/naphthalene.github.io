@@ -48,8 +48,8 @@ TableInfo = React.createClass
             <li><CardImage card={this.props.cards.river}/></li>
           </ul>
           <ul className="list-inline">
-            <li>{"Current bid: $" + this.props.bid}</li>
-            <li>{"Total pot: $" + this.props.pot}</li>
+            <li>"Current bid: "<Label bsStyle="danger">{"$"+this.props.bid}</Label></li>
+            <li>"Total pot: "<Label bsStyle="success">{"$"+this.props.pot}<Label></li>
           </ul>
         </Panel>
       </div>
@@ -94,7 +94,7 @@ Players = React.createClass
                               style={style}
                               header={hdr}>
                          {if !this.props.players[i].fold \
-                          then <p>{"Bet: $" + this.props.players[i].bet}</p> \
+                          then <p>{"Bid: $" + this.props.players[i].bid}</p> \
                           else <p>FOLD</p>}
                        </Panel>)
             i += 1
@@ -179,16 +179,16 @@ MainState = React.createClass
         i = 0
         players = []
         for p in table.players
-            bet = if smallBlind == i then table.rules.smallBlind else \
-                 if bigBlind == i then table.rules.bigBlind else 0
+            bid = if smallBlind == i then table.rules.smallBlind else \
+                  if bigBlind == i then table.rules.bigBlind else 0
             player =
                 id: p.id
                 name: p.name
                 dealer: if dealer == i then true else false
                 blind: if smallBlind == i then "S" else \
                        if bigBlind == i then "B" else "N"
-                bet: bet
-                remaining: table.rules.buyIn - bet
+                bid: bid
+                remaining: table.rules.buyIn - bid
                 fold: false
                 hand: [table.deck.shift(), table.deck.shift()]
             players.push(player)

@@ -47,7 +47,7 @@ Hand = React.createClass
 
 WagerActions = React.createClass
     render: ->
-      buttonsDisabled = this.props.turn != client.name or this.props.folded
+      buttonsDisabled = this.props.turn != client.name or this.props.fold
       <ButtonGroup className="btn-group-vertical">
         <Button bsStyle="primary" bsSize="large" disabled={buttonsDisabled}>Call</Button>
         <DropdownButton bsStyle="warning" bsSize="large"
@@ -79,6 +79,15 @@ Turn = React.createClass
         <h3>Turn: <Label bsStyle={if this.props.turn == client.name\
                                   then "success" else "default"}>
             {this.props.turn}</Label>
+        </h3>
+      </div>
+Bid = React.createClass
+    render: ->
+      <div className="bid-indicator">
+        <h3>My Bid: <Label bsStyle={if this.props.fold then "default" \
+                                    else "warning"}>
+            {if this.props.fold then "Fold" else this.props.bid}
+          </Label>
         </h3>
       </div>
 
@@ -222,17 +231,20 @@ MainState = React.createClass
             when "turn"
                 this.setState(msg.data)
     onFold: ->
-        this.setState(folded: true)
+        this.setState(fold: true)
         sendMessage(
             action: "fold"
             data: {})
-
+    onCall: ->
+        # Confirm theres enough funds
+        this.setState()
     toggleCards: ->
         this.setState(handVisible: !this.state.handVisible)
     getInitialState: ->
         hand: [null, null]
         handVisible: false
-        folded: false
+        fold: false
+        bid: 0
         remaining: this.props.initialRemaining
         turn: null
     render: ->
@@ -241,7 +253,7 @@ MainState = React.createClass
         <Grid id="game-grid">
           <Row id="row-game-main" className="row-centered">
             <Col xs={8} md={8} lg={6}>
-              { if this.state.folded then <h3>"You have folded"</h3> else \
+              { if this.state.fold then <h3>You have folded</h3> else \
                 if this.state.hand then \
                   <Hand hand={this.state.hand}
                         handVisible={this.state.handVisible}/> else null }
@@ -250,11 +262,12 @@ MainState = React.createClass
                  xsoffset={2} mdoffset={3} lgoffset={4}>
               <Row>
                 <Turn turn={this.state.turn}/>
+                <Bid fold={this.state.fold} bid={this.state.bid}/>
                 <h3>Remaining <Label>${this.state.remaining}</Label></h3>
                 <WagerActions turn={this.state.turn}
                               toggleCards={this.toggleCards}
                               onFold={this.onFold}
-                              folded={this.state.folded}
+                              fold={this.state.fold}
                               handVisible={this.state.handVisible}/>
               </Row>
             </Col>

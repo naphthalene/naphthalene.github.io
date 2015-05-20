@@ -71,7 +71,9 @@ TableInfo = React.createClass({
       "card": this.props.cards.river
     }))), React.createElement("ul", {
       "className": "list-inline"
-    }, React.createElement("li", null, "Current bid: $" + this.props.bid), React.createElement("li", null, "Total pot: $" + this.props.pot))));
+    }, React.createElement("li", null, "\"Current bid: \"", React.createElement(Label, {
+      "bsStyle": "danger"
+    }, "$" + this.props.bid)), React.createElement("li", null, "\"Total pot: \"\x3CLabel bsStyle=\"success\"\x3E", "$" + this.props.pot, "\x3CLabel\x3E"))));
   }
 });
 
@@ -114,7 +116,7 @@ Players = React.createClass({
         "className": "semicircle panel-transparent " + (this.props.turn === p.name ? "player-turn" : ""),
         "style": style,
         "header": hdr
-      }, (!this.props.players[i].fold ? React.createElement("p", null, "Bet: $" + this.props.players[i].bet) : React.createElement("p", null, "FOLD"))));
+      }, (!this.props.players[i].fold ? React.createElement("p", null, "Bid: $" + this.props.players[i].bid) : React.createElement("p", null, "FOLD"))));
       i += 1;
     }
     return React.createElement("div", {
@@ -218,7 +220,7 @@ MainState = React.createClass({
     return cards;
   },
   dealHand: function(dealer) {
-    var bet, bigBlind, e, firstTurn, i, j, len, p, player, players, ref, smallBlind;
+    var bid, bigBlind, e, firstTurn, i, j, len, p, player, players, ref, smallBlind;
     smallBlind = (dealer + 1) % table.players.length;
     bigBlind = (smallBlind + 1) % table.players.length;
     i = 0;
@@ -226,14 +228,14 @@ MainState = React.createClass({
     ref = table.players;
     for (j = 0, len = ref.length; j < len; j++) {
       p = ref[j];
-      bet = smallBlind === i ? table.rules.smallBlind : bigBlind === i ? table.rules.bigBlind : 0;
+      bid = smallBlind === i ? table.rules.smallBlind : bigBlind === i ? table.rules.bigBlind : 0;
       player = {
         id: p.id,
         name: p.name,
         dealer: dealer === i ? true : false,
         blind: smallBlind === i ? "S" : bigBlind === i ? "B" : "N",
-        bet: bet,
-        remaining: table.rules.buyIn - bet,
+        bid: bid,
+        remaining: table.rules.buyIn - bid,
         fold: false,
         hand: [table.deck.shift(), table.deck.shift()]
       };
