@@ -162,7 +162,7 @@ WaitingForPlayers = React.createClass({
 
 MainState = React.createClass({
   nextPlayersTurnOrEndHand: function(currentPlayerIndex) {
-    var biddingOver, e, foundNextPlayer, nextActivePlayer;
+    var biddingOver, e, foundNextPlayer, nextActivePlayer, numActivePlayers;
     try {
       nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
       foundNextPlayer = false;
@@ -176,7 +176,7 @@ MainState = React.createClass({
         nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
       }
       if (foundNextPlayer) {
-        if (this.state.players.map(function(p) {
+        numActivePlayers = this.state.players.map(function(p) {
           return !p.fold;
         }).reduce((function(acc, c, i, a) {
           if (c) {
@@ -184,7 +184,9 @@ MainState = React.createClass({
           } else {
             return acc;
           }
-        }), 0) > 1) {
+        }), 0);
+        console.log("Number of active players: " + numActivePlayers);
+        if (numActivePlayers > 1) {
           this.setState({
             turn: this.state.players[nextActivePlayer].name
           });
