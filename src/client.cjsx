@@ -86,7 +86,7 @@ Bid = React.createClass
       <div className="bid-indicator">
         <h3>My Bid: <Label bsStyle={if this.props.fold then "default" \
                                     else "warning"}>
-            {if this.props.fold then "Fold" else this.props.bid}
+            {if this.props.fold then "Fold" else "$"+this.props.bid}
           </Label>
         </h3>
       </div>
@@ -130,15 +130,6 @@ UsernameInput = React.createClass
          <Button bsStyle="primary" bsSize="large" onClick={this.onSubmit}>Join Table</Button>
        </Panel>
 
-PlayerOverview = React.createClass
-    render: ->
-       <Panel header="Connected players">
-         <ListGroup>
-           {this.props.players.map((name) ->
-              <ListGroupItem key={name}>{name}</ListGroupItem>)}
-         </ListGroup>
-       </Panel>
-
 
 # STATES
 
@@ -168,9 +159,6 @@ JoinedState = React.createClass
             <Col xs={4} md={4} lg={4}
                  xsoffset={8} mdoffset={8} lgoffset={8}>
               <UsernameInput />
-            </Col>
-            <Col xs={4} md={4} lg={4}>
-              <PlayerOverview players={this.props.players}/>
             </Col>
           </Row>
         </Grid>

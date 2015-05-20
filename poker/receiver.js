@@ -76,7 +76,7 @@ TableInfo = React.createClass({
     }, "#" + this.props.hand)), React.createElement("li", null, "Current bid: ", React.createElement(Label, {
       "bsStyle": "danger"
     }, "$" + this.props.bid)), React.createElement("li", null, "Total pot: ", React.createElement(Label, {
-      "bsStyle": "success"
+      "bsStyle": "info"
     }, "$" + this.props.pot)))));
   }
 });

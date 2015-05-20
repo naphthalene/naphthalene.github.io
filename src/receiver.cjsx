@@ -50,7 +50,7 @@ TableInfo = React.createClass
           <ul className="list-inline">
             <li>Hand <Label bsStyle="default">{"#"+this.props.hand}</Label></li>
             <li>Current bid: <Label bsStyle="danger">{"$"+this.props.bid}</Label></li>
-            <li>Total pot: <Label bsStyle="success">{"$"+this.props.pot}</Label></li>
+            <li>Total pot: <Label bsStyle="info">{"$"+this.props.pot}</Label></li>
           </ul>
         </Panel>
       </div>
@@ -189,7 +189,7 @@ MainState = React.createClass
                 blind: if smallBlind == i then "S" else \
                        if bigBlind == i then "B" else "N"
                 bid: bid
-                remaining: table.rules.buyIn - bid
+                remaining: table.rules.buyIn - bid # REVIEW
                 fold: false
                 hand: [table.deck.shift(), table.deck.shift()]
             players.push(player)
