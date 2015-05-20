@@ -49,11 +49,11 @@ WagerActions = React.createClass
             action: "fold"
             data: {})
     render: ->
-      myTurn = this.props.turn == client.name
+      buttonsDisabled = this.props.turn != client.name
       <ButtonGroup className="btn-group-vertical">
-        <Button bsStyle="primary" bsSize="large" active={myTurn}>Call</Button>
+        <Button bsStyle="primary" bsSize="large" disabled={buttonsDisabled}>Call</Button>
         <DropdownButton bsStyle="warning" bsSize="large"
-                        title="Raise..." active={myTurn}>
+                        title="Raise..." disabled={buttonsDisabled}>
           <MenuItem eventKey="1">$5</MenuItem>
           <MenuItem eventKey="2">$10</MenuItem>
           <MenuItem eventKey="3">$25</MenuItem>
@@ -62,7 +62,7 @@ WagerActions = React.createClass
           <MenuItem eventKey="4">Enter</MenuItem>
         </DropdownButton>
         <Button bsStyle="danger" bsSize="large"
-                onClick={this.onFold} active={myTurn}>Fold</Button>
+                onClick={this.onFold} disabled={buttonsDisabled}>Fold</Button>
         <Button bsStyle="default" bsSize="large">Show/Hide Cards</Button>
       </ButtonGroup>
 

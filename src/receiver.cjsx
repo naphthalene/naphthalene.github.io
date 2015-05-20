@@ -85,13 +85,17 @@ Players = React.createClass
             hdr = p.name + (if p.dealer then " - Dealer" else \
                 if p.blind == "S" then " - Small Blind" else \
                 if p.blind == "B" then " - Big Blind" else "")
-            spans.push(<Panel key={i} className="semicircle panel-transparent"
+            spans.push(<Panel key={i}
+                              className={"semicircle panel-transparent " + \
+                                         (if this.props.turn == p.name then "player-turn" else "")}
                               style={style}
                               header={hdr}>
-                         {if !p.fold then <p>{"HAND " + p.bet}</p> else <p>FOLD</p>}
+                         {if !this.props.players[i].fold \
+                          then <p>{"Bet: " + this.props.players[i].bet}</p> \
+                          else <p>FOLD</p>}
                        </Panel>)
             i += 1
-        <div>{spans}</div>
+        <div id="player-display">{spans}</div>
 
 
 # STATES
@@ -125,9 +129,13 @@ WaitingForPlayers = React.createClass
 MainState = React.createClass
     foldPlayer: (sender) ->
         pi = this.state.players.findIndex((e, i, a) -> e.id == sender)
-        this.setState((s) ->
-            s.players[pi].fold = true
-            players: s.players
+        this.setState((prev, curr) ->
+            p = prev.players[pi]
+            p.fold = true
+            console.log(p.name + " has folded their hand")
+            players = prev.players
+            players[pi] = p
+            players: players
         )
         # player.fold = true
         # this.setState()
@@ -180,10 +188,12 @@ MainState = React.createClass
                 status: "deal"
                 data: player))
             i++
+        firstTurn = players[(bigBlind + 1) % players.length].name
+        this.setState(turn: firstTurn)
         window.messageBus.broadcast(JSON.stringify(
             status: "turn"
             data:
-                turn: players[(bigBlind + 1) % players.length].name))
+                turn: firstTurn))
         players
 
     getInitialState: ->
@@ -194,13 +204,13 @@ MainState = React.createClass
             turn: null
             river: null
         players: this.dealHand(Math.floor(Math.random()*table.players.length))
-        deck: table.deck ## REVIEW
+        turn: null
         hand: 1
     render: ->
       <div>
         <CommunityCards cards={this.state.communityCards}
                         communityState={this.state.community}/>
-        <Players players={this.state.players}/>
+        <Players players={this.state.players} turn={this.state.turn}/>
       </div>
 
 table =
@@ -266,7 +276,7 @@ table =
     setState: (state_name, state_data) ->
         if this.state == state_name and this.container != null
             displayText("Updating state: " + state_data)
-            this.container.setProps(state_data)
+            this.container.setProps(state_data) # REVIEW
         else
             displayText("Setting state to: " + state_name)
             this.prevState = this.state

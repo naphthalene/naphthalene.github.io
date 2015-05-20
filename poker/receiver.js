@@ -107,13 +107,15 @@ Players = React.createClass({
       hdr = p.name + (p.dealer ? " - Dealer" : p.blind === "S" ? " - Small Blind" : p.blind === "B" ? " - Big Blind" : "");
       spans.push(React.createElement(Panel, {
         "key": i,
-        "className": "semicircle panel-transparent",
+        "className": "semicircle panel-transparent " + (this.props.turn === p.name ? "player-turn" : ""),
         "style": style,
         "header": hdr
-      }, (!p.fold ? React.createElement("p", null, "HAND " + p.bet) : React.createElement("p", null, "FOLD"))));
+      }, (!this.props.players[i].fold ? React.createElement("p", null, "Bet: " + this.props.players[i].bet) : React.createElement("p", null, "FOLD"))));
       i += 1;
     }
-    return React.createElement("div", null, spans);
+    return React.createElement("div", {
+      "id": "player-display"
+    }, spans);
   }
 });
 
@@ -161,10 +163,15 @@ MainState = React.createClass({
     pi = this.state.players.findIndex(function(e, i, a) {
       return e.id === sender;
     });
-    return this.setState(function(s) {
-      s.players[pi].fold = true;
+    return this.setState(function(prev, curr) {
+      var p, players;
+      p = prev.players[pi];
+      p.fold = true;
+      console.log(p.name + " has folded their hand");
+      players = prev.players;
+      players[pi] = p;
       return {
-        players: s.players
+        players: players
       };
     });
   },
@@ -203,7 +210,7 @@ MainState = React.createClass({
     return cards;
   },
   dealHand: function(dealer) {
-    var bet, bigBlind, i, j, len, p, player, players, ref, smallBlind;
+    var bet, bigBlind, firstTurn, i, j, len, p, player, players, ref, smallBlind;
     smallBlind = (dealer + 1) % table.players.length;
     bigBlind = (smallBlind + 1) % table.players.length;
     i = 0;
@@ -229,10 +236,14 @@ MainState = React.createClass({
       }));
       i++;
     }
+    firstTurn = players[(bigBlind + 1) % players.length].name;
+    this.setState({
+      turn: firstTurn
+    });
     window.messageBus.broadcast(JSON.stringify({
       status: "turn",
       data: {
-        turn: players[(bigBlind + 1) % players.length].name
+        turn: firstTurn
       }
     }));
     return players;
@@ -247,7 +258,7 @@ MainState = React.createClass({
         river: null
       },
       players: this.dealHand(Math.floor(Math.random() * table.players.length)),
-      deck: table.deck,
+      turn: null,
       hand: 1
     };
   },
@@ -256,7 +267,8 @@ MainState = React.createClass({
       "cards": this.state.communityCards,
       "communityState": this.state.community
     }), React.createElement(Players, {
-      "players": this.state.players
+      "players": this.state.players,
+      "turn": this.state.turn
     }));
   }
 });

@@ -68,19 +68,19 @@ WagerActions = React.createClass({
     });
   },
   render: function() {
-    var myTurn;
-    myTurn = this.props.turn === client.name;
+    var buttonsDisabled;
+    buttonsDisabled = this.props.turn !== client.name;
     return React.createElement(ButtonGroup, {
       "className": "btn-group-vertical"
     }, React.createElement(Button, {
       "bsStyle": "primary",
       "bsSize": "large",
-      "active": myTurn
+      "disabled": buttonsDisabled
     }, "Call"), React.createElement(DropdownButton, {
       "bsStyle": "warning",
       "bsSize": "large",
       "title": "Raise...",
-      "active": myTurn
+      "disabled": buttonsDisabled
     }, React.createElement(MenuItem, {
       "eventKey": "1"
     }, "$5"), React.createElement(MenuItem, {
@@ -97,7 +97,7 @@ WagerActions = React.createClass({
       "bsStyle": "danger",
       "bsSize": "large",
       "onClick": this.onFold,
-      "active": myTurn
+      "disabled": buttonsDisabled
     }, "Fold"), React.createElement(Button, {
       "bsStyle": "default",
       "bsSize": "large"
