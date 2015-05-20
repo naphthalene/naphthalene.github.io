@@ -91,7 +91,7 @@ Players = React.createClass
                               style={style}
                               header={hdr}>
                          {if !this.props.players[i].fold \
-                          then <p>{"Bet: " + this.props.players[i].bet}</p> \
+                          then <p>{"Bet: $" + this.props.players[i].bet}</p> \
                           else <p>FOLD</p>}
                        </Panel>)
             i += 1

@@ -110,7 +110,7 @@ Players = React.createClass({
         "className": "semicircle panel-transparent " + (this.props.turn === p.name ? "player-turn" : ""),
         "style": style,
         "header": hdr
-      }, (!this.props.players[i].fold ? React.createElement("p", null, "Bet: " + this.props.players[i].bet) : React.createElement("p", null, "FOLD"))));
+      }, (!this.props.players[i].fold ? React.createElement("p", null, "Bet: $" + this.props.players[i].bet) : React.createElement("p", null, "FOLD"))));
       i += 1;
     }
     return React.createElement("div", {
