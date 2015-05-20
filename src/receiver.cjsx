@@ -131,18 +131,14 @@ MainState = React.createClass
         try
             pi = this.state.players.map((e) -> e.id).indexOf(sender)
             console.log("Player " + this.state.players[pi].name + " is trying to fold")
-            this.setState((prev, curr) ->
-                p = prev.players[pi]
-                p.fold = true
-                console.log(p.name + " has folded their hand")
-                players = prev.players
-                players[pi] = p
-                players: players
-            )
+            players = this.state.players
+            p = players[pi]
+            p.fold = true
+            console.log(p.name + " has folded their hand")
+            players[pi] = p
+            this.setState(players: players)
         catch e
             console.error(e)
-        # player.fold = true
-        # this.setState()
     handleMessage: (tbl, sender, msg) ->
         switch msg.action
             when "fold"

@@ -159,22 +159,19 @@ WaitingForPlayers = React.createClass({
 
 MainState = React.createClass({
   foldPlayer: function(sender) {
-    var e, pi;
+    var e, p, pi, players;
     try {
       pi = this.state.players.map(function(e) {
         return e.id;
       }).indexOf(sender);
       console.log("Player " + this.state.players[pi].name + " is trying to fold");
-      return this.setState(function(prev, curr) {
-        var p, players;
-        p = prev.players[pi];
-        p.fold = true;
-        console.log(p.name + " has folded their hand");
-        players = prev.players;
-        players[pi] = p;
-        return {
-          players: players
-        };
+      players = this.state.players;
+      p = players[pi];
+      p.fold = true;
+      console.log(p.name + " has folded their hand");
+      players[pi] = p;
+      return this.setState({
+        players: players
       });
     } catch (_error) {
       e = _error;
