@@ -129,6 +129,7 @@ WaitingForPlayers = React.createClass
 MainState = React.createClass
     foldPlayer: (sender) ->
         pi = this.state.players.findIndex((e, i, a) -> e.id == sender)
+        console.log("Player " + this.state.players[pi].name " is trying to fold")
         try
             this.setState((prev, curr) ->
                 p = prev.players[pi]
@@ -145,6 +146,7 @@ MainState = React.createClass
     handleMessage: (tbl, sender, msg) ->
         switch msg.action
             when "fold"
+                console.log("Going to fold " + sender)
                 this.foldPlayer(sender)
             else
                 console.error("Unknown message received")
