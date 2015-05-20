@@ -136,7 +136,14 @@ MainState = React.createClass
             p.fold = true
             console.log(p.name + " has folded their hand")
             players[pi] = p
-            this.setState(players: players)
+            this.setState(
+                players: players
+                turn: players[(pi + 1) % players.length].name
+            )
+            window.messageBus.broadcast(JSON.stringify(
+                status: "turn"
+                data:
+                    turn: this.state.turn))
         catch e
             console.error(e)
     handleMessage: (tbl, sender, msg) ->

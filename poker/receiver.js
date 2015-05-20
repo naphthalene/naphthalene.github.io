@@ -170,9 +170,16 @@ MainState = React.createClass({
       p.fold = true;
       console.log(p.name + " has folded their hand");
       players[pi] = p;
-      return this.setState({
-        players: players
+      this.setState({
+        players: players,
+        turn: players[(pi + 1) % players.length].name
       });
+      return window.messageBus.broadcast(JSON.stringify({
+        status: "turn",
+        data: {
+          turn: this.state.turn
+        }
+      }));
     } catch (_error) {
       e = _error;
       return console.error(e);
