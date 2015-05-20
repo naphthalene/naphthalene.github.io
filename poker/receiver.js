@@ -159,9 +159,12 @@ WaitingForPlayers = React.createClass({
 
 MainState = React.createClass({
   foldPlayer: function(sender) {
-    var e, pi;
+    var e, pi, player;
     try {
-      pi = this.state.players.findIndex(function(e, i, a) {
+      pi = this.state.players.map(function(e) {
+        return e.id;
+      });
+      player = this.state.players.find(function(e, i, a) {
         return e.id === sender;
       });
       console.log("Player " + this.state.players[pi].name(" is trying to fold"));
