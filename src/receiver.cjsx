@@ -128,7 +128,7 @@ WaitingForPlayers = React.createClass
       </div>
 
 MainState = React.createClass
-    nextPlayersTurnOrEndHand: (currentPlayerIndex) ->
+    nextPlayersTurnOrEndHand: (players, currentPlayerIndex) ->
         try
             nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
             foundNextPlayer = false
@@ -159,7 +159,7 @@ MainState = React.createClass
         p = players[pi]
         updateFunc(p)
         players[pi] = p
-        this.nextPlayersTurnOrEndHand(pi)
+        this.nextPlayersTurnOrEndHand(players, pi)
 
     foldPlayer: (sender) ->
         this.playerAction(sender, (p) ->
