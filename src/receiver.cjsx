@@ -141,7 +141,7 @@ MainState = React.createClass
                 nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
             if foundNextPlayer
                 # Check if this is the last player in the hand
-                if this.state.players.map((p) -> p.fold).reduce(
+                if this.state.players.map((p) -> !p.fold).reduce(
                     ((acc, c, i, a) -> if c then acc + 1 else acc), 0) > 1
                     this.setState(
                         turn: this.state.players[nextActivePlayer].name
