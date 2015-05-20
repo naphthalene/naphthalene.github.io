@@ -130,7 +130,6 @@ MainState = React.createClass
     foldPlayer: (sender) ->
         try
             pi = this.state.players.map((e) -> e.id).indexOf(sender)
-            console.log("Player " + this.state.players[pi].name + " is trying to fold")
             players = this.state.players
             p = players[pi]
             p.fold = true
@@ -149,8 +148,9 @@ MainState = React.createClass
     handleMessage: (tbl, sender, msg) ->
         switch msg.action
             when "fold"
-                console.log("Going to fold " + sender)
                 this.foldPlayer(sender)
+            when "raise"
+                this.raisePlayer()
             else
                 console.error("Unknown message received")
     generateSortedDeck: ->

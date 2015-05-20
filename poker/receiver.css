@@ -36,7 +36,8 @@ h3 {
   background: rgba(255, 255, 255, 0.3);
   color: #ffffff;
 }
-.player-turn .panel-heading {
+.panel-transparent .panel-heading .player-turn {
+  background: rgba(255, 100, 100, 0.4);
   color: #ffff77;
 }
 .panel-transparent .panel-body {

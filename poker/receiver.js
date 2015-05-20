@@ -164,7 +164,6 @@ MainState = React.createClass({
       pi = this.state.players.map(function(e) {
         return e.id;
       }).indexOf(sender);
-      console.log("Player " + this.state.players[pi].name + " is trying to fold");
       players = this.state.players;
       p = players[pi];
       p.fold = true;
@@ -188,8 +187,9 @@ MainState = React.createClass({
   handleMessage: function(tbl, sender, msg) {
     switch (msg.action) {
       case "fold":
-        console.log("Going to fold " + sender);
         return this.foldPlayer(sender);
+      case "raise":
+        return this.raisePlayer();
       default:
         return console.error("Unknown message received");
     }
