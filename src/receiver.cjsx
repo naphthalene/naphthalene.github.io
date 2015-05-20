@@ -180,6 +180,10 @@ MainState = React.createClass
                 status: "deal"
                 data: player))
             i++
+        window.messageBus.broadcast(JSON.stringify(
+            status: "turn"
+            data:
+                turn: players[(bigBlind + 1) % players.length].name))
         players
 
     getInitialState: ->

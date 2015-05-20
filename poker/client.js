@@ -68,15 +68,19 @@ WagerActions = React.createClass({
     });
   },
   render: function() {
+    var myTurn;
+    myTurn = this.props.turn === client.name;
     return React.createElement(ButtonGroup, {
       "className": "btn-group-vertical"
     }, React.createElement(Button, {
       "bsStyle": "primary",
-      "bsSize": "large"
+      "bsSize": "large",
+      "active": myTurn
     }, "Call"), React.createElement(DropdownButton, {
       "bsStyle": "warning",
       "bsSize": "large",
-      "title": "Raise..."
+      "title": "Raise...",
+      "active": myTurn
     }, React.createElement(MenuItem, {
       "eventKey": "1"
     }, "$5"), React.createElement(MenuItem, {
@@ -92,7 +96,8 @@ WagerActions = React.createClass({
     }, "Enter")), React.createElement(Button, {
       "bsStyle": "danger",
       "bsSize": "large",
-      "onClick": this.onFold
+      "onClick": this.onFold,
+      "active": myTurn
     }, "Fold"), React.createElement(Button, {
       "bsStyle": "default",
       "bsSize": "large"
@@ -113,8 +118,8 @@ Turn = React.createClass({
     return React.createElement("div", {
       "className": "turn-indicator"
     }, React.createElement("h3", null, "Turn: ", React.createElement(Label, {
-      "bsStyle": "success"
-    }, "Mine")));
+      "bsStyle": (this.props.turn === client.name ? "success" : "default")
+    }, this.props.turn)));
   }
 });
 
@@ -169,6 +174,7 @@ UsernameInput = React.createClass({
       }
     });
     localStorage["username"] = this.state.value;
+    client.name = this.state.value;
     return client.setState("waiting", {});
   },
   render: function() {
@@ -301,14 +307,18 @@ WaitingForPlayersState = React.createClass({
 
 MainState = React.createClass({
   handleMessage: function(cli, msg) {
-    if (msg.status === "deal") {
-      return this.setState(msg.data);
+    switch (msg.status) {
+      case "deal":
+        return this.setState(msg.data);
+      case "turn":
+        return this.setState(msg.data);
     }
   },
   getInitialState: function() {
     return {
       hand: [null, null],
-      remaining: this.props.initialRemaining
+      remaining: this.props.initialRemaining,
+      turn: null
     };
   },
   render: function() {
@@ -330,12 +340,17 @@ MainState = React.createClass({
       "xsoffset": 2.,
       "mdoffset": 3.,
       "lgoffset": 4.
-    }, React.createElement(Row, null, React.createElement(Turn, null), React.createElement("h3", null, "Remaining ", React.createElement(Label, null, "$", this.state.remaining)), React.createElement(WagerActions, null))))));
+    }, React.createElement(Row, null, React.createElement(Turn, {
+      "turn": this.state.turn
+    }), React.createElement("h3", null, "Remaining ", React.createElement(Label, null, "$", this.state.remaining)), React.createElement(WagerActions, {
+      "turn": this.state.turn
+    }))))));
   }
 });
 
 client = {
   state: null,
+  name: null,
   prevState: null,
   container: null,
   state_data: null,

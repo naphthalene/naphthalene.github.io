@@ -229,6 +229,12 @@ MainState = React.createClass({
       }));
       i++;
     }
+    window.messageBus.broadcast(JSON.stringify({
+      status: "turn",
+      data: {
+        turn: players[(bigBlind + 1) % players.length].name
+      }
+    }));
     return players;
   },
   getInitialState: function() {

@@ -49,9 +49,11 @@ WagerActions = React.createClass
             action: "fold"
             data: {})
     render: ->
+      myTurn = this.props.turn == client.name
       <ButtonGroup className="btn-group-vertical">
-        <Button bsStyle="primary" bsSize="large">Call</Button>
-        <DropdownButton bsStyle="warning" bsSize="large" title="Raise...">
+        <Button bsStyle="primary" bsSize="large" active={myTurn}>Call</Button>
+        <DropdownButton bsStyle="warning" bsSize="large"
+                        title="Raise..." active={myTurn}>
           <MenuItem eventKey="1">$5</MenuItem>
           <MenuItem eventKey="2">$10</MenuItem>
           <MenuItem eventKey="3">$25</MenuItem>
@@ -59,7 +61,8 @@ WagerActions = React.createClass
           <MenuItem divider />
           <MenuItem eventKey="4">Enter</MenuItem>
         </DropdownButton>
-        <Button bsStyle="danger" bsSize="large" onClick={this.onFold}>Fold</Button>
+        <Button bsStyle="danger" bsSize="large"
+                onClick={this.onFold} active={myTurn}>Fold</Button>
         <Button bsStyle="default" bsSize="large">Show/Hide Cards</Button>
       </ButtonGroup>
 
@@ -72,7 +75,10 @@ Pot = React.createClass
 Turn = React.createClass
     render: ->
       <div className="turn-indicator">
-        <h3>Turn: <Label bsStyle="success">Mine</Label></h3>
+        <h3>Turn: <Label bsStyle={if this.props.turn == client.name\
+                                  then "success" else "default"}>
+            {this.props.turn}</Label>
+        </h3>
       </div>
 
 GameNavigation = React.createClass
@@ -109,6 +115,7 @@ UsernameInput = React.createClass
             data:
                 name: this.state.value)
         localStorage["username"] = this.state.value
+        client.name = this.state.value
         # Dummy data for now
         client.setState("waiting",{})
     render: ->
@@ -215,11 +222,15 @@ WaitingForPlayersState = React.createClass
 
 MainState = React.createClass
     handleMessage: (cli, msg) ->
-        if msg.status == "deal"
-            this.setState(msg.data)
+        switch msg.status
+            when "deal"
+                this.setState(msg.data)
+            when "turn"
+                this.setState(msg.data)
     getInitialState: ->
         hand: [null, null]
         remaining: this.props.initialRemaining
+        turn: null
     render: ->
       <div>
         <GameNavigation/>
@@ -231,9 +242,9 @@ MainState = React.createClass
             <Col xs={3} md={3} lg={3}
                  xsoffset={2} mdoffset={3} lgoffset={4}>
               <Row>
-                <Turn/>
+                <Turn turn={this.state.turn}/>
                 <h3>Remaining <Label>${this.state.remaining}</Label></h3>
-                <WagerActions/>
+                <WagerActions turn={this.state.turn}/>
               </Row>
             </Col>
           </Row>
@@ -247,6 +258,7 @@ MainState = React.createClass
 # TODO Handle reconnect to arbitrary state!
 client =
     state: null
+    name: null
     prevState: null
     container: null
     state_data: null ## REVIEW
