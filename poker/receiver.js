@@ -221,7 +221,7 @@ MainState = React.createClass({
     return cards;
   },
   dealHand: function(dealer) {
-    var bet, bigBlind, firstTurn, i, j, len, p, player, players, ref, smallBlind;
+    var bet, bigBlind, e, firstTurn, i, j, len, p, player, players, ref, smallBlind;
     smallBlind = (dealer + 1) % table.players.length;
     bigBlind = (smallBlind + 1) % table.players.length;
     i = 0;
@@ -241,22 +241,32 @@ MainState = React.createClass({
         hand: [table.deck.shift(), table.deck.shift()]
       };
       players.push(player);
-      window.messageBus.send(player.id, JSON.stringify({
-        status: "deal",
-        data: player
-      }));
+      try {
+        window.messageBus.send(player.id, JSON.stringify({
+          status: "deal",
+          data: player
+        }));
+      } catch (_error) {
+        e = _error;
+        console.error(e);
+      }
       i++;
     }
     firstTurn = players[(bigBlind + 1) % players.length].name;
     this.setState({
       turn: firstTurn
     });
-    window.messageBus.broadcast(JSON.stringify({
-      status: "turn",
-      data: {
-        turn: firstTurn
-      }
-    }));
+    try {
+      window.messageBus.broadcast(JSON.stringify({
+        status: "turn",
+        data: {
+          turn: firstTurn
+        }
+      }));
+    } catch (_error) {
+      e = _error;
+      console.error(e);
+    }
     return players;
   },
   getInitialState: function() {

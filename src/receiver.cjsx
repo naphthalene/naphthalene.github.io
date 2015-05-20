@@ -192,16 +192,22 @@ MainState = React.createClass
                 fold: false
                 hand: [table.deck.shift(), table.deck.shift()]
             players.push(player)
-            window.messageBus.send(player.id, JSON.stringify(
-                status: "deal"
-                data: player))
+            try
+                window.messageBus.send(player.id, JSON.stringify(
+                    status: "deal"
+                    data: player))
+            catch e
+                console.error(e)
             i++
         firstTurn = players[(bigBlind + 1) % players.length].name
         this.setState(turn: firstTurn)
-        window.messageBus.broadcast(JSON.stringify(
-            status: "turn"
-            data:
-                turn: firstTurn))
+        try
+            window.messageBus.broadcast(JSON.stringify(
+                status: "turn"
+                data:
+                    turn: firstTurn))
+        catch e
+            console.error(e)
         players
 
     getInitialState: ->
