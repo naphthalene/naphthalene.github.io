@@ -130,8 +130,9 @@ WaitingForPlayers = React.createClass
 MainState = React.createClass
     nextPlayersTurnOrEndHand: (currentPlayerIndex) ->
         try
-            console.log(this.state.players)
             nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
+            console.log(nextActivePlayer)
+            console.log(this.state.players[nextActivePlayer])
             foundNextPlayer = false
             while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
                 foundNextPlayer = !this.state.players[nextActivePlayer].fold

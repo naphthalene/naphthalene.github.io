@@ -164,8 +164,9 @@ MainState = React.createClass({
   nextPlayersTurnOrEndHand: function(currentPlayerIndex) {
     var e, foundNextPlayer, nextActivePlayer;
     try {
-      console.log(this.state.players);
       nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
+      console.log(nextActivePlayer);
+      console.log(this.state.players[nextActivePlayer]);
       foundNextPlayer = false;
       while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
         foundNextPlayer = !this.state.players[nextActivePlayer].fold;
