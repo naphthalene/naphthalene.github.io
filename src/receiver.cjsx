@@ -129,14 +129,17 @@ WaitingForPlayers = React.createClass
 MainState = React.createClass
     foldPlayer: (sender) ->
         pi = this.state.players.findIndex((e, i, a) -> e.id == sender)
-        this.setState((prev, curr) ->
-            p = prev.players[pi]
-            p.fold = true
-            console.log(p.name + " has folded their hand")
-            players = prev.players
-            players[pi] = p
-            players: players
-        )
+        try
+            this.setState((prev, curr) ->
+                p = prev.players[pi]
+                p.fold = true
+                console.log(p.name + " has folded their hand")
+                players = prev.players
+                players[pi] = p
+                players: players
+            )
+        catch e
+            console.error(e)
         # player.fold = true
         # this.setState()
     handleMessage: (tbl, sender, msg) ->
