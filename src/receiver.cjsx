@@ -156,7 +156,7 @@ MainState = React.createClass
         p = players[pi]
         updateFunc(p)
         players[pi] = p
-        nextPlayersTurnOrEndHand()
+        this.nextPlayersTurnOrEndHand()
 
     foldPlayer: (sender) ->
         this.playerAction(sender, (p) ->
