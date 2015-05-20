@@ -177,7 +177,7 @@ MainState = React.createClass({
       }
       if (foundNextPlayer) {
         if (this.state.players.map(function(p) {
-          return p.fold;
+          return !p.fold;
         }).reduce((function(acc, c, i, a) {
           if (c) {
             return acc + 1;
