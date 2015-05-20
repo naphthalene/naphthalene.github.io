@@ -128,30 +128,48 @@ WaitingForPlayers = React.createClass
       </div>
 
 MainState = React.createClass
-    foldPlayer: (sender) ->
-        try
-            pi = this.state.players.map((e) -> e.id).indexOf(sender)
-            players = this.state.players
-            p = players[pi]
-            p.fold = true
-            console.log(p.name + " has folded their hand")
-            players[pi] = p
+    nextPlayersTurnOrEndHand: (currentPlayerIndex) ->
+        nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
+        foundNextPlayer = false
+        while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
+            nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
+            foundNextPlayer = !this.state.players[nextActivePlayer].fold
+            if foundNextPlayer
+                break
+        if foundNextPlayer
             this.setState(
                 players: players
-                turn: players[(pi + 1) % players.length].name
+                turn: players[(pi + 1) % players.length].name # TODO make a helper
             )
             window.messageBus.broadcast(JSON.stringify(
                 status: "turn"
                 data:
                     turn: this.state.turn))
-        catch e
-            console.error(e)
+        else
+            # The bidding is over. Either deal more community cards
+            # or announce winner
+            console.log("Cannot find another player who hasn't folded")
+
+    playerAction: (sender, updateFunc) ->
+        pi = this.state.players.map((e) -> e.id).indexOf(sender)
+        players = this.state.players
+        p = players[pi]
+        updateFunc(p)
+        players[pi] = p
+        nextPlayersTurnOrEndHand()
+
+    foldPlayer: (sender) ->
+        this.playerAction(sender, (p) ->
+            p.fold = true
+            console.log(p.name + " has folded their hand")
+        )
+
     handleMessage: (tbl, sender, msg) ->
         switch msg.action
             when "fold"
                 this.foldPlayer(sender)
             when "raise"
-                this.raisePlayer()
+                this.raisePlayer(sender, msg.data)
             else
                 console.error("Unknown message received")
     generateSortedDeck: ->

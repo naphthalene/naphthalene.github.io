@@ -161,17 +161,18 @@ WaitingForPlayers = React.createClass({
 });
 
 MainState = React.createClass({
-  foldPlayer: function(sender) {
-    var e, p, pi, players;
-    try {
-      pi = this.state.players.map(function(e) {
-        return e.id;
-      }).indexOf(sender);
-      players = this.state.players;
-      p = players[pi];
-      p.fold = true;
-      console.log(p.name + " has folded their hand");
-      players[pi] = p;
+  nextPlayersTurnOrEndHand: function(currentPlayerIndex) {
+    var foundNextPlayer, nextActivePlayer;
+    nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
+    foundNextPlayer = false;
+    while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
+      nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
+      foundNextPlayer = !this.state.players[nextActivePlayer].fold;
+      if (foundNextPlayer) {
+        break;
+      }
+    }
+    if (foundNextPlayer) {
       this.setState({
         players: players,
         turn: players[(pi + 1) % players.length].name
@@ -182,17 +183,33 @@ MainState = React.createClass({
           turn: this.state.turn
         }
       }));
-    } catch (_error) {
-      e = _error;
-      return console.error(e);
+    } else {
+      return console.log("Cannot find another player who hasn't folded");
     }
+  },
+  playerAction: function(sender, updateFunc) {
+    var p, pi, players;
+    pi = this.state.players.map(function(e) {
+      return e.id;
+    }).indexOf(sender);
+    players = this.state.players;
+    p = players[pi];
+    updateFunc(p);
+    players[pi] = p;
+    return nextPlayersTurnOrEndHand();
+  },
+  foldPlayer: function(sender) {
+    return this.playerAction(sender, function(p) {
+      p.fold = true;
+      return console.log(p.name + " has folded their hand");
+    });
   },
   handleMessage: function(tbl, sender, msg) {
     switch (msg.action) {
       case "fold":
         return this.foldPlayer(sender);
       case "raise":
-        return this.raisePlayer();
+        return this.raisePlayer(sender, msg.data);
       default:
         return console.error("Unknown message received");
     }
