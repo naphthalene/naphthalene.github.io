@@ -129,26 +129,29 @@ WaitingForPlayers = React.createClass
 
 MainState = React.createClass
     nextPlayersTurnOrEndHand: (currentPlayerIndex) ->
-        nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
-        foundNextPlayer = false
-        while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
-            nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
-            foundNextPlayer = !this.state.players[nextActivePlayer].fold
+        try
+            nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
+            foundNextPlayer = false
+            while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
+                nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
+                foundNextPlayer = !this.state.players[nextActivePlayer].fold
+                if foundNextPlayer
+                    break
             if foundNextPlayer
-                break
-        if foundNextPlayer
-            this.setState(
-                players: players
-                turn: players[(pi + 1) % players.length].name # TODO make a helper
-            )
-            window.messageBus.broadcast(JSON.stringify(
-                status: "turn"
-                data:
-                    turn: this.state.turn))
-        else
-            # The bidding is over. Either deal more community cards
-            # or announce winner
-            console.log("Cannot find another player who hasn't folded")
+                this.setState(
+                    players: players
+                    turn: this.state.players[nextActivePlayer].name
+                )
+                window.messageBus.broadcast(JSON.stringify(
+                    status: "turn"
+                    data:
+                        turn: this.state.turn))
+            else
+                # The bidding is over. Either deal more community cards
+                # or announce winner
+                console.log("Cannot find another player who hasn't folded")
+        catch e
+            console.error e
 
     playerAction: (sender, updateFunc) ->
         pi = this.state.players.map((e) -> e.id).indexOf(sender)

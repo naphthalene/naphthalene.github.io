@@ -162,29 +162,34 @@ WaitingForPlayers = React.createClass({
 
 MainState = React.createClass({
   nextPlayersTurnOrEndHand: function(currentPlayerIndex) {
-    var foundNextPlayer, nextActivePlayer;
-    nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
-    foundNextPlayer = false;
-    while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
-      nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
-      foundNextPlayer = !this.state.players[nextActivePlayer].fold;
-      if (foundNextPlayer) {
-        break;
-      }
-    }
-    if (foundNextPlayer) {
-      this.setState({
-        players: players,
-        turn: players[(pi + 1) % players.length].name
-      });
-      return window.messageBus.broadcast(JSON.stringify({
-        status: "turn",
-        data: {
-          turn: this.state.turn
+    var e, foundNextPlayer, nextActivePlayer;
+    try {
+      nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
+      foundNextPlayer = false;
+      while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
+        nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
+        foundNextPlayer = !this.state.players[nextActivePlayer].fold;
+        if (foundNextPlayer) {
+          break;
         }
-      }));
-    } else {
-      return console.log("Cannot find another player who hasn't folded");
+      }
+      if (foundNextPlayer) {
+        this.setState({
+          players: players,
+          turn: this.state.players[nextActivePlayer].name
+        });
+        return window.messageBus.broadcast(JSON.stringify({
+          status: "turn",
+          data: {
+            turn: this.state.turn
+          }
+        }));
+      } else {
+        return console.log("Cannot find another player who hasn't folded");
+      }
+    } catch (_error) {
+      e = _error;
+      return console.error(e);
     }
   },
   playerAction: function(sender, updateFunc) {
