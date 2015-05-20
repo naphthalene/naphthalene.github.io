@@ -161,31 +161,45 @@ WaitingForPlayers = React.createClass({
 });
 
 MainState = React.createClass({
-  nextPlayersTurnOrEndHand: function(players, currentPlayerIndex) {
-    var e, foundNextPlayer, nextActivePlayer;
+  nextPlayersTurnOrEndHand: function(currentPlayerIndex) {
+    var biddingOver, e, foundNextPlayer, nextActivePlayer;
     try {
       nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
       foundNextPlayer = false;
+      biddingOver = true;
       while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
         foundNextPlayer = !this.state.players[nextActivePlayer].fold;
         if (foundNextPlayer) {
+          biddingOver = false;
           break;
         }
         nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
       }
       if (foundNextPlayer) {
-        this.setState({
-          players: players,
-          turn: this.state.players[nextActivePlayer].name
-        });
-        return window.messageBus.broadcast(JSON.stringify({
-          status: "turn",
-          data: {
-            turn: this.state.turn
+        if (this.state.players.map(function(p) {
+          return p.fold;
+        }).reduce((function(acc, c, i, a) {
+          if (c) {
+            return acc + 1;
+          } else {
+            return acc;
           }
-        }));
-      } else {
-        return console.log("Cannot find another player who hasn't folded");
+        }), 0) > 1) {
+          this.setState({
+            turn: this.state.players[nextActivePlayer].name
+          });
+          window.messageBus.broadcast(JSON.stringify({
+            status: "turn",
+            data: {
+              turn: this.state.turn
+            }
+          }));
+        } else {
+          biddingOver = true;
+        }
+      }
+      if (biddingOver) {
+        return console.log("Bidding is over for this hand");
       }
     } catch (_error) {
       e = _error;
@@ -201,7 +215,10 @@ MainState = React.createClass({
     p = players[pi];
     updateFunc(p);
     players[pi] = p;
-    return this.nextPlayersTurnOrEndHand(players, pi);
+    this.setState({
+      players: players
+    });
+    return this.nextPlayersTurnOrEndHand(pi);
   },
   foldPlayer: function(sender) {
     return this.playerAction(sender, function(p) {

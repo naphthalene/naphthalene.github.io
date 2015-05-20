@@ -128,28 +128,34 @@ WaitingForPlayers = React.createClass
       </div>
 
 MainState = React.createClass
-    nextPlayersTurnOrEndHand: (players, currentPlayerIndex) ->
+    nextPlayersTurnOrEndHand: (currentPlayerIndex) ->
         try
             nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
             foundNextPlayer = false
+            biddingOver = true
             while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
                 foundNextPlayer = !this.state.players[nextActivePlayer].fold
                 if foundNextPlayer
+                    biddingOver = false
                     break
                 nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
             if foundNextPlayer
-                this.setState(
-                    players: players
-                    turn: this.state.players[nextActivePlayer].name
-                )
-                window.messageBus.broadcast(JSON.stringify(
-                    status: "turn"
-                    data:
-                        turn: this.state.turn))
-            else
+                # Check if this is the last player in the hand
+                if this.state.players.map((p) -> p.fold).reduce(
+                    ((acc, c, i, a) -> if c then acc + 1 else acc), 0) > 1
+                    this.setState(
+                        turn: this.state.players[nextActivePlayer].name
+                    )
+                    window.messageBus.broadcast(JSON.stringify(
+                        status: "turn"
+                        data:
+                            turn: this.state.turn))
+                else
+                    biddingOver = true
+            if biddingOver
                 # The bidding is over. Either deal more community cards
                 # or announce winner
-                console.log("Cannot find another player who hasn't folded")
+                console.log("Bidding is over for this hand")
         catch e
             console.error e
 
@@ -159,7 +165,10 @@ MainState = React.createClass
         p = players[pi]
         updateFunc(p)
         players[pi] = p
-        this.nextPlayersTurnOrEndHand(players, pi)
+        this.setState(
+            players: players
+        )
+        this.nextPlayersTurnOrEndHand(pi)
 
     foldPlayer: (sender) ->
         this.playerAction(sender, (p) ->
