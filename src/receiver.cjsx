@@ -143,7 +143,7 @@ MainState = React.createClass
 
     computeWinner: ->
         # FOR NOW just give it to the first person in the list...
-        0
+        return 0
 
     dealCommunityOrEnd: ->
         switch this.state.community
@@ -186,12 +186,14 @@ MainState = React.createClass
         players = this.state.players
         p = players[pi]
         p.remaining = p.remaining + this.state.pot
+        console.log("Awarding pot...")
         players[pi] = p
         this.setState(
             players: players
             pot: 0
             bid: 0
         )
+        console.log("Awarded pot...")
         # NOTE, the player state, bid and pot will be updated again by
         # dealHand()
 
@@ -238,14 +240,17 @@ MainState = React.createClass
                 console.log("This round of bidding is over")
                 this.dealCommunityOrEnd()
                 if handOver
+                    console.log("handOver")
                     console.log(this.state.players[nextActivePlayer].name + " has won")
                     this.endHand(nextActivePlayer)
         catch e
-            console.error e
+            console.error("Error in nextPlayersTurnOrEndHand")
+            console.error(e)
 
     playerAction: (sender, action, updateFunc) ->
         pi = this.state.players.map((e) -> e.id).indexOf(sender)
         players = this.state.players
+        console.log("pi is " + pi)
         p = players[pi]
         updateFunc(p, pi)
         players[pi] = p

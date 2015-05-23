@@ -217,12 +217,14 @@ MainState = React.createClass({
     players = this.state.players;
     p = players[pi];
     p.remaining = p.remaining + this.state.pot;
+    console.log("Awarding pot...");
     players[pi] = p;
-    return this.setState({
+    this.setState({
       players: players,
       pot: 0,
       bid: 0
     });
+    return console.log("Awarded pot...");
   },
   nextPlayersTurnOrEndHand: function(currentPlayerIndex, action) {
     var biddingOver, e, foundNextPlayer, handOver, nextActivePlayer, numActivePlayers;
@@ -271,12 +273,14 @@ MainState = React.createClass({
         console.log("This round of bidding is over");
         this.dealCommunityOrEnd();
         if (handOver) {
+          console.log("handOver");
           console.log(this.state.players[nextActivePlayer].name + " has won");
           return this.endHand(nextActivePlayer);
         }
       }
     } catch (_error) {
       e = _error;
+      console.error("Error in nextPlayersTurnOrEndHand");
       return console.error(e);
     }
   },
@@ -286,6 +290,7 @@ MainState = React.createClass({
       return e.id;
     }).indexOf(sender);
     players = this.state.players;
+    console.log("pi is " + pi);
     p = players[pi];
     updateFunc(p, pi);
     players[pi] = p;
