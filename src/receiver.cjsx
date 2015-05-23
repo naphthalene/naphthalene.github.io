@@ -142,13 +142,14 @@ MainState = React.createClass
         this.dealHand(this.state.dealer)
 
     computeWinner: ->
-        that = this
+        cc = this.state.communityCards
         allHands = this.state.players.map((p) ->
             all_seven = p.hand
-            all_seven = all_seven.concat(that.state.communityCards.flop)
-            all_seven.push(that.state.communityCards.turn)
-            all_seven.push(that.state.communityCards.river)
+            all_seven = all_seven.concat(cc.flop)
+            all_seven.push(cc.turn)
+            all_seven.push(cc.river)
             all_seven)
+        that = this
         allHands = allHands.map((hand) -> that.sortHand(hand))
         # FOR NOW just give it to the first person in the list...
         return 0

@@ -171,18 +171,19 @@ MainState = React.createClass({
     return this.dealHand(this.state.dealer);
   },
   computeWinner: function() {
-    var allHands, that;
-    that = this;
+    var allHands, cc, that;
+    cc = this.state.communityCards;
     allHands = this.state.players.map(function(p) {
       var all_seven;
       all_seven = p.hand;
-      all_seven = all_seven.concat(this.state.communityCards.flop);
-      all_seven.push(this.state.communityCards.turn);
-      all_seven.push(this.state.communityCards.river);
+      all_seven = all_seven.concat(cc.flop);
+      all_seven.push(cc.turn);
+      all_seven.push(cc.river);
       return all_seven;
     });
+    that = this;
     allHands = allHands.map(function(hand) {
-      return this.sortHand(hand);
+      return that.sortHand(hand);
     });
     return 0;
   },
