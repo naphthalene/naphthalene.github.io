@@ -278,8 +278,11 @@ MainState = React.createClass
                         status: "raiseok"
                         data:
                             remaining: p.remaining
-                            maxbid: that.state.bid
                             bid: p.bid
+                    ))
+                    window.messageBus.broadcast(JSON.stringify(
+                        status: "maxbid"
+                        maxbid: that.state.bid
                     ))
                 else
                     window.messageBus.send(sender, JSON.stringify(

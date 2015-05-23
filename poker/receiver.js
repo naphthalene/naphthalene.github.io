@@ -313,13 +313,16 @@ MainState = React.createClass({
             bid: p.bid,
             pot: that.state.pot + withdraw
           });
-          return window.messageBus.send(sender, JSON.stringify({
+          window.messageBus.send(sender, JSON.stringify({
             status: "raiseok",
             data: {
               remaining: p.remaining,
-              maxbid: that.state.bid,
               bid: p.bid
             }
+          }));
+          return window.messageBus.broadcast(JSON.stringify({
+            status: "maxbid",
+            maxbid: that.state.bid
           }));
         } else {
           return window.messageBus.send(sender, JSON.stringify({
