@@ -163,6 +163,7 @@ MainState = React.createClass
                         turn: table.deck.shift()
                     community: "Turn"
                 )
+                console.log("Dealt Turn...")
             when "Turn"
                 console.log("Dealing River...")
                 this.setState(
@@ -245,6 +246,7 @@ MainState = React.createClass
                     this.endHand(nextActivePlayer)
         catch e
             console.error("Error in nextPlayersTurnOrEndHand")
+            console.error(new Error().stack)
             console.error(e)
 
     playerAction: (sender, action, updateFunc) ->

@@ -185,12 +185,13 @@ MainState = React.createClass({
         });
       case "Flop":
         console.log("Dealing Turn...");
-        return this.setState({
+        this.setState({
           communityCards: {
             turn: table.deck.shift()
           },
           community: "Turn"
         });
+        return console.log("Dealt Turn...");
       case "Turn":
         console.log("Dealing River...");
         return this.setState({
@@ -281,6 +282,7 @@ MainState = React.createClass({
     } catch (_error) {
       e = _error;
       console.error("Error in nextPlayersTurnOrEndHand");
+      console.error(new Error().stack);
       return console.error(e);
     }
   },
