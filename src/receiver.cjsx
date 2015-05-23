@@ -245,9 +245,7 @@ MainState = React.createClass
                     console.log(this.state.players[nextActivePlayer].name + " has won")
                     this.endHand(nextActivePlayer)
         catch e
-            console.error("Error in nextPlayersTurnOrEndHand")
-            console.error(new Error().stack)
-            console.error(e)
+            console.error(e.stack)
 
     playerAction: (sender, action, updateFunc) ->
         pi = this.state.players.map((e) -> e.id).indexOf(sender)

@@ -282,8 +282,7 @@ MainState = React.createClass({
     } catch (_error) {
       e = _error;
       console.error("Error in nextPlayersTurnOrEndHand");
-      console.error(new Error().stack);
-      return console.error(e);
+      return console.error(e.stack);
     }
   },
   playerAction: function(sender, action, updateFunc) {
