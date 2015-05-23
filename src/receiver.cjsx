@@ -160,6 +160,7 @@ MainState = React.createClass
                 console.log("Dealing Turn...")
                 this.setState(
                     communityCards:
+                        flop: this.state.communityCards.flop
                         turn: table.deck.shift()
                     community: "Turn"
                 )
@@ -168,6 +169,8 @@ MainState = React.createClass
                 console.log("Dealing River...")
                 this.setState(
                     communityCards:
+                        flop: this.state.communityCards.flop
+                        turn: this.state.communityCards.turn
                         river: table.deck.shift()
                     community: "River"
                 )
