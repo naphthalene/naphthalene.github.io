@@ -148,6 +148,7 @@ MainState = React.createClass
     dealCommunityOrEnd: ->
         switch this.state.community
             when "Preflop"
+                console.log("Dealing Flop...")
                 this.setState(
                     communityCards:
                         flop: [table.deck.shift(),
@@ -156,18 +157,21 @@ MainState = React.createClass
                     community: "Flop"
                 )
             when "Flop"
+                console.log("Dealing Turn...")
                 this.setState(
                     communityCards:
                         turn: table.deck.shift()
                     community: "Turn"
                 )
             when "Turn"
+                console.log("Dealing River...")
                 this.setState(
                     communityCards:
                         river: table.deck.shift()
                     community: "River"
                 )
             when "River"
+                console.log("Ending hand...")
                 this.endHand(this.computeWinner())
                 this.setState(
                     communityCards:
