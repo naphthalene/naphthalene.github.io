@@ -322,7 +322,9 @@ MainState = React.createClass({
           }));
           return window.messageBus.broadcast(JSON.stringify({
             status: "maxbid",
-            maxbid: that.state.bid
+            data: {
+              maxbid: that.state.bid
+            }
           }));
         } else {
           return window.messageBus.send(sender, JSON.stringify({
