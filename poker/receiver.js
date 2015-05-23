@@ -171,7 +171,8 @@ MainState = React.createClass({
     return this.dealHand(this.state.dealer);
   },
   computeWinner: function() {
-    var allHands;
+    var allHands, that;
+    that = this;
     allHands = this.state.players.map(function(p) {
       var all_seven;
       all_seven = p.hand;
