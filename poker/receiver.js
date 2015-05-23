@@ -302,9 +302,9 @@ MainState = React.createClass({
     return this.playerAction(sender, "raise", function(p) {
       var e, withdraw;
       try {
-        console.log(p.name(" raised by " + data.amount));
+        console.log(p.name + " raised by " + data.amount);
         withdraw = that.state.bid - p.bid + data.amount;
-        console.log(p.name(" is adding " + withdraw + " to the pot"));
+        console.log(p.name + " is adding " + withdraw + " to the pot");
         if (p.remaining - withdraw >= 0) {
           p.bid = p.bid + withdraw;
           p.remaining = p.remaining - withdraw;
@@ -317,7 +317,7 @@ MainState = React.createClass({
             status: "raiseok",
             data: {
               maxbid: that.state.bid,
-              remaining: p.remaining - withdraw
+              remaining: p.remaining
             }
           }));
         } else {
@@ -349,7 +349,7 @@ MainState = React.createClass({
         return window.messageBus.send(sender, JSON.stringify({
           status: "callok",
           data: {
-            remaining: p.remaining - withdraw,
+            remaining: p.remaining,
             bid: p.bid
           }
         }));
