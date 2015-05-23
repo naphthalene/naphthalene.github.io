@@ -283,7 +283,7 @@ MainState = React.createClass({
     }).indexOf(sender);
     players = this.state.players;
     p = players[pi];
-    updateFunc(p);
+    updateFunc(p, pi);
     players[pi] = p;
     this.setState({
       players: players
@@ -291,7 +291,7 @@ MainState = React.createClass({
     return this.nextPlayersTurnOrEndHand(pi, action);
   },
   foldPlayer: function(sender) {
-    return this.playerAction(sender, "fold", function(p) {
+    return this.playerAction(sender, "fold", function(p, pi) {
       p.fold = true;
       return console.log(p.name + " has folded their hand");
     });
@@ -299,7 +299,7 @@ MainState = React.createClass({
   raisePlayer: function(sender, data) {
     var that;
     that = this;
-    return this.playerAction(sender, "raise", function(p) {
+    return this.playerAction(sender, "raise", function(p, pi) {
       var e, withdraw;
       try {
         console.log(p.name + " raised by " + data.amount);
@@ -316,8 +316,9 @@ MainState = React.createClass({
           return window.messageBus.send(sender, JSON.stringify({
             status: "raiseok",
             data: {
+              remaining: p.remaining,
               maxbid: that.state.bid,
-              remaining: p.remaining
+              bid: p.bid
             }
           }));
         } else {
@@ -337,7 +338,7 @@ MainState = React.createClass({
   callPlayer: function(sender) {
     var that;
     that = this;
-    return this.playerAction(sender, "call", function(p) {
+    return this.playerAction(sender, "call", function(p, pi) {
       var withdraw;
       withdraw = that.state.bid - p.bid;
       if (p.remaining - withdraw >= 0) {
@@ -350,6 +351,7 @@ MainState = React.createClass({
           status: "callok",
           data: {
             remaining: p.remaining,
+            pot: that.state.pot + withdraw,
             bid: p.bid
           }
         }));
@@ -366,7 +368,7 @@ MainState = React.createClass({
   checkPlayer: function(sender) {
     var that;
     that = this;
-    return this.playerAction(sender, "check", function(p) {
+    return this.playerAction(sender, "check", function(p, pi) {
       if (p.bid === that.state.bid) {
         return window.messageBus.send(sender, JSON.stringify({
           status: "checkok",

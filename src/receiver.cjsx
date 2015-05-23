@@ -243,7 +243,7 @@ MainState = React.createClass
         pi = this.state.players.map((e) -> e.id).indexOf(sender)
         players = this.state.players
         p = players[pi]
-        updateFunc(p)
+        updateFunc(p, pi)
         players[pi] = p
         this.setState(
             players: players
@@ -251,7 +251,7 @@ MainState = React.createClass
         this.nextPlayersTurnOrEndHand(pi, action)
 
     foldPlayer: (sender) ->
-        this.playerAction(sender, "fold", (p) ->
+        this.playerAction(sender, "fold", (p, pi) ->
             p.fold = true
             console.log(p.name + " has folded their hand")
         )
@@ -260,7 +260,7 @@ MainState = React.createClass
         # The "amount" is the amount raised, not the total
         # addition to the pot
         that = this
-        this.playerAction(sender, "raise", (p) ->
+        this.playerAction(sender, "raise", (p, pi) ->
             try
                 console.log(p.name + " raised by " + data.amount)
                 withdraw = that.state.bid - p.bid + data.amount
@@ -277,8 +277,9 @@ MainState = React.createClass
                     window.messageBus.send(sender, JSON.stringify(
                         status: "raiseok"
                         data:
-                            maxbid: that.state.bid
                             remaining: p.remaining
+                            maxbid: that.state.bid
+                            bid: p.bid
                     ))
                 else
                     window.messageBus.send(sender, JSON.stringify(
@@ -293,7 +294,7 @@ MainState = React.createClass
     callPlayer: (sender) ->
         # Confirm there are enough funds
         that = this
-        this.playerAction(sender, "call", (p) ->
+        this.playerAction(sender, "call", (p, pi) ->
             withdraw = that.state.bid - p.bid
             if p.remaining - withdraw >= 0
                 p.bid = p.bid + withdraw
@@ -305,6 +306,7 @@ MainState = React.createClass
                     status: "callok"
                     data:
                         remaining: p.remaining
+                        pot: that.state.pot + withdraw
                         bid: p.bid
                 ))
             else
@@ -318,7 +320,7 @@ MainState = React.createClass
     checkPlayer: (sender) ->
         # Confirm player is in position to check
         that = this
-        this.playerAction(sender, "check", (p) ->
+        this.playerAction(sender, "check", (p, pi) ->
             if p.bid == that.state.bid
                 window.messageBus.send(sender, JSON.stringify(
                     status: "checkok"
