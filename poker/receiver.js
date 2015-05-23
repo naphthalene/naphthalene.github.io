@@ -185,10 +185,13 @@ MainState = React.createClass({
     allHands = allHands.map(function(hand) {
       return that.sortHand(hand);
     });
+    allHands.map(function(e, i, _) {
+      return console.log("Player" + this.state.players[i].name + "has this sorted hand: " + e);
+    });
     return 0;
   },
   sortHand: function(hand) {
-    var cardOrder, sortFun, sortedHands;
+    var cardOrder, sortFun;
     cardOrder = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
     sortFun = function(a, b) {
       if (a === b) {
@@ -197,12 +200,8 @@ MainState = React.createClass({
         return cardOrder.indexOf(a.slice(0, -1)) < cardOrder.indexOf(b.slice(0, -1));
       }
     };
-    sortedHands = hand.map(function(h) {
-      return h.sort(sortFun);
-    });
-    return sortedHands.map(function(e, i, _) {
-      return console.log("Player" + this.state.players[i].name + "has this sorted hand: " + e);
-    });
+    hand = hand.sort(sortFun);
+    return hand;
   },
   dealCommunityOrEnd: function() {
     switch (this.state.community) {

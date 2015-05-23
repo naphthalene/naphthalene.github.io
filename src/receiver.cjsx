@@ -152,6 +152,9 @@ MainState = React.createClass
         that = this
         allHands = allHands.map((hand) -> that.sortHand(hand))
         # FOR NOW just give it to the first person in the list...
+        allHands.map((e, i, _) ->
+            console.log("Player" + this.state.players[i].name + \
+                "has this sorted hand: " + e))
         return 0
 
     sortHand: (hand) ->
@@ -163,10 +166,8 @@ MainState = React.createClass
                 cardOrder.indexOf(a.slice(0, -1)) < \
                     cardOrder.indexOf(b.slice(0, -1))
 
-        sortedHands = hand.map((h) -> h.sort(sortFun))
-        sortedHands.map((e, i, _) ->
-            console.log("Player" + this.state.players[i].name + \
-                "has this sorted hand: " + e))
+        hand = hand.sort(sortFun)
+        hand
 
     dealCommunityOrEnd: ->
         switch this.state.community
