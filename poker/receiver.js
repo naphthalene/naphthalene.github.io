@@ -488,7 +488,10 @@ MainState = React.createClass({
         }
       }));
       this.setState({
-        players: players
+        players: players,
+        bid: table.rules.bigBlind,
+        pot: table.rules.bigBlind + table.rules.smallBlind,
+        hand: this.state.hand + 1
       });
     } catch (_error) {
       e = _error;
@@ -533,9 +536,9 @@ MainState = React.createClass({
       dealer: dealer,
       turn: firstTurn,
       lastRaised: bigBlind,
-      bid: table.rules.bigBlind,
-      pot: table.rules.bigBlind + table.rules.smallBlind,
-      hand: 1
+      bid: 0,
+      pot: 0,
+      hand: 0
     };
   },
   componentDidMount: function() {

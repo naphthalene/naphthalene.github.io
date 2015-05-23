@@ -199,7 +199,7 @@ MainState = React.createClass
         )
         console.log("Awarded pot...")
         # NOTE, the player state, bid and pot will be updated again by
-        # dealHand()
+        # dealHand)
 
     ## TODO clean up this logic
     nextPlayersTurnOrEndHand: (currentPlayerIndex, action) ->
@@ -422,6 +422,9 @@ MainState = React.createClass
                     maxbid: table.rules.bigBlind))
             this.setState(
                 players: players
+                bid: table.rules.bigBlind
+                pot: table.rules.bigBlind + table.rules.smallBlind
+                hand: this.state.hand + 1
             )
         catch e
             console.error(e)
@@ -470,9 +473,9 @@ MainState = React.createClass
         dealer: dealer
         turn: firstTurn
         lastRaised: bigBlind # This is the person that will need to check
-        bid: table.rules.bigBlind
-        pot: table.rules.bigBlind + table.rules.smallBlind
-        hand: 1
+        bid: 0
+        pot: 0
+        hand: 0
 
     componentDidMount: ->
         this.dealHand(this.state.dealer)
