@@ -153,7 +153,7 @@ MainState = React.createClass
         allHands = allHands.map((hand) -> that.sortHand(hand))
         # FOR NOW just give it to the first person in the list...
         allHands.map((e, i, _) ->
-            console.log("Player" + this.state.players[i].name + \
+            console.log("Player" + that.state.players[i].name + \
                 "has this sorted hand: " + e))
         return 0
 

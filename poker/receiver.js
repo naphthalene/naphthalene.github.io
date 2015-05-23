@@ -186,7 +186,7 @@ MainState = React.createClass({
       return that.sortHand(hand);
     });
     allHands.map(function(e, i, _) {
-      return console.log("Player" + this.state.players[i].name + "has this sorted hand: " + e);
+      return console.log("Player" + that.state.players[i].name + "has this sorted hand: " + e);
     });
     return 0;
   },
