@@ -128,19 +128,88 @@ WaitingForPlayers = React.createClass
       </div>
 
 MainState = React.createClass
-    nextPlayersTurnOrEndHand: (currentPlayerIndex) ->
+    endHand: (winner) ->
+        console.log("Need to award somebody. Review their cards and...")
+        # TODO Call helper to determine whose hand is best, of the
+        # remaining active players
+        this.awardPotTo(winner)
+        table.deck = this.shuffle(this.generateSortedDeck())
+        # Rotate the dealer to the next person
+        this.setState(
+            dealer: (this.state.dealer + 1) % this.state.players.length
+        )
+        # Deal a new hand of cards
+        this.dealHand(this.state.dealer)
+
+    computeWinner: ->
+        # FOR NOW just give it to the first person in the list...
+        0
+
+    dealCommunityOrEnd: ->
+        switch this.state.community
+            when "Preflop"
+                this.setState(
+                    communityCards:
+                        flop: [table.deck.shift(),
+                               table.deck.shift(),
+                               table.deck.shift()]
+                    community: "Flop"
+                )
+            when "Flop"
+                this.setState(
+                    communityCards:
+                        turn: table.deck.shift()
+                    community: "Turn"
+                )
+            when "Turn"
+                this.setState(
+                    communityCards:
+                        river: table.deck.shift()
+                    community: "River"
+                )
+            when "River"
+                this.endHand(this.computeWinner())
+                this.setState(
+                    communityCards:
+                        flop: [null,null,null]
+                        turn: null
+                        river: null
+                    community: "Preflop"
+                )
+
+    awardPotTo: (pi) ->
+        # Update the player who won with the contents of the pot
+        players = this.state.players
+        p = players[pi]
+        p.remaining = p.remaining + this.state.pot
+        players[pi] = p
+        this.setState(
+            players: players
+            pot: 0
+            bid: 0
+        )
+        # NOTE, the player state, bid and pot will be updated again by
+        # dealHand()
+
+    ## TODO clean up this logic
+    nextPlayersTurnOrEndHand: (currentPlayerIndex, action) ->
         try
+            # Loop to find the next player who is eligible for a turn
             nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
             foundNextPlayer = false
             biddingOver = true
             while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
                 foundNextPlayer = !this.state.players[nextActivePlayer].fold
                 if foundNextPlayer
+                    # If we found another player, then the bidding 
                     biddingOver = false
                     break
                 nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
+
             if foundNextPlayer
                 # Check if this is the last player in the hand
+                # If there is exactly one player left then everyone else
+                # has folded. Otherwise, rotate the turn
                 numActivePlayers = this.state.players.map((p) -> !p.fold).reduce(
                     ((acc, c, i, a) -> if c then acc + 1 else acc), 0)
                 console.log("Number of active players: " + numActivePlayers)
@@ -153,15 +222,24 @@ MainState = React.createClass
                         data:
                             turn: this.state.turn))
                 else
+                    handOver = true
                     biddingOver = true
+
+            if action == "check" and this.state.lastRaised == currentPlayerIndex
+                biddingOver = true
+
             if biddingOver
                 # The bidding is over. Either deal more community cards
                 # or announce winner
-                console.log("Bidding is over for this hand")
+                console.log("This round of bidding is over")
+                this.dealCommunityOrEnd()
+                if handOver
+                    console.log(this.state.players[nextActivePlayer].name + " has won")
+                    this.endHand(nextActivePlayer)
         catch e
             console.error e
 
-    playerAction: (sender, updateFunc) ->
+    playerAction: (sender, action, updateFunc) ->
         pi = this.state.players.map((e) -> e.id).indexOf(sender)
         players = this.state.players
         p = players[pi]
@@ -170,12 +248,84 @@ MainState = React.createClass
         this.setState(
             players: players
         )
-        this.nextPlayersTurnOrEndHand(pi)
+        this.nextPlayersTurnOrEndHand(pi, action)
 
     foldPlayer: (sender) ->
-        this.playerAction(sender, (p) ->
+        this.playerAction(sender, "fold", (p) ->
             p.fold = true
             console.log(p.name + " has folded their hand")
+        )
+
+    raisePlayer: (sender, data) ->
+        # The "amount" is the amount raised, not the total
+        # addition to the pot
+        that = this
+        this.playerAction(sender, "raise", (p) ->
+            withdraw = that.state.bid - p.bid + data.amount
+            if p.remaining - withdraw >= 0
+                p.bid = p.bid + withdraw
+                p.remaining = p.remaining - withdraw
+                # Update table state
+                that.setState(
+                    lastRaised: pi
+                    bid: p.bid
+                    pot: that.state.pot + withdraw
+                )
+                window.messageBus.send(sender, JSON.stringify(
+                    status: "raiseok"
+                    data:
+                        maxbid: that.state.bid
+                        remaining: p.remaining - withdraw
+                ))
+            else
+                window.messageBus.send(sender, JSON.stringify(
+                    status: "raisefail"
+                    data:
+                        reason: "Insufficient funds to raise this much"
+                ))
+        )
+
+    callPlayer: (sender) ->
+        # Confirm there are enough funds
+        that = this
+        this.playerAction(sender, "call", (p) ->
+            withdraw = that.state.bid - p.bid
+            if p.remaining - withdraw >= 0
+                p.bid = p.bid + withdraw
+                p.remaining = p.remaining - withdraw
+                that.setState(
+                    pot: that.state.pot + withdraw
+                )
+                window.messageBus.send(sender, JSON.stringify(
+                    status: "callok"
+                    data:
+                        remaining: p.remaining - withdraw
+                        bid: p.bid
+                ))
+            else
+                window.messageBus.send(sender, JSON.stringify(
+                    status: "callfail"
+                    data:
+                        reason: "Insufficient funds to call the bid"
+                ))
+        )
+
+    checkPlayer: (sender) ->
+        # Confirm player is in position to check
+        that = this
+        this.playerAction(sender, "check", (p) ->
+            if p.bid == that.state.bid
+                window.messageBus.send(sender, JSON.stringify(
+                    status: "checkok"
+                    data: {}
+                ))
+            else
+                window.messageBus.send(sender, JSON.stringify(
+                    status: "checkfail"
+                    data:
+                        reason: "You must call or fold since "\
+                                + "your bid doesn't match current top bid"
+                ))
         )
 
     handleMessage: (tbl, sender, msg) ->
@@ -184,8 +334,13 @@ MainState = React.createClass
                 this.foldPlayer(sender)
             when "raise"
                 this.raisePlayer(sender, msg.data)
+            when "call"
+                this.callPlayer(sender)
+            when "check"
+                this.checkPlayer(sender)
             else
                 console.error("Unknown message received")
+
     generateSortedDeck: ->
         suits = ["H", "D", "S", "C"]
         cards = ["2", "3", "4", "5", "6", "7", "8",
@@ -207,21 +362,21 @@ MainState = React.createClass
         cards
 
     dealHand: (dealer) ->
+        players = []
+        i = 0
         smallBlind = (dealer + 1) % table.players.length
         bigBlind = (smallBlind + 1) % table.players.length
-        i = 0
-        players = []
-        for p in table.players
+        for p in this.state.players
             bid = if smallBlind == i then table.rules.smallBlind else \
                   if bigBlind == i then table.rules.bigBlind else 0
             player =
                 id: p.id
                 name: p.name
-                dealer: if dealer == i then true else false
+                dealer: dealer == i
                 blind: if smallBlind == i then "S" else \
                        if bigBlind == i then "B" else "N"
                 bid: bid
-                remaining: table.rules.buyIn - bid # REVIEW
+                remaining: p.remaining - bid
                 fold: false
                 hand: [table.deck.shift(), table.deck.shift()]
             players.push(player)
@@ -238,23 +393,64 @@ MainState = React.createClass
                 status: "turn"
                 data:
                     turn: firstTurn))
+            window.messageBus.broadcast(JSON.stringify(
+                status: "maxbid"
+                data:
+                    maxbid: table.rules.bigBlind))
         catch e
             console.error(e)
-        [firstTurn, players]
+        [bigBlind, firstTurn, players]
 
     getInitialState: ->
+        # Shuffle the deck
         table.deck = this.shuffle(this.generateSortedDeck())
-        [firstTurn, players] = this.dealHand(Math.floor(Math.random()*table.players.length))
+
+        # Assign a random dealer
+        dealer = Math.floor(Math.random()*table.players.length)
+
+        # Calculate the Small and Big blinds
+        # TODO what about 2 player games?
+        smallBlind = (dealer + 1) % table.players.length
+        bigBlind = (smallBlind + 1) % table.players.length
+
+        # The first player to go is to the left of the big blind
+        firstTurn = table.players[(bigBlind + 1) % table.players.length].name
+
+        i = 0
+        players = []
+        for p in table.players
+            bid = if smallBlind == i then table.rules.smallBlind else \
+                  if bigBlind == i then table.rules.bigBlind else 0
+            # TODO confirm there are enough funds to bid the
+            # small or big blinds
+            player =
+                id: p.id
+                name: p.name
+                dealer: false
+                blind: "N"
+                bid: 0
+                remaining: table.rules.buyIn
+                fold: false
+                hand: [null,null]
+            players.push(player)
+            i++
+
         community: "Preflop"
         communityCards:
             flop: [null, null, null]
             turn: null
             river: null
         players: players
+        dealer: dealer
         turn: firstTurn
+        lastRaised: bigBlind # This is the person that will need to check
         bid: table.rules.bigBlind
         pot: table.rules.bigBlind + table.rules.smallBlind
         hand: 1
+
+    componentDidMount: ->
+        this.dealHand(this.state.dealer)
+
     render: ->
       <div>
         <TableInfo cards={this.state.communityCards}

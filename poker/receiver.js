@@ -161,8 +161,67 @@ WaitingForPlayers = React.createClass({
 });
 
 MainState = React.createClass({
-  nextPlayersTurnOrEndHand: function(currentPlayerIndex) {
-    var biddingOver, e, foundNextPlayer, nextActivePlayer, numActivePlayers;
+  endHand: function(winner) {
+    console.log("Need to award somebody. Review their cards and...");
+    this.awardPotTo(winner);
+    table.deck = this.shuffle(this.generateSortedDeck());
+    this.setState({
+      dealer: (this.state.dealer + 1) % this.state.players.length
+    });
+    return this.dealHand(this.state.dealer);
+  },
+  computeWinner: function() {
+    return 0;
+  },
+  dealCommunityOrEnd: function() {
+    switch (this.state.community) {
+      case "Preflop":
+        return this.setState({
+          communityCards: {
+            flop: [table.deck.shift(), table.deck.shift(), table.deck.shift()]
+          },
+          community: "Flop"
+        });
+      case "Flop":
+        return this.setState({
+          communityCards: {
+            turn: table.deck.shift()
+          },
+          community: "Turn"
+        });
+      case "Turn":
+        return this.setState({
+          communityCards: {
+            river: table.deck.shift()
+          },
+          community: "River"
+        });
+      case "River":
+        this.endHand(this.computeWinner());
+        return this.setState({
+          communityCards: {
+            flop: [null, null, null],
+            turn: null,
+            river: null
+          },
+          community: "Preflop"
+        });
+    }
+  },
+  awardPotTo: function(pi) {
+    var p, players;
+    players = this.state.players;
+    p = players[pi];
+    p.remaining = p.remaining + this.state.pot;
+    players[pi] = p;
+    return this.setState({
+      players: players,
+      pot: 0,
+      bid: 0
+    });
+  },
+  nextPlayersTurnOrEndHand: function(currentPlayerIndex, action) {
+    var biddingOver, e, foundNextPlayer, handOver, nextActivePlayer, numActivePlayers;
     try {
       nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
       foundNextPlayer = false;
@@ -197,18 +256,27 @@ MainState = React.createClass({
             }
           }));
         } else {
+          handOver = true;
           biddingOver = true;
         }
       }
+      if (action === "check" && this.state.lastRaised === currentPlayerIndex) {
+        biddingOver = true;
+      }
       if (biddingOver) {
-        return console.log("Bidding is over for this hand");
+        console.log("This round of bidding is over");
+        this.dealCommunityOrEnd();
+        if (handOver) {
+          console.log(this.state.players[nextActivePlayer].name + " has won");
+          return this.endHand(nextActivePlayer);
+        }
       }
     } catch (_error) {
       e = _error;
       return console.error(e);
     }
   },
-  playerAction: function(sender, updateFunc) {
+  playerAction: function(sender, action, updateFunc) {
     var p, pi, players;
     pi = this.state.players.map(function(e) {
       return e.id;
@@ -220,12 +288,91 @@ MainState = React.createClass({
     this.setState({
       players: players
     });
-    return this.nextPlayersTurnOrEndHand(pi);
+    return this.nextPlayersTurnOrEndHand(pi, action);
   },
   foldPlayer: function(sender) {
-    return this.playerAction(sender, function(p) {
+    return this.playerAction(sender, "fold", function(p) {
       p.fold = true;
       return console.log(p.name + " has folded their hand");
+    });
+  },
+  raisePlayer: function(sender, data) {
+    var that;
+    that = this;
+    return this.playerAction(sender, "raise", function(p) {
+      var withdraw;
+      withdraw = that.state.bid - p.bid + data.amount;
+      if (p.remaining - withdraw >= 0) {
+        p.bid = p.bid + withdraw;
+        p.remaining = p.remaining - withdraw;
+        that.setState({
+          lastRaised: pi,
+          bid: p.bid,
+          pot: that.state.pot + withdraw
+        });
+        return window.messageBus.send(sender, JSON.stringify({
+          status: "raiseok",
+          data: {
+            maxbid: that.state.bid,
+            remaining: p.remaining - withdraw
+          }
+        }));
+      } else {
+        return window.messageBus.send(sender, JSON.stringify({
+          status: "raisefail",
+          data: {
+            reason: "Insufficient funds to raise this much"
+          }
+        }));
+      }
+    });
+  },
+  callPlayer: function(sender) {
+    var that;
+    that = this;
+    return this.playerAction(sender, "call", function(p) {
+      var withdraw;
+      withdraw = that.state.bid - p.bid;
+      if (p.remaining - withdraw >= 0) {
+        p.bid = p.bid + withdraw;
+        p.remaining = p.remaining - withdraw;
+        that.setState({
+          pot: that.state.pot + withdraw
+        });
+        return window.messageBus.send(sender, JSON.stringify({
+          status: "callok",
+          data: {
+            remaining: p.remaining - withdraw,
+            bid: p.bid
+          }
+        }));
+      } else {
+        return window.messageBus.send(sender, JSON.stringify({
+          status: "callfail",
+          data: {
+            reason: "Insufficient funds to call the bid"
+          }
+        }));
+      }
+    });
+  },
+  checkPlayer: function(sender) {
+    var that;
+    that = this;
+    return this.playerAction(sender, "check", function(p) {
+      if (p.bid === that.state.bid) {
+        return window.messageBus.send(sender, JSON.stringify({
+          status: "checkok",
+          data: {}
+        }));
+      } else {
+        return window.messageBus.send(sender, JSON.stringify({
+          status: "checkfail",
+          data: {
+            reason: "You must call or fold since " + "your bid doesn't match current top bid"
+          }
+        }));
+      }
     });
   },
   handleMessage: function(tbl, sender, msg) {
@@ -234,6 +381,10 @@ MainState = React.createClass({
         return this.foldPlayer(sender);
       case "raise":
         return this.raisePlayer(sender, msg.data);
+      case "call":
+        return this.callPlayer(sender);
+      case "check":
+        return this.checkPlayer(sender);
       default:
         return console.error("Unknown message received");
     }
@@ -266,21 +417,21 @@ MainState = React.createClass({
   },
   dealHand: function(dealer) {
     var bid, bigBlind, e, firstTurn, i, j, len, p, player, players, ref, smallBlind;
+    players = [];
+    i = 0;
     smallBlind = (dealer + 1) % table.players.length;
     bigBlind = (smallBlind + 1) % table.players.length;
-    i = 0;
-    players = [];
-    ref = table.players;
+    ref = this.state.players;
     for (j = 0, len = ref.length; j < len; j++) {
       p = ref[j];
       bid = smallBlind === i ? table.rules.smallBlind : bigBlind === i ? table.rules.bigBlind : 0;
       player = {
         id: p.id,
         name: p.name,
-        dealer: dealer === i ? true : false,
+        dealer: dealer === i,
         blind: smallBlind === i ? "S" : bigBlind === i ? "B" : "N",
         bid: bid,
-        remaining: table.rules.buyIn - bid,
+        remaining: p.remaining - bid,
         fold: false,
         hand: [table.deck.shift(), table.deck.shift()]
       };
@@ -304,16 +455,44 @@ MainState = React.createClass({
           turn: firstTurn
         }
       }));
+      window.messageBus.broadcast(JSON.stringify({
+        status: "maxbid",
+        data: {
+          maxbid: table.rules.bigBlind
+        }
+      }));
     } catch (_error) {
       e = _error;
       console.error(e);
     }
-    return [firstTurn, players];
+    return [bigBlind, firstTurn, players];
   },
   getInitialState: function() {
-    var firstTurn, players, ref;
+    var bid, bigBlind, dealer, firstTurn, i, j, len, p, player, players, ref, smallBlind;
     table.deck = this.shuffle(this.generateSortedDeck());
-    ref = this.dealHand(Math.floor(Math.random() * table.players.length)), firstTurn = ref[0], players = ref[1];
+    dealer = Math.floor(Math.random() * table.players.length);
+    smallBlind = (dealer + 1) % table.players.length;
+    bigBlind = (smallBlind + 1) % table.players.length;
+    firstTurn = table.players[(bigBlind + 1) % table.players.length].name;
+    i = 0;
+    players = [];
+    ref = table.players;
+    for (j = 0, len = ref.length; j < len; j++) {
+      p = ref[j];
+      bid = smallBlind === i ? table.rules.smallBlind : bigBlind === i ? table.rules.bigBlind : 0;
+      player = {
+        id: p.id,
+        name: p.name,
+        dealer: false,
+        blind: "N",
+        bid: 0,
+        remaining: table.rules.buyIn,
+        fold: false,
+        hand: [null, null]
+      };
+      players.push(player);
+      i++;
+    }
     return {
       community: "Preflop",
       communityCards: {
@@ -322,11 +501,16 @@ MainState = React.createClass({
         river: null
       },
       players: players,
+      dealer: dealer,
       turn: firstTurn,
+      lastRaised: bigBlind,
       bid: table.rules.bigBlind,
       pot: table.rules.bigBlind + table.rules.smallBlind,
       hand: 1
     };
+  },
+  componentDidMount: function() {
+    return this.dealHand(this.state.dealer);
   },
   render: function() {
     return React.createElement("div", null, React.createElement(TableInfo, {

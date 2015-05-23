@@ -37,9 +37,8 @@ Nav = ReactBootstrap.Nav;
 
 CardImage = React.createClass({
   render: function() {
-    return React.createElement("object", {
-      "data": (!this.props.card ? '/images/card_outline.svg' : !this.props.handVisible ? '/images/card_back.svg' : '/images/' + (this.props.card[this.props.card.length - 1] === "H" ? "Hearts" : (this.props.card[this.props.card.length - 1] === "S" ? "Spades" : (this.props.card[this.props.card.length - 1] === "C" ? "Clubs" : (this.props.card[this.props.card.length - 1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg'),
-      "type": "image/svg+xml",
+    return React.createElement("img", {
+      "src": (!this.props.card ? '/images/card_outline.svg' : !this.props.handVisible ? '/images/card_back.png' : '/images/' + (this.props.card[this.props.card.length - 1] === "H" ? "Hearts" : (this.props.card[this.props.card.length - 1] === "S" ? "Spades" : (this.props.card[this.props.card.length - 1] === "C" ? "Clubs" : (this.props.card[this.props.card.length - 1] === "D" ? "Diamonds" : void 0)))) + "/" + this.props.card + '.svg'),
       "width": "290",
       "className": this.props.className
     });
@@ -65,19 +64,21 @@ Hand = React.createClass({
 
 WagerActions = React.createClass({
   render: function() {
-    var buttonsDisabled;
+    var buttonsDisabled, callOrCheck;
     buttonsDisabled = this.props.turn !== client.name || this.props.fold;
+    callOrCheck = this.props.maxbid === this.props.bid ? "Check" : "Call";
     return React.createElement(ButtonGroup, {
       "className": "btn-group-vertical"
     }, React.createElement(Button, {
       "bsStyle": "primary",
       "bsSize": "large",
       "disabled": buttonsDisabled
-    }, "Call"), React.createElement(DropdownButton, {
+    }, "onClick=", (callOrCheck === "Check" ? this.props.onCheck : this.props.onCall), callOrCheck), React.createElement(DropdownButton, {
       "bsStyle": "warning",
       "bsSize": "large",
       "title": "Raise...",
-      "disabled": buttonsDisabled
+      "disabled": buttonsDisabled,
+      "onSelect": this.props.onRaise
     }, React.createElement(MenuItem, {
       "eventKey": "1"
     }, "$5"), React.createElement(MenuItem, {
@@ -87,10 +88,8 @@ WagerActions = React.createClass({
     }, "$25"), React.createElement(MenuItem, {
       "eventKey": "4"
     }, "$50"), React.createElement(MenuItem, {
-      "divider": true
-    }), React.createElement(MenuItem, {
-      "eventKey": "4"
-    }, "Enter")), React.createElement(Button, {
+      "eventKey": "5"
+    }, "All in")), React.createElement(Button, {
       "bsStyle": "danger",
       "bsSize": "large",
       "onClick": this.props.onFold,
@@ -289,6 +288,18 @@ MainState = React.createClass({
         return this.setState(msg.data);
       case "turn":
         return this.setState(msg.data);
+      case "maxbid":
+        return this.setState(msg.data);
+      case "raiseok":
+      case "callok":
+      case "checkok":
+        return this.setState(msg.data);
+      case "raisefail":
+      case "callfail":
+      case "checkfail":
+        return console.error(msg.data.reason);
+      default:
+        return console.error("Unknown status received");
     }
   },
   onFold: function() {
@@ -300,8 +311,33 @@ MainState = React.createClass({
       data: {}
     });
   },
+  onRaise: function(k) {
+    var raiseAmounts;
+    raiseAmounts = {
+      1: 5,
+      2: 10,
+      3: 25,
+      4: 50,
+      5: this.remaining
+    };
+    return sendMessage({
+      action: "raise",
+      data: {
+        amount: raiseAmounts[k]
+      }
+    });
+  },
   onCall: function() {
-    return this.setState();
+    return sendMessage({
+      action: "call",
+      data: {}
+    });
+  },
+  onCheck: function() {
+    return sendMessage({
+      action: "check",
+      data: {}
+    });
   },
   toggleCards: function() {
     return this.setState({
@@ -314,6 +350,7 @@ MainState = React.createClass({
       handVisible: false,
       fold: false,
       bid: 0,
+      maxbid: 0,
       remaining: this.props.initialRemaining,
       turn: null
     };
@@ -347,6 +384,11 @@ MainState = React.createClass({
       "turn": this.state.turn,
       "toggleCards": this.toggleCards,
       "onFold": this.onFold,
+      "onRaise": this.onRaise,
+      "onCall": this.onCall,
+      "onCheck": this.onCheck,
+      "maxbid": this.state.maxbid,
+      "bid": this.state.bid,
       "fold": this.state.fold,
       "handVisible": this.state.handVisible
     }))))));

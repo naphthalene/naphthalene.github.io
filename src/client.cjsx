@@ -22,18 +22,16 @@ Nav = ReactBootstrap.Nav
 
 CardImage = React.createClass
     render: ->
-      <object data={if !this.props.card then '/images/card_outline.svg' else \
-                    if !this.props.handVisible then '/images/card_back.svg' else '/images/' + (
+      <img src={if !this.props.card then '/images/card_outline.svg' else \
+                    if !this.props.handVisible then '/images/card_back.png' else '/images/' + (
                 if       this.props.card[this.props.card.length-1] == "H" then "Hearts"
                 else (if this.props.card[this.props.card.length-1] == "S" then "Spades"
                 else (if this.props.card[this.props.card.length-1] == "C" then "Clubs"
                 else (if this.props.card[this.props.card.length-1] == "D" then "Diamonds")))) +
                     "/" + this.props.card + '.svg'}
-              type="image/svg+xml"
-              width="290"
-              className={this.props.className}>
-      </object>
-
+           width="290"
+           className={this.props.className}>
+      </img>
 
 Hand = React.createClass
     render: ->
@@ -48,16 +46,20 @@ Hand = React.createClass
 WagerActions = React.createClass
     render: ->
       buttonsDisabled = this.props.turn != client.name or this.props.fold
+      callOrCheck = if this.props.maxbid == this.props.bid then "Check" else "Call"
       <ButtonGroup className="btn-group-vertical">
-        <Button bsStyle="primary" bsSize="large" disabled={buttonsDisabled}>Call</Button>
+        <Button bsStyle="primary" bsSize="large" disabled={buttonsDisabled}>
+                onClick={if callOrCheck == "Check" then this.props.onCheck else this.props.onCall}
+          {callOrCheck}
+        </Button>
         <DropdownButton bsStyle="warning" bsSize="large"
-                        title="Raise..." disabled={buttonsDisabled}>
+                        title="Raise..." disabled={buttonsDisabled}
+                        onSelect={this.props.onRaise}>
           <MenuItem eventKey="1">$5</MenuItem>
           <MenuItem eventKey="2">$10</MenuItem>
           <MenuItem eventKey="3">$25</MenuItem>
           <MenuItem eventKey="4">$50</MenuItem>
-          <MenuItem divider />
-          <MenuItem eventKey="4">Enter</MenuItem>
+          <MenuItem eventKey="5">All in</MenuItem>
         </DropdownButton>
         <Button bsStyle="danger" bsSize="large"
                 onClick={this.props.onFold} disabled={buttonsDisabled}>Fold</Button>
@@ -218,23 +220,66 @@ MainState = React.createClass
                 this.setState(msg.data)
             when "turn"
                 this.setState(msg.data)
+            when "maxbid"
+                this.setState(msg.data)
+            when "raiseok", "callok", "checkok"
+                this.setState(msg.data)
+            when "raisefail", "callfail", "checkfail"
+                console.error(msg.data.reason)
+            else
+                console.error("Unknown status received")
+
     onFold: ->
         this.setState(fold: true)
         sendMessage(
             action: "fold"
-            data: {})
+            data: {}
+        )
+
+    onRaise: (k) ->
+        # TODO consider a cleaner way to do this. Maybe encode the raise
+        # amount as part of the eventKey? But what about custom table
+        # settings? Either way this is a temporary measure
+        raiseAmounts =
+            1: 5
+            2: 10
+            3: 25
+            4: 50
+            5: this.remaining
+        ## TODO confirm funds on this end too
+        sendMessage(
+            action: "raise"
+            data:
+                amount: raiseAmounts[k]
+        )
+        ## TODO make a pending action state, when we're waiting for
+        ## confirmation of raising, calling or w/e
+
     onCall: ->
-        # Confirm theres enough funds
-        this.setState()
+        # TODO Confirm theres enough funds
+        sendMessage(
+            action: "call"
+            data: {}
+        )
+
+    onCheck: ->
+        sendMessage(
+            action: "check"
+            data: {}
+        )
+
     toggleCards: ->
         this.setState(handVisible: !this.state.handVisible)
+
     getInitialState: ->
         hand: [null, null]
         handVisible: false
         fold: false
         bid: 0
+        maxbid: 0
         remaining: this.props.initialRemaining
         turn: null
+
     render: ->
       <div>
         <GameNavigation/>
@@ -255,6 +300,11 @@ MainState = React.createClass
                 <WagerActions turn={this.state.turn}
                               toggleCards={this.toggleCards}
                               onFold={this.onFold}
+                              onRaise={this.onRaise}
+                              onCall={this.onCall}
+                              onCheck={this.onCheck}
+                              maxbid={this.state.maxbid}
+                              bid={this.state.bid}
                               fold={this.state.fold}
                               handVisible={this.state.handVisible}/>
               </Row>
