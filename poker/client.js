@@ -172,6 +172,11 @@ UsernameInput = React.createClass({
     client.name = this.state.value;
     return client.setState("waiting", {});
   },
+  componentDidMount: function() {
+    if (client.name !== null) {
+      return client.setState("waiting", {});
+    }
+  },
   render: function() {
     return React.createElement(Panel, {
       "header": "Enter username"

@@ -109,10 +109,12 @@ UsernameInput = React.createClass
             value: ""
         else
             value: stored_name
+
     handleChange: ->
         this.setState(
             value: this.refs.uname_input.getValue()
         )
+
     onSubmit: ->
         sendMessage(
             action: "join"
@@ -122,6 +124,11 @@ UsernameInput = React.createClass
         client.name = this.state.value
         # Dummy data for now
         client.setState("waiting",{})
+
+    componentDidMount: ->
+        if client.name != null
+            client.setState("waiting",{})
+
     render: ->
        <Panel header="Enter username">
          <Input type="text"
