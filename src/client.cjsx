@@ -48,8 +48,8 @@ WagerActions = React.createClass
       buttonsDisabled = this.props.turn != client.name or this.props.fold
       callOrCheck = if this.props.maxbid == this.props.bid then "Check" else "Call"
       <ButtonGroup className="btn-group-vertical">
-        <Button bsStyle="primary" bsSize="large" disabled={buttonsDisabled}>
-                onClick={if callOrCheck == "Check" then this.props.onCheck else this.props.onCall}
+        <Button bsStyle="primary" bsSize="large" disabled={buttonsDisabled}
+                onClick={if callOrCheck == "Check" then this.props.onCheck else this.props.onCall}>
           {callOrCheck}
         </Button>
         <DropdownButton bsStyle="warning" bsSize="large"

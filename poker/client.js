@@ -72,8 +72,9 @@ WagerActions = React.createClass({
     }, React.createElement(Button, {
       "bsStyle": "primary",
       "bsSize": "large",
-      "disabled": buttonsDisabled
-    }, "onClick=", (callOrCheck === "Check" ? this.props.onCheck : this.props.onCall), callOrCheck), React.createElement(DropdownButton, {
+      "disabled": buttonsDisabled,
+      "onClick": (callOrCheck === "Check" ? this.props.onCheck : this.props.onCall)
+    }, callOrCheck), React.createElement(DropdownButton, {
       "bsStyle": "warning",
       "bsSize": "large",
       "title": "Raise...",
