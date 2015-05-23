@@ -300,31 +300,37 @@ MainState = React.createClass({
     var that;
     that = this;
     return this.playerAction(sender, "raise", function(p) {
-      var withdraw;
-      withdraw = that.state.bid - p.bid + data.amount;
-      console.log(p.name(" raised by " + data.amount + " and is adding " + withdraw + " to the pot"));
-      if (p.remaining - withdraw >= 0) {
-        p.bid = p.bid + withdraw;
-        p.remaining = p.remaining - withdraw;
-        that.setState({
-          lastRaised: pi,
-          bid: p.bid,
-          pot: that.state.pot + withdraw
-        });
-        return window.messageBus.send(sender, JSON.stringify({
-          status: "raiseok",
-          data: {
-            maxbid: that.state.bid,
-            remaining: p.remaining - withdraw
-          }
-        }));
-      } else {
-        return window.messageBus.send(sender, JSON.stringify({
-          status: "raisefail",
-          data: {
-            reason: "Insufficient funds to raise this much"
-          }
-        }));
+      var e, withdraw;
+      try {
+        console.log(p.name(" raised by " + data.amount));
+        withdraw = that.state.bid - p.bid + data.amount;
+        console.log(p.name(" is adding " + withdraw + " to the pot"));
+        if (p.remaining - withdraw >= 0) {
+          p.bid = p.bid + withdraw;
+          p.remaining = p.remaining - withdraw;
+          that.setState({
+            lastRaised: pi,
+            bid: p.bid,
+            pot: that.state.pot + withdraw
+          });
+          return window.messageBus.send(sender, JSON.stringify({
+            status: "raiseok",
+            data: {
+              maxbid: that.state.bid,
+              remaining: p.remaining - withdraw
+            }
+          }));
+        } else {
+          return window.messageBus.send(sender, JSON.stringify({
+            status: "raisefail",
+            data: {
+              reason: "Insufficient funds to raise this much"
+            }
+          }));
+        }
+      } catch (_error) {
+        e = _error;
+        return console.error(e);
       }
     });
   },
