@@ -262,6 +262,8 @@ MainState = React.createClass
         that = this
         this.playerAction(sender, "raise", (p) ->
             withdraw = that.state.bid - p.bid + data.amount
+            console.log(p.name " raised by " + data.amount \
+                        + " and is adding " + withdraw + " to the pot")
             if p.remaining - withdraw >= 0
                 p.bid = p.bid + withdraw
                 p.remaining = p.remaining - withdraw

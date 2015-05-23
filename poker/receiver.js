@@ -302,6 +302,7 @@ MainState = React.createClass({
     return this.playerAction(sender, "raise", function(p) {
       var withdraw;
       withdraw = that.state.bid - p.bid + data.amount;
+      console.log(p.name(" raised by " + data.amount + " and is adding " + withdraw + " to the pot"));
       if (p.remaining - withdraw >= 0) {
         p.bid = p.bid + withdraw;
         p.remaining = p.remaining - withdraw;
