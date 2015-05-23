@@ -127,11 +127,11 @@ UsernameInput = React.createClass
 
     componentDidMount: ->
         if client.name != null
+            client.setState("waiting",{})
             sendMessage(
                 action: "join"
                 data:
                     name: client.name)
-            client.setState("waiting",{})
 
     render: ->
        <Panel header="Enter username">

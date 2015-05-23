@@ -174,13 +174,13 @@ UsernameInput = React.createClass({
   },
   componentDidMount: function() {
     if (client.name !== null) {
-      sendMessage({
+      client.setState("waiting", {});
+      return sendMessage({
         action: "join",
         data: {
-          name: this.state.value
+          name: client.name
         }
       });
-      return client.setState("waiting", {});
     }
   },
   render: function() {
