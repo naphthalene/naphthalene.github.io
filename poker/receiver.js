@@ -461,6 +461,9 @@ MainState = React.createClass({
           maxbid: table.rules.bigBlind
         }
       }));
+      this.setState({
+        players: players
+      });
     } catch (_error) {
       e = _error;
       console.error(e);

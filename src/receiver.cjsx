@@ -397,6 +397,9 @@ MainState = React.createClass
                 status: "maxbid"
                 data:
                     maxbid: table.rules.bigBlind))
+            this.setState(
+                players: players
+            )
         catch e
             console.error(e)
         [bigBlind, firstTurn, players]
