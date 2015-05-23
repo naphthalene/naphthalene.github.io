@@ -198,10 +198,10 @@ MainState = React.createClass({
       }
     };
     sortedHands = hand.map(function(h) {
-      return sortFun(h);
+      return h.sort(sortFun);
     });
     return sortedHands.map(function(e, i, _) {
-      return console.log("Player" + this.state.players[i].name + "has this sorted hand " + e);
+      return console.log("Player" + this.state.players[i].name + "has this sorted hand: " + e);
     });
   },
   dealCommunityOrEnd: function() {

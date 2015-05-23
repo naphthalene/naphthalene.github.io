@@ -163,10 +163,10 @@ MainState = React.createClass
                 cardOrder.indexOf(a.slice(0, -1)) < \
                     cardOrder.indexOf(b.slice(0, -1))
 
-        sortedHands = hand.map((h) -> sortFun(h))
+        sortedHands = hand.map((h) -> h.sort(sortFun))
         sortedHands.map((e, i, _) ->
             console.log("Player" + this.state.players[i].name + \
-                "has this sorted hand " + e))
+                "has this sorted hand: " + e))
 
     dealCommunityOrEnd: ->
         switch this.state.community
