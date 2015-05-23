@@ -143,7 +143,28 @@ MainState = React.createClass
 
     computeWinner: ->
         # FOR NOW just give it to the first person in the list...
+        allHands = this.state.players.map((p) ->
+            all_seven = p.hand
+            all_seven = all_seven.concat(this.state.communityCards.flop)
+            all_seven.push(this.state.communityCards.turn)
+            all_seven.push(this.state.communityCards.river)
+            all_seven)
+        allHands = allHands.map((hand) -> this.sortHand(hand))
         return 0
+
+    sortHand: (hand) ->
+        cardOrder = ["2", "3", "4", "5", "6", "7", "8",
+            "9", "10", "J", "Q", "K", "A"]
+
+        sortFun = (a, b) ->
+            if a == b then 0 else
+                cardOrder.indexOf(a.slice(0, -1)) < \
+                    cardOrder.indexOf(b.slice(0, -1))
+
+        sortedHands = hand.map((h) -> sortFun(h))
+        sortedHands.map((e, i, _) ->
+            console.log("Player" + this.state.players[i].name + \
+                "has this sorted hand " + e))
 
     dealCommunityOrEnd: ->
         switch this.state.community

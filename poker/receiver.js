@@ -171,7 +171,36 @@ MainState = React.createClass({
     return this.dealHand(this.state.dealer);
   },
   computeWinner: function() {
+    var allHands;
+    allHands = this.state.players.map(function(p) {
+      var all_seven;
+      all_seven = p.hand;
+      all_seven = all_seven.concat(this.state.communityCards.flop);
+      all_seven.push(this.state.communityCards.turn);
+      all_seven.push(this.state.communityCards.river);
+      return all_seven;
+    });
+    allHands = allHands.map(function(hand) {
+      return this.sortHand(hand);
+    });
     return 0;
+  },
+  sortHand: function(hand) {
+    var cardOrder, sortFun, sortedHands;
+    cardOrder = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+    sortFun = function(a, b) {
+      if (a === b) {
+        return 0;
+      } else {
+        return cardOrder.indexOf(a.slice(0, -1)) < cardOrder.indexOf(b.slice(0, -1));
+      }
+    };
+    sortedHands = hand.map(function(h) {
+      return sortFun(h);
+    });
+    return sortedHands.map(function(e, i, _) {
+      return console.log("Player" + this.state.players[i].name + "has this sorted hand " + e);
+    });
   },
   dealCommunityOrEnd: function() {
     switch (this.state.community) {
