@@ -71,6 +71,18 @@ ConnectedPlayers = React.createClass
         </Table>
       </Panel>
 
+DealerToken = React.createClass
+    render: ->
+        <p className="dealer">Dealer</p>
+
+SmallBlindToken = React.createClass
+    render: ->
+        <p className="small-blind">Small Blind</p>
+
+BigBlindToken = React.createClass
+    render: ->
+        <p className="big-blind">Big Blind</p>
+
 Players = React.createClass
     render: ->
         startAngle = Math.PI / this.props.players.length;
@@ -85,18 +97,15 @@ Players = React.createClass
             style =
                 left: leftStyle
                 top: topStyle
+            cls = "semicircle panel-transparent " + \
+                (if this.props.turn == p.name then "player-turn" else "")
             angle += startAngle
-            hdr = p.name + (if p.dealer then " - Dealer" else \
-                if p.blind == "S" then " - Small Blind" else \
-                if p.blind == "B" then " - Big Blind" else "")
-            spans.push(<Panel key={i}
-                              className={"semicircle panel-transparent " + \
-                                         (if this.props.turn == p.name then "player-turn" else "")}
-                              style={style}
-                              header={hdr}>
-                         {if !this.props.players[i].fold \
-                          then <p>{"Bid: $" + this.props.players[i].bid}</p> \
-                          else <p>FOLD</p>}
+            hdr = p.name
+            spans.push(<Panel key={i} className={cls} style={style} header={p.name}>
+                         {if !p.fold then <p>{"Bid: $" + p.bid}</p> else <p>FOLD</p>}
+                         {if p.dealer then <DealerToken/> else \
+                              if p.blind == "S" then <SmallBlindToken/> else \
+                              if p.blind == "B" then <BigBlindToken/> else ""}
                        </Panel>)
             i += 1
         <div id="player-display">{spans}</div>
