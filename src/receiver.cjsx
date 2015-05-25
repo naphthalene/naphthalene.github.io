@@ -215,7 +215,7 @@ MainState = React.createClass
                      (counts[0][1] == 2 and counts[2][1] == 2) or
                      (counts[1][1] == 2 and counts[2][1] == 2)) then "2P"
                 else (if len(counts) == 4 then "1P"
-                else "0P")))))))
+                else "0P")))))))))
             
         return 0
 
@@ -234,7 +234,7 @@ MainState = React.createClass
 
         sortFun = (a, b) ->
             if a.slice(0, -1) == b.slice(0, -1) then 0 else
-                cardOrder.indexOf(a.slice(0, -1)) < \
+                cardOrder.indexOf(a.slice(0, -1)) > \
                     cardOrder.indexOf(b.slice(0, -1))
 
         hand.sort(sortFun)

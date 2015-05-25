@@ -311,7 +311,7 @@ MainState = React.createClass({
       if (a.slice(0, -1) === b.slice(0, -1)) {
         return 0;
       } else {
-        return cardOrder.indexOf(a.slice(0, -1)) < cardOrder.indexOf(b.slice(0, -1));
+        return cardOrder.indexOf(a.slice(0, -1)) > cardOrder.indexOf(b.slice(0, -1));
       }
     };
     return hand.sort(sortFun);
