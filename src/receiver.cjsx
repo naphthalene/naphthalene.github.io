@@ -151,12 +151,25 @@ MainState = React.createClass
         this.dealHand(this.state.dealer)
 
 
-    combinations: (arr, k)->
+    combinations: (arr, k) ->
+        len = arr.length
         that = this
-        arr.map((e, i, a) ->
-            if k == 1 then ret.push([e]) else
-                that.combinations(arr.slice(i+1, arr.length), k-1).
-                    map((ce, ci, ca) -> next = ce; next.unshift(e); next))
+        if k > len then []
+        if !k then [[]]
+        if k == len then [arr]
+
+        reduceFun = (acc, val, i) ->
+            acc.concat(that.combinations(arr.slice(i+1), k-1).map((comb) ->
+                [val].concat(comb)))
+
+        arr.reduce(reduceFun, []);
+
+    # combinations: (arr, k)->
+    #     that = this
+    #     arr.map((e, i, a) ->
+    #         if k == 1 then ret.push([e]) else
+    #             that.combinations(arr.slice(i+1, arr.length), k-1).
+    #                 map((ce, ci, ca) -> next = ce; next.unshift(e); next))
 
     computeWinner: ->
         cc = this.state.communityCards
@@ -218,7 +231,7 @@ MainState = React.createClass
                      (counts[1][1] == 2 and counts[2][1] == 2)) then "2P"
                 else (if len(counts) == 4 then "1P"
                 else "0P")))))))))
-            
+
         return 0
 
     dupCounts: (arr) ->
@@ -307,7 +320,7 @@ MainState = React.createClass
             while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
                 foundNextPlayer = !this.state.players[nextActivePlayer].fold
                 if foundNextPlayer
-                    # If we found another player, then the bidding 
+                    # If we found another player, then the bidding
                     biddingOver = false
                     break
                 nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length

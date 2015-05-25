@@ -196,20 +196,24 @@ MainState = React.createClass({
     return this.dealHand(this.state.dealer);
   },
   combinations: function(arr, k) {
-    var that;
+    var len, reduceFun, that;
+    len = arr.length;
     that = this;
-    return arr.map(function(e, i, a) {
-      if (k === 1) {
-        return ret.push([e]);
-      } else {
-        return that.combinations(arr.slice(i + 1, arr.length), k - 1).map(function(ce, ci, ca) {
-          var next;
-          next = ce;
-          next.unshift(e);
-          return next;
-        });
-      }
-    });
+    if (k > len) {
+      [];
+    }
+    if (!k) {
+      [[]];
+    }
+    if (k === len) {
+      [arr];
+    }
+    reduceFun = function(acc, val, i) {
+      return acc.concat(that.combinations(arr.slice(i + 1), k - 1).map(function(comb) {
+        return [val].concat(comb);
+      }));
+    };
+    return arr.reduce(reduceFun, []);
   },
   computeWinner: function() {
     var allHands, cc, suit, that, val;
