@@ -71,6 +71,18 @@ ConnectedPlayers = React.createClass
         </Table>
       </Panel>
 
+DealerToken = React.createClass
+    render: ->
+        <p className="dealer">Dealer</p>
+
+SmallBlindToken = React.createClass
+    render: ->
+        <p className="small-blind">Small Blind</p>
+
+BigBlindToken = React.createClass
+    render: ->
+        <p className="big-blind">Big Blind</p>
+
 Players = React.createClass
     render: ->
         startAngle = Math.PI / this.props.players.length;
@@ -85,18 +97,15 @@ Players = React.createClass
             style =
                 left: leftStyle
                 top: topStyle
+            cls = "semicircle panel-transparent " + \
+                (if this.props.turn == p.name then "player-turn" else "")
             angle += startAngle
-            hdr = p.name + (if p.dealer then " - Dealer" else \
-                if p.blind == "S" then " - Small Blind" else \
-                if p.blind == "B" then " - Big Blind" else "")
-            spans.push(<Panel key={i}
-                              className={"semicircle panel-transparent " + \
-                                         (if this.props.turn == p.name then "player-turn" else "")}
-                              style={style}
-                              header={hdr}>
-                         {if !this.props.players[i].fold \
-                          then <p>{"Bid: $" + this.props.players[i].bid}</p> \
-                          else <p>FOLD</p>}
+            hdr = p.name
+            spans.push(<Panel key={i} className={cls} style={style} header={p.name}>
+                         {if !p.fold then <p>{"Bid: $" + p.bid}</p> else <p>FOLD</p>}
+                         {if p.dealer then <DealerToken/> else \
+                              if p.blind == "S" then <SmallBlindToken/> else \
+                              if p.blind == "B" then <BigBlindToken/> else ""}
                        </Panel>)
             i += 1
         <div id="player-display">{spans}</div>
@@ -141,6 +150,14 @@ MainState = React.createClass
         # Deal a new hand of cards
         this.dealHand(this.state.dealer)
 
+
+    combinations: (arr, k)->
+        that = this
+        arr.map((e, i, a) ->
+            if k == 1 then ret.push([e]) else
+                that.combinations(arr.slice(i+1, arr.length), k-1).
+                    map((ce, ci, ca) -> next = ce; next.unshift(e); next))
+
     computeWinner: ->
         cc = this.state.communityCards
         allHands = this.state.players.map((p) ->
@@ -150,24 +167,78 @@ MainState = React.createClass
             all_seven.push(cc.river)
             all_seven)
         that = this
-        allHands = allHands.map((hand) -> that.sortHand(hand))
-        # FOR NOW just give it to the first person in the list...
-        allHands.map((e, i, _) ->
+        val = (c) ->
+            ["2","3","4","5","6","7","8","9","10","J","Q","K","A"].
+                indexOf(c.slice(0,-1))
+        suit = (c) -> c.slice(-1)[0]
+        allHands.map((e, i, a) ->
+            a[i] = that.sortHand(e)
             console.log("Player" + that.state.players[i].name + \
-                "has this sorted hand: " + e))
+                        "has this sorted hand: " + a[i])
+            # TODO This should be a reduction that finds the best possible
+            # ranked hand combination of the available combinations of 5/7
+            that.combinations(a[i]).reduce((cp, ce, ci, ca) ->
+                # Checks if this is a flush
+                flush = ce.every((cae, cai, caa) ->
+                    !cai or suit(cae) == suit(caa[0]))
+                # Checks if its a straight and returns (straightp, high card)
+                checkStraight = (sp, sc, si, sa) ->
+                    valcomp = (x, y) ->
+                        # Handle the special case when ace is low.
+                        # Must be the last card (in case multiple aces) and
+                        # the first card in array must be a 2
+                        specialAce = x == 12 and i == 4 and !val(sa[0])
+                        [specialAce or x == y + 1, specialAce]
+                    [cmp, special] = valcomp(val(sc), val(sp[1]))
+                    [(!si or (sp[0] and cmp)), if special then 3 else sc]
+                [straight,straightHighVal] = ce.reduce(checkStraight,[true,-1])
+                # Find duplicates and their quantities.
+                counts = that.dupCounts(ce.map((e) -> val(e)))
+
+                # Now calculate the best ranking outcome for this combination
+                if flush and straight
+                    # ROYAL FLUSH or STRAIGHT FLUSH
+                    if straightHighVal == 12 then "RF" else "SF"
+                else (if counts.length == 2 and
+                    counts[0][1] == 4 or counts[1][1] == 4 then "4K"
+                else (if counts.length == 2 and
+                    (counts[0][1] == 3 and counts[1][1] == 2 or
+                     counts[0][1] == 2 and counts[1][1] == 3)
+                        "FH"
+                else (if flush then "FL"
+                else (if straight then "ST"
+                else (if (counts.length == 3) and
+                    (counts[0][1] == 3 or
+                     counts[1][1] == 3 or
+                     counts[2][1] == 3) then "3K"
+                else (if counts.length == 3 and
+                    ((counts[0][1] == 2 and counts[1][1] == 2) or
+                     (counts[0][1] == 2 and counts[2][1] == 2) or
+                     (counts[1][1] == 2 and counts[2][1] == 2)) then "2P"
+                else (if len(counts) == 4 then "1P"
+                else "0P")))))))))
+            
         return 0
 
+    dupCounts: (arr) ->
+        # arr must be computed values, not cards
+        appendDup = (p, c, i, a) ->
+            if p[0] != c
+                if p[1] > 0 then p[2].push([p[0],p[1]])
+                [c,1,p[2]]
+            else [p[0],p[1]++,p[2]]
+        arr.reduce(appendDup, [null, 0, []])[2]
+
     sortHand: (hand) ->
-        cardOrder = ["2", "3", "4", "5", "6", "7", "8",
-            "9", "10", "J", "Q", "K", "A"]
+        cardOrder = ["2", "3","4","5","6","7", "8",
+                     "9", "10", "J", "Q", "K", "A"]
 
         sortFun = (a, b) ->
-            if a == b then 0 else
-                cardOrder.indexOf(a.slice(0, -1)) < \
+            if a.slice(0, -1) == b.slice(0, -1) then 0 else
+                cardOrder.indexOf(a.slice(0, -1)) > \
                     cardOrder.indexOf(b.slice(0, -1))
 
-        hand = hand.sort(sortFun)
-        hand
+        hand.sort(sortFun)
 
     dealCommunityOrEnd: ->
         switch this.state.community

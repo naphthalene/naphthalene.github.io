@@ -47,3 +47,12 @@ h3 {
 .panel-transparent p {
   color: #ffffff;
 }
+.dealer {
+  color: #ffaaaa;
+}
+.small-blind {
+  color: ##FFFFAA;
+}
+.big-blind {
+  color: ##FFAAFF;
+}
