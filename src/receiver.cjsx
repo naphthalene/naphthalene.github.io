@@ -113,7 +113,7 @@ Players = React.createClass
 
 # STATES
 
-WaitingForPlayers = React.createClass
+InitState = React.createClass
     handleMessage: (tbl, sender, msg) ->
         if msg.action == "start"
             # Received the go ahead to start the round from the table host
@@ -154,9 +154,7 @@ MainState = React.createClass
     combinations: (arr, k) ->
         len = arr.length
         that = this
-        if k > len then []
-        if !k then [[]]
-        if k == len then [arr]
+        if k > len then return [] else if !k then return [[]] else if k == len then return [arr]
 
         reduceFun = (acc, val, i) ->
             acc.concat(that.combinations(arr.slice(i+1), k-1).map((comb) ->
@@ -611,17 +609,16 @@ table =
         bigBlind:  10
         smallBlind: 5
     states:
-        init:          WaitingForPlayers
+        init:          InitState
         main:          MainState
 
     handleMessage: (sender, m) ->
         isReconnecting = (players) ->
-            for p in players
-                if p.name == m.data.name \
+            reduceFun = (acc, p) ->
+                acc and p.name == m.data.name \
                 and p.id.split(':')[0] == sender.split(':')[0]
-                    console.log("Reconnecting user " + p.name)
-                    return true
-            return false
+            players.reduce(reduceFun, true)
+
         switch m.action
             when "join"
                 if this.state == "init"
@@ -631,7 +628,6 @@ table =
                                 window.messageBus.send(sender, JSON.stringify(
                                     status:"host"
                                     data:{}))
-
                         else
                             # This is a new user
                             if this.players.length == 0

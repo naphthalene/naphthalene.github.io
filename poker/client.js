@@ -174,13 +174,13 @@ UsernameInput = React.createClass({
   },
   componentDidMount: function() {
     if (client.name !== null) {
-      client.setState("waiting", {});
-      return sendMessage({
+      sendMessage({
         action: "join",
         data: {
           name: client.name
         }
       });
+      return client.setState("waiting", {});
     }
   },
   render: function() {
@@ -228,6 +228,8 @@ JoinedState = React.createClass({
     switch (msg.status) {
       case "host":
         return client.setState("host", {});
+      case "start":
+        return client.setState("main", msg.data);
       default:
         return console.log("unrecognized status received: " + msg.status);
     }
@@ -279,9 +281,7 @@ WaitingForPlayersState = React.createClass({
       case "host":
         return client.setState("host", {});
       case "start":
-        return client.setState("main", {
-          initialRemaining: 1000
-        });
+        return client.setState("main", msg.data);
       default:
         return console.log("Unrecognized status received: " + msg.status);
     }

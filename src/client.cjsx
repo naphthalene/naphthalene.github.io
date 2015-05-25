@@ -127,11 +127,11 @@ UsernameInput = React.createClass
 
     componentDidMount: ->
         if client.name != null
-            client.setState("waiting",{})
             sendMessage(
                 action: "join"
                 data:
                     name: client.name)
+            client.setState("waiting",{})
 
     render: ->
        <Panel header="Enter username">
@@ -167,6 +167,8 @@ JoinedState = React.createClass
         switch msg.status
             when "host"
                 client.setState("host", {})
+            when "start"
+                client.setState("main", msg.data)
             else
                 console.log("unrecognized status received: " + msg.status)
 
@@ -213,7 +215,7 @@ WaitingForPlayersState = React.createClass
             when "host"
                 client.setState("host", {})
             when "start"
-                client.setState("main", initialRemaining: 1000)
+                client.setState("main", msg.data)
             else
                 console.log("Unrecognized status received: " + msg.status)
     render: ->
