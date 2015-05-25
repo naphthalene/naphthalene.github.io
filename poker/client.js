@@ -225,7 +225,12 @@ InitializingState = React.createClass({
 
 JoinedState = React.createClass({
   handleMessage: function(cli, msg) {
-    return {};
+    switch (msg.status) {
+      case "host":
+        return client.setState("host", {});
+      default:
+        return console.log("unrecognized status received: " + msg.status);
+    }
   },
   render: function() {
     return React.createElement("div", null, React.createElement(GameNavigation, null), React.createElement(Grid, null, React.createElement(Row, null, React.createElement(Col, {

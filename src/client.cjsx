@@ -163,7 +163,13 @@ InitializingState = React.createClass
       </div>
 
 JoinedState = React.createClass
-    handleMessage: (cli, msg) -> {}
+    handleMessage: (cli, msg) ->
+        switch msg.status
+            when "host"
+                client.setState("host", {})
+            else
+                console.log("unrecognized status received: " + msg.status)
+
     render: ->
       <div>
         <GameNavigation/>
