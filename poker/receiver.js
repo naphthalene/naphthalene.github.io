@@ -255,12 +255,36 @@ MainState = React.createClass({
           } else {
             return "SF";
           }
-        } else if (len(counts) === 2 && counts[0][1] === 4 || counts[1][1] === 4) {
-          return "4K";
-        } else if (len(counts) === 2 && (counts[0][1] === 3 && counts[1][1] === 2 || counts[0][1] === 2 && counts[1][1] === 3)) {
-          return "FH";
         } else {
-
+          if (counts.length === 2 && counts[0][1] === 4 || counts[1][1] === 4) {
+            return "4K";
+          } else {
+            if (counts.length === 2 && (counts[0][1] === 3 && counts[1][1] === 2 || counts[0][1] === 2 && counts[1][1] === 3)) {
+              return "FH";
+            } else {
+              if (flush) {
+                return "FL";
+              } else {
+                if (straight) {
+                  return "ST";
+                } else {
+                  if ((counts.length === 3) && (counts[0][1] === 3 || counts[1][1] === 3 || counts[2][1] === 3)) {
+                    return "3K";
+                  } else {
+                    if (counts.length === 3 && ((counts[0][1] === 2 && counts[1][1] === 2) || (counts[0][1] === 2 && counts[2][1] === 2) || (counts[1][1] === 2 && counts[2][1] === 2))) {
+                      return "2P";
+                    } else {
+                      if (len(counts) === 4) {
+                        return "1P";
+                      } else {
+                        return "0P";
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       });
     });

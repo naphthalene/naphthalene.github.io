@@ -198,25 +198,28 @@ MainState = React.createClass
                 if flush and straight
                     # ROYAL FLUSH or STRAIGHT FLUSH
                     if straightHighVal == 12 then "RF" else "SF"
-                else if len(counts) == 2 and
+                else (if counts.length == 2 and
                     counts[0][1] == 4 or counts[1][1] == 4 then "4K"
-                else if len(counts) == 2 and
+                else (if counts.length == 2 and
                     (counts[0][1] == 3 and counts[1][1] == 2 or
                      counts[0][1] == 2 and counts[1][1] == 3)
                         "FH"
-                else if flush then "FL"
-                else if straight then "ST"
-                else if len(counts) == 3 and
-                    (counts[0][1] == 3 or counts[1][1] == 3 or counts[2][1] == 3)
+                else (if flush
+                    "FL"
+                else (if straight
+                    "ST"
+                else (if (counts.length == 3) and
+                    (counts[0][1] == 3 or
+                     counts[1][1] == 3 or
+                     counts[2][1] == 3)
                     "3K"
-                else if len(counts) == 3 and
+                else (if counts.length == 3 and
                     ((counts[0][1] == 2 and counts[1][1] == 2) or
                      (counts[0][1] == 2 and counts[2][1] == 2) or
                      (counts[1][1] == 2 and counts[2][1] == 2))
                     "2P"
-                else if len(counts) == 4 then "1P"
-                else "0P"
-            ))
+                else (if len(counts) == 4 then "1P"
+                else "0P")))))))))
             
         return 0
 
