@@ -152,9 +152,10 @@ MainState = React.createClass
 
 
     combinations: (arr, k)->
+        that = this
         arr.map((e, i, a) ->
             if k == 1 then ret.push([e]) else
-                this.combinations(arr.slice(i+1, arr.length), k-1).
+                that.combinations(arr.slice(i+1, arr.length), k-1).
                     map((ce, ci, ca) -> next = ce; next.unshift(e); next))
 
     computeWinner: ->

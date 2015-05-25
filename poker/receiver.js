@@ -196,11 +196,13 @@ MainState = React.createClass({
     return this.dealHand(this.state.dealer);
   },
   combinations: function(arr, k) {
+    var that;
+    that = this;
     return arr.map(function(e, i, a) {
       if (k === 1) {
         return ret.push([e]);
       } else {
-        return this.combinations(arr.slice(i + 1, arr.length), k - 1).map(function(ce, ci, ca) {
+        return that.combinations(arr.slice(i + 1, arr.length), k - 1).map(function(ce, ci, ca) {
           var next;
           next = ce;
           next.unshift(e);
