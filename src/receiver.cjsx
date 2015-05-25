@@ -176,20 +176,20 @@ MainState = React.createClass
                         "has this sorted hand: " + a[i])
             # TODO This should be a reduction that finds the best possible
             # ranked hand combination of the available combinations of 5/7
-            that.combinations(a[i]).map((ce, ci, ca) ->
+            that.combinations(a[i]).reduce((cp, ce, ci, ca) ->
                 # Checks if this is a flush
                 flush = ce.every((cae, cai, caa) ->
                     !cai or suit(cae) == suit(caa[0]))
                 # Checks if its a straight and returns (straightp, high card)
-                checkStraight = (p, c, i, a) ->
-                    valcomp = (a, b) ->
+                checkStraight = (sp, sc, si, sa) ->
+                    valcomp = (x, y) ->
                         # Handle the special case when ace is low.
                         # Must be the last card (in case multiple aces) and
                         # the first card in array must be a 2
-                        specialAce = a == 12 and i == 4 and !val(a[0])
-                        [specialAce or a == b + 1, specialAce]
-                    [cmp, special] = valcomp(val(c), val(p[1]))
-                    [(!i or (p[0] and cmp)), if special then 3 else c]
+                        specialAce = x == 12 and i == 4 and !val(x[0])
+                        [specialAce or x == y + 1, specialAce]
+                    [cmp, special] = valcomp(val(sc), val(sp[1]))
+                    [(!si or (sp[0] and cmp)), if special then 3 else sc]
                 [straight,straightHighVal] = ce.reduce(checkStraight,[true,-1])
                 # Find duplicates and their quantities.
                 counts = that.dupCounts(ce.map((e) -> val(e)))
@@ -204,22 +204,18 @@ MainState = React.createClass
                     (counts[0][1] == 3 and counts[1][1] == 2 or
                      counts[0][1] == 2 and counts[1][1] == 3)
                         "FH"
-                else (if flush
-                    "FL"
-                else (if straight
-                    "ST"
+                else (if flush then "FL"
+                else (if straight then "ST"
                 else (if (counts.length == 3) and
                     (counts[0][1] == 3 or
                      counts[1][1] == 3 or
-                     counts[2][1] == 3)
-                    "3K"
+                     counts[2][1] == 3) then "3K"
                 else (if counts.length == 3 and
                     ((counts[0][1] == 2 and counts[1][1] == 2) or
                      (counts[0][1] == 2 and counts[2][1] == 2) or
-                     (counts[1][1] == 2 and counts[2][1] == 2))
-                    "2P"
+                     (counts[1][1] == 2 and counts[2][1] == 2)) then "2P"
                 else (if len(counts) == 4 then "1P"
-                else "0P")))))))))
+                else "0P")))))))
             
         return 0
 

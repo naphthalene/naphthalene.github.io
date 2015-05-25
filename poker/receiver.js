@@ -230,20 +230,20 @@ MainState = React.createClass({
     allHands.map(function(e, i, a) {
       a[i] = that.sortHand(e);
       console.log("Player" + that.state.players[i].name + "has this sorted hand: " + a[i]);
-      return that.combinations(a[i]).map(function(ce, ci, ca) {
+      return that.combinations(a[i]).reduce(function(cp, ce, ci, ca) {
         var checkStraight, counts, flush, ref, straight, straightHighVal;
         flush = ce.every(function(cae, cai, caa) {
           return !cai || suit(cae) === suit(caa[0]);
         });
-        checkStraight = function(p, c, i, a) {
+        checkStraight = function(sp, sc, si, sa) {
           var cmp, ref, special, valcomp;
-          valcomp = function(a, b) {
+          valcomp = function(x, y) {
             var specialAce;
-            specialAce = a === 12 && i === 4 && !val(a[0]);
-            return [specialAce || a === b + 1, specialAce];
+            specialAce = x === 12 && i === 4 && !val(x[0]);
+            return [specialAce || x === y + 1, specialAce];
           };
-          ref = valcomp(val(c), val(p[1])), cmp = ref[0], special = ref[1];
-          return [!i || (p[0] && cmp), special ? 3 : c];
+          ref = valcomp(val(sc), val(sp[1])), cmp = ref[0], special = ref[1];
+          return [!si || (sp[0] && cmp), special ? 3 : sc];
         };
         ref = ce.reduce(checkStraight, [true, -1]), straight = ref[0], straightHighVal = ref[1];
         counts = that.dupCounts(ce.map(function(e) {
