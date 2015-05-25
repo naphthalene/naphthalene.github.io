@@ -244,7 +244,8 @@ MainState = React.createClass({
             specialAce = x === 12 && i === 4 && !val(sa[0]);
             return [specialAce || x === y + 1, specialAce];
           };
-          ref = valcomp(val(sc), val(sp[1])), cmp = ref[0], special = ref[1];
+          console.log("sc: " + sc + " sp[1]: " + sp[1]);
+          ref = valcomp(val(sc), sp[1]), cmp = ref[0], special = ref[1];
           return [!si || (sp[0] && cmp), special ? 3 : sc];
         };
         ref = ce.reduce(checkStraight, [true, -1]), straight = ref[0], straightHighVal = ref[1];

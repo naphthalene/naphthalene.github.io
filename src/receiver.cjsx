@@ -189,7 +189,8 @@ MainState = React.createClass
                         # the first card in array must be a 2
                         specialAce = x == 12 and i == 4 and !val(sa[0])
                         [specialAce or x == y + 1, specialAce]
-                    [cmp, special] = valcomp(val(sc), val(sp[1]))
+                    console.log("sc: " + sc + " sp[1]: " + sp[1])
+                    [cmp, special] = valcomp(val(sc), sp[1])
                     [(!si or (sp[0] and cmp)), if special then 3 else sc]
                 [straight,straightHighVal] = ce.reduce(checkStraight,[true,-1])
                 # Find duplicates and their quantities.
