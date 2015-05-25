@@ -241,7 +241,7 @@ MainState = React.createClass({
           var cmp, ref, special, valcomp;
           valcomp = function(x, y) {
             var specialAce;
-            specialAce = x === 12 && i === 4 && !val(x[0]);
+            specialAce = x === 12 && i === 4 && !val(sa[0]);
             return [specialAce || x === y + 1, specialAce];
           };
           ref = valcomp(val(sc), val(sp[1])), cmp = ref[0], special = ref[1];

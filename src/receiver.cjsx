@@ -187,7 +187,7 @@ MainState = React.createClass
                         # Handle the special case when ace is low.
                         # Must be the last card (in case multiple aces) and
                         # the first card in array must be a 2
-                        specialAce = x == 12 and i == 4 and !val(x[0])
+                        specialAce = x == 12 and i == 4 and !val(sa[0])
                         [specialAce or x == y + 1, specialAce]
                     [cmp, special] = valcomp(val(sc), val(sp[1]))
                     [(!si or (sp[0] and cmp)), if special then 3 else sc]
