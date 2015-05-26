@@ -247,15 +247,15 @@ MainState = React.createClass
                     else if straight and flush
                         StraightFlush(e, strtVal)
                     else if quad != false and quad != -1
-                        FourOfAKind(e, counts[quad])
+                        FourOfAKind(e, counts, quad)
                     else if FH != false and FH != -1
-                        FullHouse(e, counts[FH])
+                        FullHouse(e, counts, FH)
                     else if flush
                         Flush(e)
                     else if straight
                         Straight(e)
                     else if trips != false and trips != -1
-                        ThreeOfAKind(e, counts[trips])
+                        ThreeOfAKind(e, counts, trips)
                     else if twoPair != false and twoPair[0]
                         TwoPair(e, twoPair[1])
                     else if onePair != false and onePair != -1
@@ -641,13 +641,21 @@ class HighCard
     constructor: (@hand) ->
         @rank = "HC"
 
+    intcmp: (a, b) ->
+        if a > b
+            1
+        else if a < b
+            -1
+        else 0
+
     zipcmp: (a, b) ->
         # Returns +1 if a > b, 0 if a == b, else -1
         # Iterates over both arrays
         if a.length != b.length
             if a.length > b.length then 1 else -1
         else
-            a.reduce((p, e, i, _) -> if p != 0 then p else e > b[i])
+            reduceFun = (p, e, i, _) -> if p != 0 then p else e > b[i]
+            a.reduce(reduceFun, 0)
 
     rankcmp: (other) ->
         # Compare ranks, first by type, then do tiebreaker
@@ -674,12 +682,7 @@ class HighCard
             if c > p then c else p
         myHC = @hand.map((c)->@val(c)).reduce(reduceFun, -1)
         oHC = other.hand.map((c)->@val(c)).reduce(reduceFun, -1)
-        if myHC > oHC
-            1
-        else if myHC < oHC
-            -1
-        else
-            0
+        @intcmp(myHC, oHC)
 
 class OnePair extends HighCard
     constructor: (@hand, @counts, @i) ->
@@ -706,62 +709,83 @@ class TwoPair extends HighCard
         [@i, @j] = ia
 
     tiebreaker: (other) ->
-        #(0,1), (0,2), (1,2)
+        # Order the indices by highest value pair first
+        # REVIEW might not need to do this. counts[@j]>counts[@i]?
         sortIJ = (i, j, c) ->
             [i, j].map((e) -> [e,c[e][0]])
                .sort((a,b) -> b[1] - a[1])
         mys = sortIJ(@i, @j, @counts)
         os = sortIJ(other.i, other.j, other.counts)
         reduceFun = (prev,curr,h,a) ->
-            if prev != 0 then prev
-            else if curr[1] > os[h][1]
-                1
-            else if curr[1] < os[h][1]
-                -1
-            else 0
+            if prev != 0 then prev else @intcmp(curr[1], os[h][1])
 
         doublesCmp = mys.reduce(reduceFun, 0)
         if doublesCmp == 0
             console.log("Two pair is the same, reviewing kicker")
-            myRemainingCardVal = @counts[3 - @i - @j][0]
-            oRemainingCardVal = other.counts[3-other.i-other.j][0]
-            if myRemainingCardVal > oRemainingCardVal
-                1
-            else if myRemainingCardVal < oRemainingCardVal
-                -1
-            else 0
-
-## TODO finish below of these
+            myKickerVal = @counts[3-@i-@j][0]
+            oKickerVal = other.counts[3-other.i-other.j][0]
+            @intcmp(myKickerVal, oKickerVal)
+        else
+            doublesCmp
 
 class ThreeOfAKind extends HighCard
-    constructor: (hand, tc) ->
-        super(hand)
+    constructor: (@hand, @counts, @ti) ->
         @rank = "3K"
 
+    tiebreaker: (other) ->
+        # First compare the val of the triple
+        cmp = @intcmp(@counts[@ti][0], other.counts[other.ti][0])
+        if cmp != 0 then cmp else\
+            # If they're the same, get remaining two cards
+            srf = (ti) ->
+                (p, c, i, e) -> if i == ti then p else p.unshift(c[0])
+            @zipcmp(@counts.reduce(srf(@ti), []),
+                other.counts.reduce(srf(other.ti), []))
+
 class Straight extends HighCard
-    constructor: (hand) ->
-        super(hand)
+    constructor: (@hand, @sh) ->
         @rank = "ST"
 
+    tiebreaker: (other) -> @intcmp(@sh, other.sh)
+
 class Flush extends HighCard
-    constructor: (hand) ->
-        super(hand)
+    constructor: (@hand) ->
         @rank = "FL"
 
+    tiebreaker: (other) ->
+        h = @hand
+        h.reverse()
+        oh = other.hand
+        oh.reverse()
+        @zipcmp(h, oh)
+
 class FullHouse extends HighCard
-    constructor: (hand, tc) ->
-        {}
+    constructor: (@hand, @counts, @fhi) ->
+        @rank = "FH"
+
+    tiebreaker: (other) ->
+        cmp = @intcmp(@counts[@fhi][0], other.counts[other.fhi][0])
+        if cmp != 0 then cmp else\
+            @intcmp(@counts[1-@fhi][0], other.counts[1-other.fhi][0])
 
 class FourOfAKind extends HighCard
-    constructor: (hand, tc) ->
-        {}
+    constructor: (@hand, @counts, @fki) ->
+        @rank = "4K"
 
-class StraightFlush extends HighCard
-    constructor: (hand, sv) ->
-        {}
+    tiebreaker: (other) ->
+        cmp = @intcmp(@counts[@fki][0], other.counts[other.fki][0])
+        if cmp != 0 then cmp else\
+            @intcmp(@counts[1-@fki][0], other.counts[1-other.fki][0])
+
+class StraightFlush extends Straight
+    constructor: (@hand, @sh) ->
+        @rank = "SF"
 
 class RoyalFlush extends HighCard
-
+    tiebreaker: (other) ->
+        cmp1 = @intcmp(@hand[1], other.hand[1])
+        if cmp1 != 0 then cmp1 else\
+            @intcmp(@hand[0], other.hand[0])
 
 table =
     state: null

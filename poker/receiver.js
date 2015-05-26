@@ -282,7 +282,7 @@ MainState = React.createClass({
         onePair = counts.length === 4 ? [0, 1].map(function(i) {
           return counts[i][1] === 2;
         }).indexOf(true) : false;
-        hrank = royalFlush ? RoyalFlush(e) : straight && flush ? StraightFlush(e, strtVal) : quad !== false && quad !== -1 ? FourOfAKind(e, counts[quad]) : FH !== false && FH !== -1 ? FullHouse(e, counts[FH]) : flush ? Flush(e) : straight ? Straight(e) : trips !== false && trips !== -1 ? ThreeOfAKind(e, counts[trips]) : twoPair !== false && twoPair[0] ? TwoPair(e, twoPair[1]) : onePair !== false && onePair !== -1 ? OnePair(e, counts, onePair) : HighCard(e);
+        hrank = royalFlush ? RoyalFlush(e) : straight && flush ? StraightFlush(e, strtVal) : quad !== false && quad !== -1 ? FourOfAKind(e, counts, quad) : FH !== false && FH !== -1 ? FullHouse(e, counts, FH) : flush ? Flush(e) : straight ? Straight(e) : trips !== false && trips !== -1 ? ThreeOfAKind(e, counts, trips) : twoPair !== false && twoPair[0] ? TwoPair(e, twoPair[1]) : onePair !== false && onePair !== -1 ? OnePair(e, counts, onePair) : HighCard(e);
         if (hrank.rankcmp(bestHand) >= 0) {
           return hrank;
         } else {
@@ -713,7 +713,18 @@ HighCard = (function() {
     this.rank = "HC";
   }
 
+  HighCard.prototype.intcmp = function(a, b) {
+    if (a > b) {
+      return 1;
+    } else if (a < b) {
+      return -1;
+    } else {
+      return 0;
+    }
+  };
+
   HighCard.prototype.zipcmp = function(a, b) {
+    var reduceFun;
     if (a.length !== b.length) {
       if (a.length > b.length) {
         return 1;
@@ -721,13 +732,14 @@ HighCard = (function() {
         return -1;
       }
     } else {
-      return a.reduce(function(p, e, i, _) {
+      reduceFun = function(p, e, i, _) {
         if (p !== 0) {
           return p;
         } else {
           return e > b[i];
         }
-      });
+      };
+      return a.reduce(reduceFun, 0);
     }
   };
 
@@ -770,13 +782,7 @@ HighCard = (function() {
     oHC = other.hand.map(function(c) {
       return this.val(c);
     }).reduce(reduceFun, -1);
-    if (myHC > oHC) {
-      return 1;
-    } else if (myHC < oHC) {
-      return -1;
-    } else {
-      return 0;
-    }
+    return this.intcmp(myHC, oHC);
   };
 
   return HighCard;
@@ -832,7 +838,7 @@ TwoPair = (function(superClass) {
   }
 
   TwoPair.prototype.tiebreaker = function(other) {
-    var doublesCmp, myRemainingCardVal, mys, oRemainingCardVal, os, reduceFun, sortIJ;
+    var doublesCmp, myKickerVal, mys, oKickerVal, os, reduceFun, sortIJ;
     sortIJ = function(i, j, c) {
       return [i, j].map(function(e) {
         return [e, c[e][0]];
@@ -845,26 +851,18 @@ TwoPair = (function(superClass) {
     reduceFun = function(prev, curr, h, a) {
       if (prev !== 0) {
         return prev;
-      } else if (curr[1] > os[h][1]) {
-        return 1;
-      } else if (curr[1] < os[h][1]) {
-        return -1;
       } else {
-        return 0;
+        return this.intcmp(curr[1], os[h][1]);
       }
     };
     doublesCmp = mys.reduce(reduceFun, 0);
     if (doublesCmp === 0) {
       console.log("Two pair is the same, reviewing kicker");
-      myRemainingCardVal = this.counts[3 - this.i - this.j][0];
-      oRemainingCardVal = other.counts[3 - other.i - other.j][0];
-      if (myRemainingCardVal > oRemainingCardVal) {
-        return 1;
-      } else if (myRemainingCardVal < oRemainingCardVal) {
-        return -1;
-      } else {
-        return 0;
-      }
+      myKickerVal = this.counts[3 - this.i - this.j][0];
+      oKickerVal = other.counts[3 - other.i - other.j][0];
+      return this.intcmp(myKickerVal, oKickerVal);
+    } else {
+      return doublesCmp;
     }
   };
 
@@ -875,10 +873,31 @@ TwoPair = (function(superClass) {
 ThreeOfAKind = (function(superClass) {
   extend(ThreeOfAKind, superClass);
 
-  function ThreeOfAKind(hand, tc) {
-    ThreeOfAKind.__super__.constructor.call(this, hand);
+  function ThreeOfAKind(hand1, counts1, ti1) {
+    this.hand = hand1;
+    this.counts = counts1;
+    this.ti = ti1;
     this.rank = "3K";
   }
+
+  ThreeOfAKind.prototype.tiebreaker = function(other) {
+    var cmp, srf;
+    cmp = this.intcmp(this.counts[this.ti][0], other.counts[other.ti][0]);
+    if (cmp !== 0) {
+      cmp;
+    } else {
+      srf = function(ti) {
+        return function(p, c, i, e) {
+          if (i === ti) {
+            return p;
+          } else {
+            return p.unshift(c[0]);
+          }
+        };
+      };
+    }
+    return this.zipcmp(this.counts.reduce(srf(this.ti), []), other.counts.reduce(srf(other.ti), []));
+  };
 
   return ThreeOfAKind;
 
@@ -887,10 +906,15 @@ ThreeOfAKind = (function(superClass) {
 Straight = (function(superClass) {
   extend(Straight, superClass);
 
-  function Straight(hand) {
-    Straight.__super__.constructor.call(this, hand);
+  function Straight(hand1, sh) {
+    this.hand = hand1;
+    this.sh = sh;
     this.rank = "ST";
   }
+
+  Straight.prototype.tiebreaker = function(other) {
+    return this.intcmp(this.sh, other.sh);
+  };
 
   return Straight;
 
@@ -899,10 +923,19 @@ Straight = (function(superClass) {
 Flush = (function(superClass) {
   extend(Flush, superClass);
 
-  function Flush(hand) {
-    Flush.__super__.constructor.call(this, hand);
+  function Flush(hand1) {
+    this.hand = hand1;
     this.rank = "FL";
   }
+
+  Flush.prototype.tiebreaker = function(other) {
+    var h, oh;
+    h = this.hand;
+    h.reverse();
+    oh = other.hand;
+    oh.reverse();
+    return this.zipcmp(h, oh);
+  };
 
   return Flush;
 
@@ -911,9 +944,22 @@ Flush = (function(superClass) {
 FullHouse = (function(superClass) {
   extend(FullHouse, superClass);
 
-  function FullHouse(hand, tc) {
-    ({});
+  function FullHouse(hand1, counts1, fhi) {
+    this.hand = hand1;
+    this.counts = counts1;
+    this.fhi = fhi;
+    this.rank = "FH";
   }
+
+  FullHouse.prototype.tiebreaker = function(other) {
+    var cmp;
+    cmp = this.intcmp(this.counts[this.fhi][0], other.counts[other.fhi][0]);
+    if (cmp !== 0) {
+      return cmp;
+    } else {
+      return this.intcmp(this.counts[1 - this.fhi][0], other.counts[1 - other.fhi][0]);
+    }
+  };
 
   return FullHouse;
 
@@ -922,9 +968,22 @@ FullHouse = (function(superClass) {
 FourOfAKind = (function(superClass) {
   extend(FourOfAKind, superClass);
 
-  function FourOfAKind(hand, tc) {
-    ({});
+  function FourOfAKind(hand1, counts1, fki) {
+    this.hand = hand1;
+    this.counts = counts1;
+    this.fki = fki;
+    this.rank = "4K";
   }
+
+  FourOfAKind.prototype.tiebreaker = function(other) {
+    var cmp;
+    cmp = this.intcmp(this.counts[this.fki][0], other.counts[other.fki][0]);
+    if (cmp !== 0) {
+      return cmp;
+    } else {
+      return this.intcmp(this.counts[1 - this.fki][0], other.counts[1 - other.fki][0]);
+    }
+  };
 
   return FourOfAKind;
 
@@ -933,13 +992,15 @@ FourOfAKind = (function(superClass) {
 StraightFlush = (function(superClass) {
   extend(StraightFlush, superClass);
 
-  function StraightFlush(hand, sv) {
-    ({});
+  function StraightFlush(hand1, sh) {
+    this.hand = hand1;
+    this.sh = sh;
+    this.rank = "SF";
   }
 
   return StraightFlush;
 
-})(HighCard);
+})(Straight);
 
 RoyalFlush = (function(superClass) {
   extend(RoyalFlush, superClass);
@@ -947,6 +1008,16 @@ RoyalFlush = (function(superClass) {
   function RoyalFlush() {
     return RoyalFlush.__super__.constructor.apply(this, arguments);
   }
+
+  RoyalFlush.prototype.tiebreaker = function(other) {
+    var cmp1;
+    cmp1 = this.intcmp(this.hand[1], other.hand[1]);
+    if (cmp1 !== 0) {
+      return cmp1;
+    } else {
+      return this.intcmp(this.hand[0], other.hand[0]);
+    }
+  };
 
   return RoyalFlush;
 
