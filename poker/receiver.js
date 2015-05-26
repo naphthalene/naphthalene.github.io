@@ -733,7 +733,8 @@ HighCard = (function() {
   };
 
   HighCard.prototype.zipcmp = function(a, b) {
-    var reduceFun;
+    var reduceFun, t;
+    t = this;
     if (a.length !== b.length) {
       if (a.length > b.length) {
         return 1;
@@ -745,7 +746,7 @@ HighCard = (function() {
         if (p !== 0) {
           return p;
         } else {
-          return e > b[i];
+          return t.intcmp(e, b[i]);
         }
       };
       return a.reduce(reduceFun, 0);
@@ -755,7 +756,7 @@ HighCard = (function() {
   HighCard.prototype.rankcmp = function(other) {
     var r1i, r2i, ranks;
     if (other === null) {
-      return this;
+      return +1;
     }
     ranks = ["HC", "1P", "2P", "3K", "ST", "FL", "FH", "4K", "SF", "RF"];
     r1i = ranks.indexOf(this.rank);
@@ -766,7 +767,7 @@ HighCard = (function() {
       if (r1i < r2i) {
         return -1;
       } else {
-        console.log("Same hand, using tiebreaker...");
+        console.log("Same rank: " + this.rank + ", using tiebreaker...");
         return this.tiebreaker(other);
       }
     }
@@ -777,21 +778,27 @@ HighCard = (function() {
   };
 
   HighCard.prototype.tiebreaker = function(other) {
-    var myHC, oHC, reduceFun;
-    reduceFun = function(p, c, i, a) {
+    var cmp, mapf, myHC, oHC, reducef, t;
+    t = this;
+    reducef = function(p, c, i, a) {
       if (c > p) {
         return c;
       } else {
         return p;
       }
     };
-    myHC = this.hand.map(function(c) {
-      return this.val(c);
-    }).reduce(reduceFun, -1);
-    oHC = other.hand.map(function(c) {
-      return this.val(c);
-    }).reduce(reduceFun, -1);
-    return this.intcmp(myHC, oHC);
+    mapf = function(c) {
+      return t.val(c);
+    };
+    myHC = this.hand.map(mapf).reduce(reducef, -1);
+    oHC = other.hand.map(mapf).reduce(reducef, -1);
+    cmp = this.intcmp(myHC, oHC);
+    if (cmp === 0) {
+      console.log("High cards are the same: " + myHC);
+      return this.zipcmp(this.hand.map(mapf), other.hand.map(mapf));
+    } else {
+      return cmp;
+    }
   };
 
   return HighCard;
@@ -815,14 +822,17 @@ OnePair = (function(superClass) {
     if (myCrank === otherCrank) {
       reduceFun = function(ignore) {
         return function(p, c, i, a) {
+          var newp;
           if (i === ignore) {
             return p;
           } else {
-            return p.push(c[0]);
+            newp = p;
+            newp = newp.concat([c[0]]);
+            return newp;
           }
         };
       };
-      return this.zipcmp(this.counts.reduce(reduceFun(this.i), []), other.counts.reduce(other.i, []));
+      return this.zipcmp(this.counts.reduce(reduceFun(this.i), []), other.counts.reduce(reduceFun(other.i), []));
     } else {
       if (myCrank > otherCrank) {
         return 1;
@@ -847,7 +857,8 @@ TwoPair = (function(superClass) {
   }
 
   TwoPair.prototype.tiebreaker = function(other) {
-    var doublesCmp, myKickerVal, mys, oKickerVal, os, reduceFun, sortIJ;
+    var doublesCmp, myKickerVal, mys, oKickerVal, os, reduceFun, sortIJ, t;
+    t = this;
     sortIJ = function(i, j, c) {
       return [i, j].map(function(e) {
         return [e, c[e][0]];
@@ -861,7 +872,7 @@ TwoPair = (function(superClass) {
       if (prev !== 0) {
         return prev;
       } else {
-        return this.intcmp(curr[1], os[h][1]);
+        return t.intcmp(curr[1], os[h][1]);
       }
     };
     doublesCmp = mys.reduce(reduceFun, 0);
@@ -897,10 +908,13 @@ ThreeOfAKind = (function(superClass) {
     } else {
       srf = function(ti) {
         return function(p, c, i, e) {
+          var newp;
           if (i === ti) {
             return p;
           } else {
-            return p.unshift(c[0]);
+            newp = p;
+            newp = newp.concat([c[0]]);
+            return newp;
           }
         };
       };
@@ -1014,18 +1028,13 @@ StraightFlush = (function(superClass) {
 RoyalFlush = (function(superClass) {
   extend(RoyalFlush, superClass);
 
-  function RoyalFlush() {
-    return RoyalFlush.__super__.constructor.apply(this, arguments);
+  function RoyalFlush(hand1) {
+    this.hand = hand1;
+    this.rank = "RF";
   }
 
   RoyalFlush.prototype.tiebreaker = function(other) {
-    var cmp1;
-    cmp1 = this.intcmp(this.hand[1], other.hand[1]);
-    if (cmp1 !== 0) {
-      return cmp1;
-    } else {
-      return this.intcmp(this.hand[0], other.hand[0]);
-    }
+    return 0;
   };
 
   return RoyalFlush;

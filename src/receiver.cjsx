@@ -149,8 +149,6 @@ MainState = React.createClass
         # Deal a new hand of cards
         this.dealHand(this.state.dealer)
 
-
-    ## OK
     combinations: (arr, k) ->
         len = arr.length
         if k > len
@@ -186,7 +184,7 @@ MainState = React.createClass
                         " has this sorted hand: " + e)
             console.log("Current best player is: " + bestPlayer[1])
             # This is a reduction that finds the best ranked hand
-            # combination of the available combinations of 5/7 cards
+            # combination of the available combinations of 5/7 cards (ce)
             # After determining the best case for a particular combination,
             # Compare it with the previously best combination in bestHand
             combProcess = (bestHand, ce, ci, ca) ->
@@ -210,7 +208,6 @@ MainState = React.createClass
                 [straight,strtVal] = ce.reduce(checkStraight,[true,-1])
                 royalFlush = flush and straight and strtVal == 12
 
-                ## OK
                 quadOrFH = counts.length == 2
                 # 4 of a kind
                 quad = if quadOrFH then\
@@ -663,17 +660,18 @@ class HighCard
     zipcmp: (a, b) ->
         # Returns +1 if a > b, 0 if a == b, else -1
         # Iterates over both arrays
+        t = this
         if a.length != b.length
             if a.length > b.length then 1 else -1
         else
-            reduceFun = (p, e, i, _) -> if p != 0 then p else e > b[i]
+            reduceFun = (p, e, i, _) -> if p != 0 then p else t.intcmp(e, b[i])
             a.reduce(reduceFun, 0)
 
     rankcmp: (other) ->
         # Compare ranks, first by type, then do tiebreaker
         # Returns +1 if this > other, 0 if this == other else -1
         if other == null
-            return this
+            return +1
         ranks = ["HC","1P","2P","3K","ST","FL","FH","4K","SF","RF"]
         r1i=ranks.indexOf(this.rank); r2i=ranks.indexOf(other.rank)
         if r1i > r2i then 1 else (if r1i < r2i then -1 else\
@@ -681,7 +679,7 @@ class HighCard
             # The tiebreaker is written for each rank type
             # and is part of the class that can compare another
             # rank class of the same type
-            console.log("Same hand, using tiebreaker...");\
+            console.log("Same rank: " + @rank + ", using tiebreaker...");\
             this.tiebreaker(other))
 
     val: (c) ->
@@ -690,11 +688,17 @@ class HighCard
             indexOf(c.slice(0,-1))
 
     tiebreaker: (other) ->
-        reduceFun = (p,c,i,a)->
-            if c > p then c else p
-        myHC = @hand.map((c)->@val(c)).reduce(reduceFun, -1)
-        oHC = other.hand.map((c)->@val(c)).reduce(reduceFun, -1)
-        @intcmp(myHC, oHC)
+        t = this
+        reducef = (p,c,i,a)-> if c > p then c else p
+        mapf = (c) -> t.val(c)
+        myHC = @hand.map(mapf).reduce(reducef, -1)
+        oHC = other.hand.map(mapf).reduce(reducef, -1)
+        cmp = @intcmp(myHC, oHC)
+        if cmp == 0
+            console.log("High cards are the same: " + myHC)
+            @zipcmp(@hand.map(mapf),other.hand.map(mapf))
+        else
+            cmp
 
 class OnePair extends HighCard
     constructor: (@hand, @counts, @i) ->
@@ -709,9 +713,14 @@ class OnePair extends HighCard
             # Then pass it to zipcmp
             reduceFun = (ignore) ->
                 (p, c, i, a) ->
-                    if i == ignore then p else p.push(c[0])
+                    if i == ignore
+                        p
+                    else
+                        newp = p
+                        newp = newp.concat([c[0]])
+                        newp
             @zipcmp(@counts.reduce(reduceFun(@i), []),
-                   other.counts.reduce(other.i, []))
+                   other.counts.reduce(reduceFun(other.i), []))
         else
             if myCrank > otherCrank then 1 else -1
 
@@ -723,13 +732,14 @@ class TwoPair extends HighCard
     tiebreaker: (other) ->
         # Order the indices by highest value pair first
         # REVIEW might not need to do this. counts[@j]>counts[@i]?
+        t = this
         sortIJ = (i, j, c) ->
             [i, j].map((e) -> [e,c[e][0]])
                .sort((a,b) -> b[1] - a[1])
         mys = sortIJ(@i, @j, @counts)
         os = sortIJ(other.i, other.j, other.counts)
         reduceFun = (prev,curr,h,a) ->
-            if prev != 0 then prev else @intcmp(curr[1], os[h][1])
+            if prev != 0 then prev else t.intcmp(curr[1], os[h][1])
 
         doublesCmp = mys.reduce(reduceFun, 0)
         if doublesCmp == 0
@@ -750,7 +760,13 @@ class ThreeOfAKind extends HighCard
         if cmp != 0 then cmp else\
             # If they're the same, get remaining two cards
             srf = (ti) ->
-                (p, c, i, e) -> if i == ti then p else p.unshift(c[0])
+                (p, c, i, e) ->
+                    if i == ti
+                        p
+                    else
+                        newp = p
+                        newp = newp.concat([c[0]])
+                        newp
             @zipcmp(@counts.reduce(srf(@ti), []),
                 other.counts.reduce(srf(other.ti), []))
 
@@ -770,6 +786,8 @@ class Flush extends HighCard
         oh = other.hand
         oh.reverse()
         @zipcmp(h, oh)
+
+## OK
 
 class FullHouse extends HighCard
     constructor: (@hand, @counts, @fhi) ->
@@ -794,10 +812,10 @@ class StraightFlush extends Straight
         @rank = "SF"
 
 class RoyalFlush extends HighCard
-    tiebreaker: (other) ->
-        cmp1 = @intcmp(@hand[1], other.hand[1])
-        if cmp1 != 0 then cmp1 else\
-            @intcmp(@hand[0], other.hand[0])
+    constructor: (@hand) ->
+        @rank = "RF"
+
+    tiebreaker: (other) -> 0
 
 table =
     state: null
