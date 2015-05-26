@@ -698,7 +698,7 @@ class OnePair extends HighCard
             reduceFun = (ignore) ->
                 (p, c, i, a) ->
                     if i == ignore then p else p.push(c[0])
-            zipcmp(@counts.reduce(reduceFun(@i), []),
+            @zipcmp(@counts.reduce(reduceFun(@i), []),
                    other.counts.reduce(other.i, []))
         else
             if myCrank > otherCrank then 1 else -1

@@ -813,7 +813,7 @@ OnePair = (function(superClass) {
           }
         };
       };
-      return zipcmp(this.counts.reduce(reduceFun(this.i), []), other.counts.reduce(other.i, []));
+      return this.zipcmp(this.counts.reduce(reduceFun(this.i), []), other.counts.reduce(other.i, []));
     } else {
       if (myCrank > otherCrank) {
         return 1;
