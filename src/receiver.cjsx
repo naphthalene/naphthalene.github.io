@@ -71,6 +71,7 @@ ConnectedPlayers = React.createClass
         </Table>
       </Panel>
 
+## TODO make these tokens of some sort
 DealerToken = React.createClass
     render: ->
         <p className="dealer">Dealer</p>
@@ -104,8 +105,8 @@ Players = React.createClass
             spans.push(<Panel key={i} className={cls} style={style} header={p.name}>
                          {if !p.fold then <p>{"Bid: $" + p.bid}</p> else <p>FOLD</p>}
                          {if p.dealer then <DealerToken/> else \
-                              if p.blind == "S" then <SmallBlindToken/> else \
-                              if p.blind == "B" then <BigBlindToken/> else ""}
+                          if p.blind == "S" then <SmallBlindToken/> else \
+                          if p.blind == "B" then <BigBlindToken/> else ""}
                        </Panel>)
             i += 1
         <div id="player-display">{spans}</div>
@@ -139,8 +140,6 @@ InitState = React.createClass
 MainState = React.createClass
     endHand: (winner) ->
         console.log("Need to award somebody. Review their cards and...")
-        # TODO Call helper to determine whose hand is best, of the
-        # remaining active players
         this.awardPotTo(winner)
         table.deck = this.shuffle(this.generateSortedDeck())
         # Rotate the dealer to the next person
@@ -178,22 +177,29 @@ MainState = React.createClass
                 indexOf(c.slice(0,-1))
         suit = (c) -> c.slice(-1)[0]
 
-        evalRank = (bestForPlayer, player, i, a) ->
+        # {bestForPlayer} stores the best possible hand for an individual.
+        # - it is overwritten if a player with a better hand is found
+        evalRank = (bestPlayer, player, i, a) ->
             e = player.hand
             e = e.concat(cc.flop)
             e.push(cc.turn)
             e.push(cc.river)
             e = that.sortHand(e)
             console.log("Player " + that.state.players[i].name + \
-                        " has this sorted hand: " + a[i])
-            # This is a reduction that finds the best possible
-            # ranked hand combination of the available combinations of 5/7
+                        " has this sorted hand: " + e)
+            console.log("Current best player is: " + bestPlayer[1])
+            # This is a reduction that finds the best ranked hand
+            # combination of the available combinations of 5/7 cards
             # After determining the best case for a particular combination,
-            # Compare it with the previously best combination in cp
+            # Compare it with the previously best combination in bestHand
             combProcess = (bestHand, ce, ci, ca) ->
+                # Find duplicates and their quantities.
+                counts = that.dupCounts(ce.map((e) -> val(e)))
+
                 # Checks if this is a flush
                 flush = ce.every((cae, cai, caa) ->
                     !cai or suit(cae) == suit(caa[0]))
+
                 # Checks if its a straight and returns (straightp, high card)
                 checkStraight = (sp, sc, si, sa) ->
                     valcomp = (x, y) ->
@@ -202,29 +208,36 @@ MainState = React.createClass
                         # the first card in array must be a 2
                         specialAce = x == 12 and i == 4 and !val(sa[0])
                         [specialAce or x == y + 1, specialAce]
-                    console.log("sc: " + sc + " sp[1]: " + sp[1])
+                    console.log("sc: " + sc + " sp[1]: " + sp[1]) ## TODO DEBUG
                     [cmp, special] = valcomp(val(sc), sp[1])
                     [(!si or (sp[0] and cmp)), if special then 3 else sc]
                 [straight,strtVal] = ce.reduce(checkStraight,[true,-1])
                 royalFlush = flush and straight and strtVal == 12
-                # Find duplicates and their quantities.
-                counts = that.dupCounts(ce.map((e) -> val(e)))
+
                 quadOrFH = counts.length == 2
+                # 4 of a kind
                 quad = if quadOrFH then\
                     [0,1].map((i)->counts[i][1]==4).indexOf(true) else false
+                # Full House
                 FH = if quadOrFH then\
                     [0,1].map((i)->counts[i][1]==3).indexOf(true) else false
 
-                # 3 of Kind (trip, set) or Two Pair
                 tripsOrTwoPair = counts.length == 3
+                # 3 of Kind (trip or set)
                 trips = if tripsOrTwoPair then\
                     [0,1,2].map((i)->counts[i][1]==3).indexOf(true) else false
+
+                # Two Pair
                 twoPairFinder = (acc, ia) ->
                     twop = counts[ia[0]][1] and counts[ia[1]][1]
                     if acc[0] then acc else (if twop then [true, ia])
                 twoPair = if tripsOrTwoPair then\
                     that.combinations([0,1,2], 2)\
                         .reduce(twoPairFinder, [false,null])
+
+                # 1 Pair
+                onePair = if counts.length == 4 then\
+                    [0,1].map((i)->counts[i][1]==2).indexOf(true) else false
 
                 # Now calculate the best ranking outcome for this combination
                 # The result stored in hrank is the best rank
@@ -245,13 +258,18 @@ MainState = React.createClass
                         ThreeOfAKind(e, counts[trips])
                     else if twoPair != false and twoPair[0]
                         TwoPair(e, twoPair[1])
-                    else if counts.length == 4
-                        OnePair(e)
+                    else if onePair != false and onePair != -1
+                        OnePair(e, counts, onePair)
                     else
                         HighCard(e)
-                bestHand.rankcmp(hrank)
 
-            that.combinations(e).reduce(combProcess,null)
+                # Return either the previous hand or a better one
+                if hrank.rankcmp(bestHand) >= 0 then hrank else bestHand
+
+            bh = that.combinations(e).reduce(combProcess, null)
+            bhcmp = bh.rankcmp(bestPlayer[1])
+            if bhcmp > 0 then [i, bh] else bestPlayer
+            # TODO pot splitting
 
         return this.state.players.reduce(evalRank, [-1, null])[0]
 
@@ -623,9 +641,19 @@ class HighCard
     constructor: (@hand) ->
         @rank = "HC"
 
+    zipcmp: (a, b) ->
+        # Returns +1 if a > b, 0 if a == b, else -1
+        # Iterates over both arrays
+        if a.length != b.length
+            if a.length > b.length then 1 else -1
+        else
+            a.reduce((p, e, i, _) -> if p != 0 then p else e > b[i])
+
     rankcmp: (other) ->
         # Compare ranks, first by type, then do tiebreaker
-        # Returns +1 if this > other else if this == other then 0 else -1
+        # Returns +1 if this > other, 0 if this == other else -1
+        if other == null
+            return this
         ranks = ["HC","1P","2P","3K","ST","FL","FH","4K","SF","RF"]
         r1i=ranks.indexOf(this.rank); r2i=ranks.indexOf(other.rank)
         if r1i > r2i then 1 else (if r1i < r2i then -1 else\
@@ -654,43 +682,58 @@ class HighCard
             0
 
 class OnePair extends HighCard
-    constructor: (hand, pi) ->
-        super(hand)
-        @pi = pi
+    constructor: (@hand, @counts, @i) ->
         @rank = "1P"
+
     tiebreaker: (other) ->
-        @hand
+        myCrank = @counts[@i][0]
+        otherCrank = other.counts[other.i][0]
+        if myCrank == otherCrank
+            # Further tie breaking needed
+            # Compute all except the one pair as an array of values
+            # Then pass it to zipcmp
+            reduceFun = (ignore) ->
+                (p, c, i, a) ->
+                    if i == ignore then p else p.push(c[0])
+            zipcmp(@counts.reduce(reduceFun(@i), []),
+                   other.counts.reduce(other.i, []))
+        else
+            if myCrank > otherCrank then 1 else -1
+
+## TODO finish below of these
 
 class TwoPair extends HighCard
-    constructor: (e, pi) ->
-        super(e)
+    constructor: (hand, ia) ->
+        super(hand)
         @rank = "2P"
+        @i = ia[0]
+        @j = ia[1]
 
 class ThreeOfAKind extends HighCard
-    constructor: (e, tc) ->
-        super(e)
+    constructor: (hand, tc) ->
+        super(hand)
         @rank = "3K"
 
 class Straight extends HighCard
-    constructor: (e) ->
-        super(e)
+    constructor: (hand) ->
+        super(hand)
         @rank = "ST"
 
 class Flush extends HighCard
-    constructor: (e) ->
-        super(e)
+    constructor: (hand) ->
+        super(hand)
         @rank = "FL"
 
 class FullHouse extends HighCard
-    constructor: (e, tc) ->
+    constructor: (hand, tc) ->
         {}
 
 class FourOfAKind extends HighCard
-    constructor: (e, tc) ->
+    constructor: (hand, tc) ->
         {}
 
 class StraightFlush extends HighCard
-    constructor: (e, sv) ->
+    constructor: (hand, sv) ->
         {}
 
 class RoyalFlush extends HighCard

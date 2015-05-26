@@ -226,16 +226,20 @@ MainState = React.createClass({
     suit = function(c) {
       return c.slice(-1)[0];
     };
-    evalRank = function(bestForPlayer, player, i, a) {
-      var combProcess, e;
+    evalRank = function(bestPlayer, player, i, a) {
+      var bh, bhcmp, combProcess, e;
       e = player.hand;
       e = e.concat(cc.flop);
       e.push(cc.turn);
       e.push(cc.river);
       e = that.sortHand(e);
-      console.log("Player " + that.state.players[i].name + " has this sorted hand: " + a[i]);
+      console.log("Player " + that.state.players[i].name + " has this sorted hand: " + e);
+      console.log("Current best player is: " + bestPlayer[1]);
       combProcess = function(bestHand, ce, ci, ca) {
-        var FH, checkStraight, counts, flush, hrank, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
+        var FH, checkStraight, counts, flush, hrank, onePair, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
+        counts = that.dupCounts(ce.map(function(e) {
+          return val(e);
+        }));
         flush = ce.every(function(cae, cai, caa) {
           return !cai || suit(cae) === suit(caa[0]);
         });
@@ -252,9 +256,6 @@ MainState = React.createClass({
         };
         ref = ce.reduce(checkStraight, [true, -1]), straight = ref[0], strtVal = ref[1];
         royalFlush = flush && straight && strtVal === 12;
-        counts = that.dupCounts(ce.map(function(e) {
-          return val(e);
-        }));
         quadOrFH = counts.length === 2;
         quad = quadOrFH ? [0, 1].map(function(i) {
           return counts[i][1] === 4;
@@ -278,10 +279,23 @@ MainState = React.createClass({
           }
         };
         twoPair = tripsOrTwoPair ? that.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : void 0;
-        hrank = royalFlush ? RoyalFlush(e) : straight && flush ? StraightFlush(e, strtVal) : quad !== false && quad !== -1 ? FourOfAKind(e, counts[quad]) : FH !== false && FH !== -1 ? FullHouse(e, counts[FH]) : flush ? Flush(e) : straight ? Straight(e) : trips !== false && trips !== -1 ? ThreeOfAKind(e, counts[trips]) : twoPair !== false && twoPair[0] ? TwoPair(e, twoPair[1]) : counts.length === 4 ? OnePair(e) : HighCard(e);
-        return bestHand.rankcmp(hrank);
+        onePair = counts.length === 4 ? [0, 1].map(function(i) {
+          return counts[i][1] === 2;
+        }).indexOf(true) : false;
+        hrank = royalFlush ? RoyalFlush(e) : straight && flush ? StraightFlush(e, strtVal) : quad !== false && quad !== -1 ? FourOfAKind(e, counts[quad]) : FH !== false && FH !== -1 ? FullHouse(e, counts[FH]) : flush ? Flush(e) : straight ? Straight(e) : trips !== false && trips !== -1 ? ThreeOfAKind(e, counts[trips]) : twoPair !== false && twoPair[0] ? TwoPair(e, twoPair[1]) : onePair !== false && onePair !== -1 ? OnePair(e, counts, onePair) : HighCard(e);
+        if (hrank.rankcmp(bestHand) >= 0) {
+          return hrank;
+        } else {
+          return bestHand;
+        }
       };
-      return that.combinations(e).reduce(combProcess, null);
+      bh = that.combinations(e).reduce(combProcess, null);
+      bhcmp = bh.rankcmp(bestPlayer[1]);
+      if (bhcmp > 0) {
+        return [i, bh];
+      } else {
+        return bestPlayer;
+      }
     };
     return this.state.players.reduce(evalRank, [-1, null])[0];
   },
@@ -699,8 +713,29 @@ HighCard = (function() {
     this.rank = "HC";
   }
 
+  HighCard.prototype.zipcmp = function(a, b) {
+    if (a.length !== b.length) {
+      if (a.length > b.length) {
+        return 1;
+      } else {
+        return -1;
+      }
+    } else {
+      return a.reduce(function(p, e, i, _) {
+        if (p !== 0) {
+          return p;
+        } else {
+          return e > b[i];
+        }
+      });
+    }
+  };
+
   HighCard.prototype.rankcmp = function(other) {
     var r1i, r2i, ranks;
+    if (other === null) {
+      return this;
+    }
     ranks = ["HC", "1P", "2P", "3K", "ST", "FL", "FH", "4K", "SF", "RF"];
     r1i = ranks.indexOf(this.rank);
     r2i = ranks.indexOf(other.rank);
@@ -751,14 +786,35 @@ HighCard = (function() {
 OnePair = (function(superClass) {
   extend(OnePair, superClass);
 
-  function OnePair(hand, pi) {
-    OnePair.__super__.constructor.call(this, hand);
-    this.pi = pi;
+  function OnePair(hand1, counts1, i1) {
+    this.hand = hand1;
+    this.counts = counts1;
+    this.i = i1;
     this.rank = "1P";
   }
 
   OnePair.prototype.tiebreaker = function(other) {
-    return this.hand;
+    var myCrank, otherCrank, reduceFun;
+    myCrank = this.counts[this.i][0];
+    otherCrank = other.counts[other.i][0];
+    if (myCrank === otherCrank) {
+      reduceFun = function(ignore) {
+        return function(p, c, i, a) {
+          if (i === ignore) {
+            return p;
+          } else {
+            return p.push(c[0]);
+          }
+        };
+      };
+      return zipcmp(this.counts.reduce(reduceFun(this.i), []), other.counts.reduce(other.i, []));
+    } else {
+      if (myCrank > otherCrank) {
+        return 1;
+      } else {
+        return -1;
+      }
+    }
   };
 
   return OnePair;
@@ -768,9 +824,11 @@ OnePair = (function(superClass) {
 TwoPair = (function(superClass) {
   extend(TwoPair, superClass);
 
-  function TwoPair(e, pi) {
-    TwoPair.__super__.constructor.call(this, e);
+  function TwoPair(hand, ia) {
+    TwoPair.__super__.constructor.call(this, hand);
     this.rank = "2P";
+    this.i = ia[0];
+    this.j = ia[1];
   }
 
   return TwoPair;
@@ -780,8 +838,8 @@ TwoPair = (function(superClass) {
 ThreeOfAKind = (function(superClass) {
   extend(ThreeOfAKind, superClass);
 
-  function ThreeOfAKind(e, tc) {
-    ThreeOfAKind.__super__.constructor.call(this, e);
+  function ThreeOfAKind(hand, tc) {
+    ThreeOfAKind.__super__.constructor.call(this, hand);
     this.rank = "3K";
   }
 
@@ -792,8 +850,8 @@ ThreeOfAKind = (function(superClass) {
 Straight = (function(superClass) {
   extend(Straight, superClass);
 
-  function Straight(e) {
-    Straight.__super__.constructor.call(this, e);
+  function Straight(hand) {
+    Straight.__super__.constructor.call(this, hand);
     this.rank = "ST";
   }
 
@@ -804,8 +862,8 @@ Straight = (function(superClass) {
 Flush = (function(superClass) {
   extend(Flush, superClass);
 
-  function Flush(e) {
-    Flush.__super__.constructor.call(this, e);
+  function Flush(hand) {
+    Flush.__super__.constructor.call(this, hand);
     this.rank = "FL";
   }
 
@@ -816,7 +874,7 @@ Flush = (function(superClass) {
 FullHouse = (function(superClass) {
   extend(FullHouse, superClass);
 
-  function FullHouse(e, tc) {
+  function FullHouse(hand, tc) {
     ({});
   }
 
@@ -827,7 +885,7 @@ FullHouse = (function(superClass) {
 FourOfAKind = (function(superClass) {
   extend(FourOfAKind, superClass);
 
-  function FourOfAKind(e, tc) {
+  function FourOfAKind(hand, tc) {
     ({});
   }
 
@@ -838,7 +896,7 @@ FourOfAKind = (function(superClass) {
 StraightFlush = (function(superClass) {
   extend(StraightFlush, superClass);
 
-  function StraightFlush(e, sv) {
+  function StraightFlush(hand, sv) {
     ({});
   }
 
