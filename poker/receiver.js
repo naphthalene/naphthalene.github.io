@@ -198,9 +198,8 @@ MainState = React.createClass({
     return this.dealHand(this.state.dealer);
   },
   combinations: function(arr, k) {
-    var len, reduceFun, that;
+    var len, reduceFun;
     len = arr.length;
-    that = this;
     if (k > len) {
       return [];
     } else if (!k) {
@@ -209,7 +208,7 @@ MainState = React.createClass({
       return [arr];
     } else {
       reduceFun = function(acc, val, i) {
-        return acc.concat(that.combinations(arr.slice(i + 1), k - 1).map(function(comb) {
+        return acc.concat(this.combinations(arr.slice(i + 1), k - 1).map(function(comb) {
           return [val].concat(comb);
         }));
       };
@@ -217,9 +216,8 @@ MainState = React.createClass({
     }
   },
   computeWinner: function() {
-    var cc, evalRank, suit, that, val;
+    var cc, evalRank, suit, val;
     cc = this.state.communityCards;
-    that = this;
     val = function(c) {
       return ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"].indexOf(c.slice(0, -1));
     };
@@ -232,12 +230,12 @@ MainState = React.createClass({
       e = e.concat(cc.flop);
       e.push(cc.turn);
       e.push(cc.river);
-      e = that.sortHand(e);
-      console.log("Player " + that.state.players[i].name + " has this sorted hand: " + e);
+      e = this.sortHand(e);
+      console.log("Player " + this.state.players[i].name + " has this sorted hand: " + e);
       console.log("Current best player is: " + bestPlayer[1]);
       combProcess = function(bestHand, ce, ci, ca) {
         var FH, checkStraight, counts, flush, hrank, onePair, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
-        counts = that.dupCounts(ce.map(function(e) {
+        counts = this.dupCounts(ce.map(function(e) {
           return val(e);
         }));
         flush = ce.every(function(cae, cai, caa) {
@@ -247,12 +245,11 @@ MainState = React.createClass({
           var cmp, ref, special, valcomp;
           valcomp = function(x, y) {
             var specialAce;
-            specialAce = x === 12 && i === 4 && !val(sa[0]);
+            specialAce = x === 12 && si === 4 && !val(sa[0]);
             return [specialAce || x === y + 1, specialAce];
           };
-          console.log("sc: " + sc + " sp[1]: " + sp[1]);
           ref = valcomp(val(sc), sp[1]), cmp = ref[0], special = ref[1];
-          return [!si || (sp[0] && cmp), special ? 3 : sc];
+          return [!si || (sp[0] && cmp), special ? 3 : val(sc)];
         };
         ref = ce.reduce(checkStraight, [true, -1]), straight = ref[0], strtVal = ref[1];
         royalFlush = flush && straight && strtVal === 12;
@@ -269,16 +266,16 @@ MainState = React.createClass({
         }).indexOf(true) : false;
         twoPairFinder = function(acc, ia) {
           var twop;
-          twop = counts[ia[0]][1] && counts[ia[1]][1];
+          twop = counts[ia[0]][1] === 2 && counts[ia[1]][1] === 2;
           if (acc[0]) {
             return acc;
+          } else if (twop) {
+            return [true, ia];
           } else {
-            if (twop) {
-              return [true, ia];
-            }
+            return acc;
           }
         };
-        twoPair = tripsOrTwoPair ? that.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : void 0;
+        twoPair = tripsOrTwoPair ? this.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : void 0;
         onePair = counts.length === 4 ? [0, 1].map(function(i) {
           return counts[i][1] === 2;
         }).indexOf(true) : false;
@@ -289,7 +286,7 @@ MainState = React.createClass({
           return bestHand;
         }
       };
-      bh = that.combinations(e).reduce(combProcess, null);
+      bh = this.combinations(e).reduce(combProcess, null);
       bhcmp = bh.rankcmp(bestPlayer[1]);
       if (bhcmp > 0) {
         return [i, bh];
@@ -301,11 +298,25 @@ MainState = React.createClass({
   },
   dupCounts: function(arr) {
     var appendDup;
-    appendDup = function(p, c) {
+    appendDup = function(p, c, i, a) {
+      var newp;
       if (p[0] !== c) {
-        return [c, 1, p[2].concat([[p[0], p[1]]])];
+        newp = p[2];
+        if (p[0] !== null) {
+          newp = newp.concat([[p[0], p[1]]]);
+        }
+        if (i === a.length - 1) {
+          newp = newp.concat([[c, 1]]);
+        }
+        return [c, 1, newp];
       } else {
-        return [p[0], ++p[1], p[2]];
+        if (i === a.length - 1) {
+          newp = p[2];
+          newp = newp.concat([[p[0], ++p[1]]]);
+          return [p[0], p[1], newp];
+        } else {
+          return [p[0], ++p[1], p[2]];
+        }
       }
     };
     return arr.reduce(appendDup, [null, 0, []])[2];
@@ -458,13 +469,11 @@ MainState = React.createClass({
     });
   },
   raisePlayer: function(sender, data) {
-    var that;
-    that = this;
     return this.playerAction(sender, "raise", function(p, pi) {
       var e, withdraw;
       try {
         console.log(p.name + " raised by " + data.amount);
-        withdraw = that.state.bid - p.bid + data.amount;
+        withdraw = this.state.bid - p.bid + data.amount;
         console.log(p.name + " is adding " + withdraw + " to the pot");
         if (p.remaining - withdraw >= 0) {
           p.bid = p.bid + withdraw;
@@ -472,7 +481,7 @@ MainState = React.createClass({
           that.setState({
             lastRaised: pi,
             bid: p.bid,
-            pot: that.state.pot + withdraw
+            pot: this.state.pot + withdraw
           });
           window.messageBus.send(sender, JSON.stringify({
             status: "raiseok",
@@ -484,7 +493,7 @@ MainState = React.createClass({
           return window.messageBus.broadcast(JSON.stringify({
             status: "maxbid",
             data: {
-              maxbid: that.state.bid
+              maxbid: this.state.bid
             }
           }));
         } else {
@@ -506,18 +515,18 @@ MainState = React.createClass({
     that = this;
     return this.playerAction(sender, "call", function(p, pi) {
       var withdraw;
-      withdraw = that.state.bid - p.bid;
+      withdraw = this.state.bid - p.bid;
       if (p.remaining - withdraw >= 0) {
         p.bid = p.bid + withdraw;
         p.remaining = p.remaining - withdraw;
         that.setState({
-          pot: that.state.pot + withdraw
+          pot: this.state.pot + withdraw
         });
         return window.messageBus.send(sender, JSON.stringify({
           status: "callok",
           data: {
             remaining: p.remaining,
-            pot: that.state.pot + withdraw,
+            pot: this.state.pot + withdraw,
             bid: p.bid
           }
         }));
@@ -535,7 +544,7 @@ MainState = React.createClass({
     var that;
     that = this;
     return this.playerAction(sender, "check", function(p, pi) {
-      if (p.bid === that.state.bid) {
+      if (p.bid === this.state.bid) {
         return window.messageBus.send(sender, JSON.stringify({
           status: "checkok",
           data: {}
@@ -1040,11 +1049,21 @@ table = {
     main: MainState
   },
   handleMessage: function(sender, m) {
-    var e, isReconnecting;
+    var e, isReconnecting, player_info, reconnect, reduceFun;
     isReconnecting = function(players) {
       var reduceFun;
       reduceFun = function(acc, p) {
-        return acc && p.name === m.data.name && p.id.split(':')[0] === sender.split(':')[0];
+        var id, ref, sid;
+        if (acc && p.name === m.data.name) {
+          ref = [p.id, sender].map(function(c) {
+            return c.split(':')[0];
+          }), id = ref[0], sid = ref[1];
+          if (id === sid) {
+            return p.id;
+          } else {
+            return null;
+          }
+        }
       };
       return players.reduce(reduceFun, true);
     };
@@ -1052,7 +1071,7 @@ table = {
       case "join":
         if (this.state === "init") {
           try {
-            if (isReconnecting(this.players)) {
+            if (isReconnecting(this.players) !== null) {
               if (this.host === m.data.name) {
                 return window.messageBus.send(sender, JSON.stringify({
                   status: "host",
@@ -1081,7 +1100,17 @@ table = {
             return console.error(e);
           }
         } else if (this.state === "main") {
-          if (isReconnecting(this.players)) {
+          reconnect = isReconnecting(this.players);
+          if (reconnect !== null) {
+            reduceFun = function(prev, p, i, a) {
+              if (prev) {
+                return prev;
+              } else if (p.id === reconnect) {
+                a[i].id = sender;
+                return a[i];
+              }
+            };
+            player_info = this.players.reduce(reduceFun, null);
             return window.messageBus.send(sender, JSON.stringify({
               status: "start",
               data: {}

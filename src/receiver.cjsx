@@ -150,9 +150,9 @@ MainState = React.createClass
         this.dealHand(this.state.dealer)
 
 
+    ## OK
     combinations: (arr, k) ->
         len = arr.length
-        that = this
         if k > len
             []
         else if !k
@@ -161,14 +161,13 @@ MainState = React.createClass
             [arr]
         else
             reduceFun = (acc, val, i) ->
-                acc.concat(that.combinations(arr.slice(i+1),
+                acc.concat(@combinations(arr.slice(i+1),
                     k-1).map((comb) -> [val].concat(comb)))
 
             arr.reduce(reduceFun, []);
 
     computeWinner: ->
         cc = this.state.communityCards
-        that = this
         # TODO instead of using `slice`, make a container class for cards
         # Utility functions
         val = (c) ->
@@ -181,11 +180,9 @@ MainState = React.createClass
         # - it is overwritten if a player with a better hand is found
         evalRank = (bestPlayer, player, i, a) ->
             e = player.hand
-            e = e.concat(cc.flop)
-            e.push(cc.turn)
-            e.push(cc.river)
-            e = that.sortHand(e)
-            console.log("Player " + that.state.players[i].name + \
+            e = e.concat(cc.flop);e.push(cc.turn);e.push(cc.river)
+            e = @sortHand(e)
+            console.log("Player " + @state.players[i].name + \
                         " has this sorted hand: " + e)
             console.log("Current best player is: " + bestPlayer[1])
             # This is a reduction that finds the best ranked hand
@@ -194,7 +191,7 @@ MainState = React.createClass
             # Compare it with the previously best combination in bestHand
             combProcess = (bestHand, ce, ci, ca) ->
                 # Find duplicates and their quantities.
-                counts = that.dupCounts(ce.map((e) -> val(e)))
+                counts = @dupCounts(ce.map((e) -> val(e)))
 
                 # Checks if this is a flush
                 flush = ce.every((cae, cai, caa) ->
@@ -206,14 +203,14 @@ MainState = React.createClass
                         # Handle the special case when ace is low.
                         # Must be the last card (in case multiple aces) and
                         # the first card in array must be a 2
-                        specialAce = x == 12 and i == 4 and !val(sa[0])
+                        specialAce = x == 12 and si == 4 and !val(sa[0])
                         [specialAce or x == y + 1, specialAce]
-                    console.log("sc: " + sc + " sp[1]: " + sp[1]) ## TODO DEBUG
                     [cmp, special] = valcomp(val(sc), sp[1])
-                    [(!si or (sp[0] and cmp)), if special then 3 else sc]
+                    [(!si or (sp[0] and cmp)), if special then 3 else val(sc)]
                 [straight,strtVal] = ce.reduce(checkStraight,[true,-1])
                 royalFlush = flush and straight and strtVal == 12
 
+                ## OK
                 quadOrFH = counts.length == 2
                 # 4 of a kind
                 quad = if quadOrFH then\
@@ -229,10 +226,15 @@ MainState = React.createClass
 
                 # Two Pair
                 twoPairFinder = (acc, ia) ->
-                    twop = counts[ia[0]][1] and counts[ia[1]][1]
-                    if acc[0] then acc else (if twop then [true, ia])
+                    twop = counts[ia[0]][1]==2 and counts[ia[1]][1]==2
+                    if acc[0]
+                        acc
+                    else if twop
+                        [true, ia]
+                    else
+                        acc
                 twoPair = if tripsOrTwoPair then\
-                    that.combinations([0,1,2], 2)\
+                    @combinations([0,1,2], 2)\
                         .reduce(twoPairFinder, [false,null])
 
                 # 1 Pair
@@ -266,7 +268,7 @@ MainState = React.createClass
                 # Return either the previous hand or a better one
                 if hrank.rankcmp(bestHand) >= 0 then hrank else bestHand
 
-            bh = that.combinations(e).reduce(combProcess, null)
+            bh = @combinations(e).reduce(combProcess, null)
             bhcmp = bh.rankcmp(bestPlayer[1])
             if bhcmp > 0 then [i, bh] else bestPlayer
             # TODO pot splitting
@@ -275,10 +277,21 @@ MainState = React.createClass
 
     dupCounts: (arr) ->
         # arr must be computed values, not cards
-        appendDup = (p, c) ->
+        appendDup = (p, c, i, a) ->
             if p[0] != c
-                [c,1,p[2].concat([[p[0],p[1]]])]
-            else [p[0],++p[1],p[2]]
+                newp = p[2]
+                if p[0] != null
+                    newp = newp.concat([[p[0],p[1]]])
+                if i == a.length - 1
+                    newp = newp.concat([[c,1]])
+                [c,1,newp]
+            else
+                if i == a.length - 1
+                    newp = p[2]
+                    newp = newp.concat([[p[0],++p[1]]])
+                    [p[0],p[1],newp]
+                else
+                    [p[0],++p[1],p[2]]
         arr.reduce(appendDup, [null, 0, []])[2]
 
     sortHand: (hand) ->
@@ -418,11 +431,10 @@ MainState = React.createClass
     raisePlayer: (sender, data) ->
         # The "amount" is the amount raised, not the total
         # addition to the pot
-        that = this
         this.playerAction(sender, "raise", (p, pi) ->
             try
                 console.log(p.name + " raised by " + data.amount)
-                withdraw = that.state.bid - p.bid + data.amount
+                withdraw = @state.bid - p.bid + data.amount
                 console.log(p.name + " is adding " + withdraw + " to the pot")
                 if p.remaining - withdraw >= 0
                     p.bid = p.bid + withdraw
@@ -431,7 +443,7 @@ MainState = React.createClass
                     that.setState(
                         lastRaised: pi
                         bid: p.bid
-                        pot: that.state.pot + withdraw
+                        pot: @state.pot + withdraw
                     )
                     window.messageBus.send(sender, JSON.stringify(
                         status: "raiseok"
@@ -442,7 +454,7 @@ MainState = React.createClass
                     window.messageBus.broadcast(JSON.stringify(
                         status: "maxbid"
                         data:
-                            maxbid: that.state.bid
+                            maxbid: @state.bid
                     ))
                 else
                     window.messageBus.send(sender, JSON.stringify(
@@ -458,18 +470,18 @@ MainState = React.createClass
         # Confirm there are enough funds
         that = this
         this.playerAction(sender, "call", (p, pi) ->
-            withdraw = that.state.bid - p.bid
+            withdraw = @state.bid - p.bid
             if p.remaining - withdraw >= 0
                 p.bid = p.bid + withdraw
                 p.remaining = p.remaining - withdraw
                 that.setState(
-                    pot: that.state.pot + withdraw
+                    pot: @state.pot + withdraw
                 )
                 window.messageBus.send(sender, JSON.stringify(
                     status: "callok"
                     data:
                         remaining: p.remaining
-                        pot: that.state.pot + withdraw
+                        pot: @state.pot + withdraw
                         bid: p.bid
                 ))
             else
@@ -484,7 +496,7 @@ MainState = React.createClass
         # Confirm player is in position to check
         that = this
         this.playerAction(sender, "check", (p, pi) ->
-            if p.bid == that.state.bid
+            if p.bid == @state.bid
                 window.messageBus.send(sender, JSON.stringify(
                     status: "checkok"
                     data: {}
@@ -805,15 +817,17 @@ table =
     handleMessage: (sender, m) ->
         isReconnecting = (players) ->
             reduceFun = (acc, p) ->
-                acc and p.name == m.data.name \
-                and p.id.split(':')[0] == sender.split(':')[0]
+                if acc and p.name == m.data.name
+                    [id, sid] = [p.id, sender].map((c) ->
+                        c.split(':')[0])
+                    if id == sid then p.id else null
             players.reduce(reduceFun, true)
 
         switch m.action
             when "join"
                 if this.state == "init"
                     try
-                        if isReconnecting(this.players)
+                        if isReconnecting(this.players) != null
                             if this.host == m.data.name
                                 window.messageBus.send(sender, JSON.stringify(
                                     status:"host"
@@ -835,7 +849,16 @@ table =
                     catch e
                         console.error e
                 else if this.state == "main"
-                    if isReconnecting(this.players)
+                    reconnect = isReconnecting(this.players)
+                    if reconnect != null
+                        reduceFun = (prev, p, i, a) ->
+                            if prev
+                                prev
+                            else if p.id == reconnect
+                                a[i].id = sender # REVIEW state mutation
+                                a[i]
+
+                        player_info = this.players.reduce(reduceFun, null)
                         window.messageBus.send(sender, JSON.stringify(
                             status:"start"
                             data:{})) # TODO populate that player's data
