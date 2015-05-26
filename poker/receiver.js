@@ -123,7 +123,7 @@ BigBlindToken = React.createClass({
 
 Players = React.createClass({
   render: function() {
-    var angle, cls, hdr, i, j, leftStyle, len1, offset, p, radius, ref, spans, startAngle, style, topStyle;
+    var angle, cls, hdr, i, l, leftStyle, len1, offset, p, radius, ref, spans, startAngle, style, topStyle;
     startAngle = Math.PI / this.props.players.length;
     angle = startAngle / 2;
     radius = 500;
@@ -131,8 +131,8 @@ Players = React.createClass({
     spans = [];
     i = 0;
     ref = this.props.players;
-    for (j = 0, len1 = ref.length; j < len1; j++) {
-      p = ref[j];
+    for (l = 0, len1 = ref.length; l < len1; l++) {
+      p = ref[l];
       leftStyle = radius * Math.cos(angle) + offset + 'px';
       topStyle = radius * Math.sin(angle) - 100 + 'px';
       style = {
@@ -565,14 +565,14 @@ MainState = React.createClass({
     }
   },
   generateSortedDeck: function() {
-    var allCards, c, cards, j, l, len1, len2, s, suits;
+    var allCards, c, cards, l, len1, len2, n, s, suits;
     suits = ["H", "D", "S", "C"];
     cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
     allCards = [];
-    for (j = 0, len1 = suits.length; j < len1; j++) {
-      s = suits[j];
-      for (l = 0, len2 = cards.length; l < len2; l++) {
-        c = cards[l];
+    for (l = 0, len1 = suits.length; l < len1; l++) {
+      s = suits[l];
+      for (n = 0, len2 = cards.length; n < len2; n++) {
+        c = cards[n];
         allCards.push(c + s);
       }
     }
@@ -591,14 +591,14 @@ MainState = React.createClass({
     return cards;
   },
   dealHand: function(dealer) {
-    var bid, bigBlind, e, firstTurn, i, j, len1, p, player, players, ref, smallBlind;
+    var bid, bigBlind, e, firstTurn, i, l, len1, p, player, players, ref, smallBlind;
     players = [];
     i = 0;
     smallBlind = (dealer + 1) % table.players.length;
     bigBlind = (smallBlind + 1) % table.players.length;
     ref = this.state.players;
-    for (j = 0, len1 = ref.length; j < len1; j++) {
-      p = ref[j];
+    for (l = 0, len1 = ref.length; l < len1; l++) {
+      p = ref[l];
       bid = smallBlind === i ? table.rules.smallBlind : bigBlind === i ? table.rules.bigBlind : 0;
       player = {
         id: p.id,
@@ -649,7 +649,7 @@ MainState = React.createClass({
     return [bigBlind, firstTurn, players];
   },
   getInitialState: function() {
-    var bid, bigBlind, dealer, firstTurn, i, j, len1, p, player, players, ref, smallBlind;
+    var bid, bigBlind, dealer, firstTurn, i, l, len1, p, player, players, ref, smallBlind;
     table.deck = this.shuffle(this.generateSortedDeck());
     dealer = Math.floor(Math.random() * table.players.length);
     smallBlind = (dealer + 1) % table.players.length;
@@ -658,8 +658,8 @@ MainState = React.createClass({
     i = 0;
     players = [];
     ref = table.players;
-    for (j = 0, len1 = ref.length; j < len1; j++) {
-      p = ref[j];
+    for (l = 0, len1 = ref.length; l < len1; l++) {
+      p = ref[l];
       bid = smallBlind === i ? table.rules.smallBlind : bigBlind === i ? table.rules.bigBlind : 0;
       player = {
         id: p.id,
@@ -824,12 +824,49 @@ OnePair = (function(superClass) {
 TwoPair = (function(superClass) {
   extend(TwoPair, superClass);
 
-  function TwoPair(hand, ia) {
-    TwoPair.__super__.constructor.call(this, hand);
+  function TwoPair(hand1, counts1, ia) {
+    this.hand = hand1;
+    this.counts = counts1;
     this.rank = "2P";
-    this.i = ia[0];
-    this.j = ia[1];
+    this.i = ia[0], this.j = ia[1];
   }
+
+  TwoPair.prototype.tiebreaker = function(other) {
+    var doublesCmp, myRemainingCardVal, mys, oRemainingCardVal, os, reduceFun, sortIJ;
+    sortIJ = function(i, j, c) {
+      return [i, j].map(function(e) {
+        return [e, c[e][0]];
+      }).sort(function(a, b) {
+        return b[1] - a[1];
+      });
+    };
+    mys = sortIJ(this.i, this.j, this.counts);
+    os = sortIJ(other.i, other.j, other.counts);
+    reduceFun = function(prev, curr, h, a) {
+      if (prev !== 0) {
+        return prev;
+      } else if (curr[1] > os[h][1]) {
+        return 1;
+      } else if (curr[1] < os[h][1]) {
+        return -1;
+      } else {
+        return 0;
+      }
+    };
+    doublesCmp = mys.reduce(reduceFun, 0);
+    if (doublesCmp === 0) {
+      console.log("Two pair is the same, reviewing kicker");
+      myRemainingCardVal = this.counts[3 - this.i - this.j][0];
+      oRemainingCardVal = other.counts[3 - other.i - other.j][0];
+      if (myRemainingCardVal > oRemainingCardVal) {
+        return 1;
+      } else if (myRemainingCardVal < oRemainingCardVal) {
+        return -1;
+      } else {
+        return 0;
+      }
+    }
+  };
 
   return TwoPair;
 

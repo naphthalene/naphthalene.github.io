@@ -700,14 +700,38 @@ class OnePair extends HighCard
         else
             if myCrank > otherCrank then 1 else -1
 
-## TODO finish below of these
-
 class TwoPair extends HighCard
-    constructor: (hand, ia) ->
-        super(hand)
+    constructor: (@hand, @counts, ia) ->
         @rank = "2P"
-        @i = ia[0]
-        @j = ia[1]
+        [@i, @j] = ia
+
+    tiebreaker: (other) ->
+        #(0,1), (0,2), (1,2)
+        sortIJ = (i, j, c) ->
+            [i, j].map((e) -> [e,c[e][0]])
+               .sort((a,b) -> b[1] - a[1])
+        mys = sortIJ(@i, @j, @counts)
+        os = sortIJ(other.i, other.j, other.counts)
+        reduceFun = (prev,curr,h,a) ->
+            if prev != 0 then prev
+            else if curr[1] > os[h][1]
+                1
+            else if curr[1] < os[h][1]
+                -1
+            else 0
+
+        doublesCmp = mys.reduce(reduceFun, 0)
+        if doublesCmp == 0
+            console.log("Two pair is the same, reviewing kicker")
+            myRemainingCardVal = @counts[3 - @i - @j][0]
+            oRemainingCardVal = other.counts[3-other.i-other.j][0]
+            if myRemainingCardVal > oRemainingCardVal
+                1
+            else if myRemainingCardVal < oRemainingCardVal
+                -1
+            else 0
+
+## TODO finish below of these
 
 class ThreeOfAKind extends HighCard
     constructor: (hand, tc) ->
