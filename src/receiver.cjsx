@@ -245,25 +245,25 @@ MainState = React.createClass
                 # The result stored in hrank is the best rank
                 hrank =
                     if royalFlush
-                        RoyalFlush(e)
+                        RoyalFlush(ce)
                     else if straight and flush
-                        StraightFlush(e, strtVal)
+                        StraightFlush(ce, strtVal)
                     else if quad != false and quad != -1
-                        FourOfAKind(e, counts, quad)
+                        FourOfAKind(ce, counts, quad)
                     else if FH != false and FH != -1
-                        FullHouse(e, counts, FH)
+                        FullHouse(ce, counts, FH)
                     else if flush
-                        Flush(e)
+                        Flush(ce)
                     else if straight
-                        Straight(e)
+                        Straight(ce)
                     else if trips != false and trips != -1
-                        ThreeOfAKind(e, counts, trips)
+                        ThreeOfAKind(ce, counts, trips)
                     else if twoPair != false and twoPair[0]
-                        TwoPair(e, twoPair[1])
+                        TwoPair(ce, twoPair[1])
                     else if onePair != false and onePair != -1
-                        OnePair(e, counts, onePair)
+                        OnePair(ce, counts, onePair)
                     else
-                        HighCard(e)
+                        HighCard(ce)
 
                 # Return either the previous hand or a better one
                 if hrank.rankcmp(bestHand) >= 0 then hrank else bestHand
