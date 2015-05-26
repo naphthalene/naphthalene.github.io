@@ -154,41 +154,43 @@ MainState = React.createClass
     combinations: (arr, k) ->
         len = arr.length
         that = this
-        if k > len then return [] else if !k then return [[]] else if k == len then return [arr]
+        if k > len
+            []
+        else if !k
+            [[]]
+        else if k == len
+            [arr]
+        else
+            reduceFun = (acc, val, i) ->
+                acc.concat(that.combinations(arr.slice(i+1),
+                    k-1).map((comb) -> [val].concat(comb)))
 
-        reduceFun = (acc, val, i) ->
-            acc.concat(that.combinations(arr.slice(i+1), k-1).map((comb) ->
-                [val].concat(comb)))
-
-        arr.reduce(reduceFun, []);
-
-    # combinations: (arr, k)->
-    #     that = this
-    #     arr.map((e, i, a) ->
-    #         if k == 1 then ret.push([e]) else
-    #             that.combinations(arr.slice(i+1, arr.length), k-1).
-    #                 map((ce, ci, ca) -> next = ce; next.unshift(e); next))
+            arr.reduce(reduceFun, []);
 
     computeWinner: ->
         cc = this.state.communityCards
-        allHands = this.state.players.map((p) ->
-            all_seven = p.hand
-            all_seven = all_seven.concat(cc.flop)
-            all_seven.push(cc.turn)
-            all_seven.push(cc.river)
-            all_seven)
         that = this
+        # TODO instead of using `slice`, make a container class for cards
+        # Utility functions
         val = (c) ->
+            # Returns the index of the card's value in this list
             ["2","3","4","5","6","7","8","9","10","J","Q","K","A"].
                 indexOf(c.slice(0,-1))
         suit = (c) -> c.slice(-1)[0]
-        allHands.map((e, i, a) ->
-            a[i] = that.sortHand(e)
-            console.log("Player" + that.state.players[i].name + \
-                        "has this sorted hand: " + a[i])
-            # TODO This should be a reduction that finds the best possible
+
+        evalRank = (bestForPlayer, player, i, a) ->
+            e = player.hand
+            e = e.concat(cc.flop)
+            e.push(cc.turn)
+            e.push(cc.river)
+            e = that.sortHand(e)
+            console.log("Player " + that.state.players[i].name + \
+                        " has this sorted hand: " + a[i])
+            # This is a reduction that finds the best possible
             # ranked hand combination of the available combinations of 5/7
-            that.combinations(a[i]).reduce((cp, ce, ci, ca) ->
+            # After determining the best case for a particular combination,
+            # Compare it with the previously best combination in cp
+            combProcess = (bestHand, ce, ci, ca) ->
                 # Checks if this is a flush
                 flush = ce.every((cae, cai, caa) ->
                     !cai or suit(cae) == suit(caa[0]))
@@ -203,42 +205,62 @@ MainState = React.createClass
                     console.log("sc: " + sc + " sp[1]: " + sp[1])
                     [cmp, special] = valcomp(val(sc), sp[1])
                     [(!si or (sp[0] and cmp)), if special then 3 else sc]
-                [straight,straightHighVal] = ce.reduce(checkStraight,[true,-1])
+                [straight,strtVal] = ce.reduce(checkStraight,[true,-1])
+                royalFlush = flush and straight and strtVal == 12
                 # Find duplicates and their quantities.
                 counts = that.dupCounts(ce.map((e) -> val(e)))
+                quadOrFH = counts.length == 2
+                quad = if quadOrFH then\
+                    [0,1].map((i)->counts[i][1]==4).indexOf(true) else false
+                FH = if quadOrFH then\
+                    [0,1].map((i)->counts[i][1]==3).indexOf(true) else false
+
+                # 3 of Kind (trip, set) or Two Pair
+                tripsOrTwoPair = counts.length == 3
+                trips = if tripsOrTwoPair then\
+                    [0,1,2].map((i)->counts[i][1]==3).indexOf(true) else false
+                twoPairFinder = (acc, ia) ->
+                    twop = counts[ia[0]][1] and counts[ia[1]][1]
+                    if acc[0] then acc else (if twop then [true, ia])
+                twoPair = if tripsOrTwoPair then\
+                    that.combinations([0,1,2], 2)\
+                        .reduce(twoPairFinder, [false,null])
 
                 # Now calculate the best ranking outcome for this combination
-                if flush and straight
-                    # ROYAL FLUSH or STRAIGHT FLUSH
-                    if straightHighVal == 12 then "RF" else "SF"
-                else (if counts.length == 2 and
-                    counts[0][1] == 4 or counts[1][1] == 4 then "4K"
-                else (if counts.length == 2 and
-                    (counts[0][1] == 3 and counts[1][1] == 2 or
-                     counts[0][1] == 2 and counts[1][1] == 3)
-                        "FH"
-                else (if flush then "FL"
-                else (if straight then "ST"
-                else (if (counts.length == 3) and
-                    (counts[0][1] == 3 or
-                     counts[1][1] == 3 or
-                     counts[2][1] == 3) then "3K"
-                else (if counts.length == 3 and
-                    ((counts[0][1] == 2 and counts[1][1] == 2) or
-                     (counts[0][1] == 2 and counts[2][1] == 2) or
-                     (counts[1][1] == 2 and counts[2][1] == 2)) then "2P"
-                else (if len(counts) == 4 then "1P"
-                else "0P")))))))))
+                # The result stored in hrank is the best rank
+                hrank =
+                    if royalFlush
+                        RoyalFlush(e)
+                    else if straight and flush
+                        StraightFlush(e, strtVal)
+                    else if quad != false and quad != -1
+                        FourOfAKind(e, counts[quad])
+                    else if FH != false and FH != -1
+                        FullHouse(e, counts[FH])
+                    else if flush
+                        Flush(e)
+                    else if straight
+                        Straight(e)
+                    else if trips != false and trips != -1
+                        ThreeOfAKind(e, counts[trips])
+                    else if twoPair != false and twoPair[0]
+                        TwoPair(e, twoPair[1])
+                    else if counts.length == 4
+                        OnePair(e)
+                    else
+                        HighCard(e)
+                bestHand.rankcmp(hrank)
 
-        return 0
+            that.combinations(e).reduce(combProcess,null)
+
+        return this.state.players.reduce(evalRank, [-1, null])[0]
 
     dupCounts: (arr) ->
         # arr must be computed values, not cards
-        appendDup = (p, c, i, a) ->
+        appendDup = (p, c) ->
             if p[0] != c
-                if p[1] > 0 then p[2].push([p[0],p[1]])
-                [c,1,p[2]]
-            else [p[0],p[1]++,p[2]]
+                [c,1,p[2].concat([[p[0],p[1]]])]
+            else [p[0],++p[1],p[2]]
         arr.reduce(appendDup, [null, 0, []])[2]
 
     sortHand: (hand) ->
@@ -596,6 +618,83 @@ MainState = React.createClass
                    hand={this.state.hand}/>
         <Players players={this.state.players} turn={this.state.turn}/>
       </div>
+
+class HighCard
+    constructor: (@hand) ->
+        @rank = "HC"
+
+    rankcmp: (other) ->
+        # Compare ranks, first by type, then do tiebreaker
+        # Returns +1 if this > other else if this == other then 0 else -1
+        ranks = ["HC","1P","2P","3K","ST","FL","FH","4K","SF","RF"]
+        r1i=ranks.indexOf(this.rank); r2i=ranks.indexOf(other.rank)
+        if r1i > r2i then 1 else (if r1i < r2i then -1 else\
+            # They are equal, tiebreaker using available info
+            # The tiebreaker is written for each rank type
+            # and is part of the class that can compare another
+            # rank class of the same type
+            console.log("Same hand, using tiebreaker...");\
+            this.tiebreaker(other))
+
+    val: (c) ->
+        # Returns the index of the card's value in this list
+        ["2","3","4","5","6","7","8","9","10","J","Q","K","A"].
+            indexOf(c.slice(0,-1))
+
+    tiebreaker: (other) ->
+        reduceFun = (p,c,i,a)->
+            if c > p then c else p
+        myHC = @hand.map((c)->@val(c)).reduce(reduceFun, -1)
+        oHC = other.hand.map((c)->@val(c)).reduce(reduceFun, -1)
+        if myHC > oHC
+            1
+        else if myHC < oHC
+            -1
+        else
+            0
+
+class OnePair extends HighCard
+    constructor: (hand, pi) ->
+        super(hand)
+        @pi = pi
+        @rank = "1P"
+    tiebreaker: (other) ->
+        @hand
+
+class TwoPair extends HighCard
+    constructor: (e, pi) ->
+        super(e)
+        @rank = "2P"
+
+class ThreeOfAKind extends HighCard
+    constructor: (e, tc) ->
+        super(e)
+        @rank = "3K"
+
+class Straight extends HighCard
+    constructor: (e) ->
+        super(e)
+        @rank = "ST"
+
+class Flush extends HighCard
+    constructor: (e) ->
+        super(e)
+        @rank = "FL"
+
+class FullHouse extends HighCard
+    constructor: (e, tc) ->
+        {}
+
+class FourOfAKind extends HighCard
+    constructor: (e, tc) ->
+        {}
+
+class StraightFlush extends HighCard
+    constructor: (e, sv) ->
+        {}
+
+class RoyalFlush extends HighCard
+
 
 table =
     state: null
