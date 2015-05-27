@@ -22,13 +22,19 @@ Nav = ReactBootstrap.Nav
 
 # ----------------------
 
+SUITS = ["H","D","S","C"]
+CARDS = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"]
+RANKS = ["HC", "1P","2P","3K","ST","FL","FH","4K", "SF", "RF"]
+
+# ----------------------
+
 CardImage = React.createClass
     render: ->
           <object data={if !this.props.card then '/images/card_outline.svg' else '/images/' + (
-                if       this.props.card[this.props.card.length-1] == "H" then "Hearts"
-                else (if this.props.card[this.props.card.length-1] == "S" then "Spades"
-                else (if this.props.card[this.props.card.length-1] == "C" then "Clubs"
-                else (if this.props.card[this.props.card.length-1] == "D" then "Diamonds")))) +
+                if       this.props.card.slice(-1) == "H" then "Hearts"
+                else (if this.props.card.slice(-1) == "S" then "Spades"
+                else (if this.props.card.slice(-1) == "C" then "Clubs"
+                else (if this.props.card.slice(-1) == "D" then "Diamonds")))) +
                     "/" + this.props.card + '.svg'}
               type="image/svg+xml"
               width="100px"
@@ -139,7 +145,6 @@ InitState = React.createClass
 
 MainState = React.createClass
     endHand: (winner) ->
-        console.log("Awarding " + this.state.players[winner].name)
         this.awardPotTo(winner)
         table.deck = this.shuffle(this.generateSortedDeck())
         # Rotate the dealer to the next person
@@ -168,10 +173,7 @@ MainState = React.createClass
         cc = this.state.communityCards
         # TODO instead of using `slice`, make a container class for cards
         # Utility functions
-        val = (c) ->
-            # Returns the index of the card's value in this list
-            ["2","3","4","5","6","7","8","9","10","J","Q","K","A"].
-                indexOf(c.slice(0,-1))
+        val = (c) -> CARDS.indexOf(c.slice(0,-1))
         suit = (c) -> c.slice(-1)[0]
 
         # {bestForPlayer} stores the best possible hand for an individual.
@@ -266,11 +268,26 @@ MainState = React.createClass
                 if hrank.rankcmp(bestHand) > 0 then hrank else bestHand
 
             bh = @combinations(e).reduce(combProcess, null)
-            bhcmp = bh.rankcmp(bestPlayer[1])
-            if bhcmp > 0 then [i, bh] else bestPlayer
-            # TODO pot splitting
+            bhcmp = bh.rankcmp(bestPlayer.best)
+            if bhcmp == 0
+                # Tied for best, append person to list
+                ls = bestPlayer.ls
+                ls.push(i)
+                best: bestPlayer.best
+                ls: ls
+            else if bhcmp > 1
+                # If a better rank is achieved by current player,
+                # make him the only member of the array and set the new best
+                # current rank
+                best: bh
+                ls: [i]
+            else
+                # Status quo
+                bestPlayer
 
-        return this.state.players.reduce(evalRank, [-1, null])[0]
+        return this.state.players.reduce(evalRank,
+            best: null
+            ls: [])
 
     dupCounts: (arr) ->
         # arr must be computed values, not cards
@@ -292,13 +309,10 @@ MainState = React.createClass
         arr.reduce(appendDup, [null, 0, []])[2]
 
     sortHand: (hand) ->
-        cardOrder = ["2", "3","4","5","6","7", "8",
-                     "9", "10", "J", "Q", "K", "A"]
-
         sortFun = (a, b) ->
             if a.slice(0, -1) == b.slice(0, -1) then 0 else
-                cardOrder.indexOf(a.slice(0, -1)) > \
-                    cardOrder.indexOf(b.slice(0, -1))
+                CARDS.indexOf(a.slice(0, -1)) > \
+                    CARDS.indexOf(b.slice(0, -1))
 
         hand.sort(sortFun)
 
@@ -342,13 +356,29 @@ MainState = React.createClass
                     community: "Preflop"
                 )
 
-    awardPotTo: (pi) ->
+    splitEven: (amount, n) ->
+        # Assumes whole number amount and output
+        eq = amount / n
+        Array.prototype.map.call([]+Array(n+1),()->eq)
+
+    awardPotTo: (winners) ->
         # Update the player who won with the contents of the pot
         players = this.state.players
-        p = players[pi]
-        p.remaining = p.remaining + this.state.pot
-        console.log("Awarding pot...")
-        players[pi] = p
+        if winners.ls.length > 1
+            # Split the pot
+            dividend = @splitEven(@state.pot, winners.ls.length)
+            winners.ls.map((c,i,a) ->
+                console.log("Awarding "+players[c].name+" $"+dividend)
+                p = players[c]
+                p.remaining = p.remaining + dividend;
+                players[c] = p
+            )
+        else
+            p = players[pi]
+            p.remaining = p.remaining + this.state.pot
+            console.log("Awarding "+p.name+" $"+this.state.pot)
+            players[pi] = p
+
         this.setState(
             players: players
             pot: 0
@@ -521,12 +551,9 @@ MainState = React.createClass
                 console.error("Unknown message received")
 
     generateSortedDeck: ->
-        suits = ["H", "D", "S", "C"]
-        cards = ["2", "3", "4", "5", "6", "7", "8",
-                 "9", "10", "J", "Q", "K", "A"]
         allCards = []
-        for s in suits
-            for c in cards
+        for s in SUITS
+            for c in CARDS
                 allCards.push(c+s)
         allCards
 
@@ -672,8 +699,7 @@ class HighCard
         # Returns +1 if this > other, 0 if this == other else -1
         if other == null
             return +1
-        ranks = ["HC","1P","2P","3K","ST","FL","FH","4K","SF","RF"]
-        r1i=ranks.indexOf(this.rank); r2i=ranks.indexOf(other.rank)
+        r1i=RANKS.indexOf(this.rank); r2i=RANKS.indexOf(other.rank)
         if r1i > r2i then 1 else (if r1i < r2i then -1 else\
             # They are equal, tiebreaker using available info
             # The tiebreaker is written for each rank type
