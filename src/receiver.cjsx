@@ -67,7 +67,7 @@ ConnectedPlayers = React.createClass
         <Table striped bordered condensed>
           <thead>
             <tr>
-              <th>name</th>
+              <th>Name</th>
             </tr>
           </thead>
           {this.props.players.map((p) ->
@@ -886,9 +886,13 @@ table =
                     try
                         if isReconnecting(this.players) != null
                             if this.host == m.data.name
+                                console.log("Reconnecting host" + m.data.name)
                                 window.messageBus.send(sender, JSON.stringify(
                                     status:"host"
                                     data:{}))
+                            else
+                                console.log("Reconnecting " + m.data.name)
+
                         else
                             # This is a new user
                             console.log("Player joining " + m.data.name)
@@ -903,6 +907,7 @@ table =
                                 name: m.data.name
                                 id: sender
                             )
+                            console.log(this.players)
                             this.container.setState(players: this.players)
                     catch e
                         console.error e

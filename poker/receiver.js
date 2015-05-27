@@ -97,7 +97,7 @@ ConnectedPlayers = React.createClass({
       "striped": true,
       "bordered": true,
       "condensed": true
-    }, React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", null, "name"))), this.props.players.map(function(p) {
+    }, React.createElement("thead", null, React.createElement("tr", null, React.createElement("th", null, "Name"))), this.props.players.map(function(p) {
       return React.createElement("tr", null, React.createElement("td", null, p.name));
     })));
   }
@@ -1123,14 +1123,17 @@ table = {
     switch (m.action) {
       case "join":
         if (this.state === "init") {
-          console.log("Init");
+          console.log("init>join");
           try {
             if (isReconnecting(this.players) !== null) {
               if (this.host === m.data.name) {
+                console.log("Reconnecting host" + m.data.name);
                 return window.messageBus.send(sender, JSON.stringify({
                   status: "host",
                   data: {}
                 }));
+              } else {
+                return console.log("Reconnecting " + m.data.name);
               }
             } else {
               console.log("Player joining " + m.data.name);
@@ -1146,6 +1149,7 @@ table = {
                 name: m.data.name,
                 id: sender
               });
+              console.log(this.players);
               return this.container.setState({
                 players: this.players
               });
