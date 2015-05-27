@@ -287,7 +287,7 @@ MainState = React.createClass({
               return acc;
             }
           };
-          twoPair = tripsOrTwoPair ? t.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : void 0;
+          twoPair = tripsOrTwoPair ? t.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : false;
           onePair = counts.length === 4 ? [0, 1].map(function(i) {
             return counts[i][1] === 2;
           }).indexOf(true) : false;

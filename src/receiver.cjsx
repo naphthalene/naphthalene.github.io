@@ -242,7 +242,7 @@ MainState = React.createClass
                             acc
                     twoPair = if tripsOrTwoPair then\
                         t.combinations([0,1,2], 2)\
-                            .reduce(twoPairFinder, [false,null])
+                            .reduce(twoPairFinder, [false,null]) else false
 
                     # 1 Pair
                     onePair = if counts.length == 4 then\
