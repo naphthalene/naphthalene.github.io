@@ -506,11 +506,13 @@ MainState = React.createClass({
     });
   },
   raisePlayer: function(sender, data) {
+    var t;
+    t = this;
     return this.playerAction(sender, "raise", function(p, pi) {
       var e, withdraw;
       try {
         console.log(p.name + " raised by " + data.amount);
-        withdraw = this.state.bid - p.bid + data.amount;
+        withdraw = t.state.bid - p.bid + data.amount;
         console.log(p.name + " is adding " + withdraw + " to the pot");
         if (p.remaining - withdraw >= 0) {
           p.bid = p.bid + withdraw;
@@ -518,7 +520,7 @@ MainState = React.createClass({
           that.setState({
             lastRaised: pi,
             bid: p.bid,
-            pot: this.state.pot + withdraw
+            pot: t.state.pot + withdraw
           });
           window.messageBus.send(sender, JSON.stringify({
             status: "raiseok",
@@ -530,7 +532,7 @@ MainState = React.createClass({
           return window.messageBus.broadcast(JSON.stringify({
             status: "maxbid",
             data: {
-              maxbid: this.state.bid
+              maxbid: t.state.bid
             }
           }));
         } else {
@@ -548,22 +550,22 @@ MainState = React.createClass({
     });
   },
   callPlayer: function(sender) {
-    var that;
-    that = this;
+    var t;
+    t = this;
     return this.playerAction(sender, "call", function(p, pi) {
       var withdraw;
-      withdraw = that.state.bid - p.bid;
+      withdraw = t.state.bid - p.bid;
       if (p.remaining - withdraw >= 0) {
         p.bid = p.bid + withdraw;
         p.remaining = p.remaining - withdraw;
-        that.setState({
-          pot: that.state.pot + withdraw
+        t.setState({
+          pot: t.state.pot + withdraw
         });
         return window.messageBus.send(sender, JSON.stringify({
           status: "callok",
           data: {
             remaining: p.remaining,
-            pot: that.state.pot + withdraw,
+            pot: t.state.pot + withdraw,
             bid: p.bid
           }
         }));
@@ -578,10 +580,10 @@ MainState = React.createClass({
     });
   },
   checkPlayer: function(sender) {
-    var that;
-    that = this;
+    var t;
+    t = this;
     return this.playerAction(sender, "check", function(p, pi) {
-      if (p.bid === that.state.bid) {
+      if (p.bid === t.state.bid) {
         return window.messageBus.send(sender, JSON.stringify({
           status: "checkok",
           data: {}
