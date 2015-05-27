@@ -407,11 +407,12 @@ MainState = React.createClass({
   awardPotTo: function(winners) {
     var dividend, p, pi, players;
     players = this.state.players;
+    console.log(winners);
     if (winners.ls.length > 1) {
       dividend = this.splitEven(this.state.pot, winners.ls.length);
       winners.ls.map(function(c, i, a) {
         var p;
-        console.log("Awarding " + players[c].name + " $" + dividend);
+        console.log("Split awarding " + players[c].name + " $" + dividend);
         p = players[c];
         p.remaining = p.remaining + dividend;
         return players[c] = p;
