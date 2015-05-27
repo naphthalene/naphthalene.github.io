@@ -189,7 +189,7 @@ InitState = React.createClass({
 
 MainState = React.createClass({
   endHand: function(winner) {
-    console.log("Need to award somebody. Review their cards and...");
+    console.log("Awarding " + this.state.players[winner].name);
     this.awardPotTo(winner);
     table.deck = this.shuffle(this.generateSortedDeck());
     this.setState({
@@ -280,7 +280,7 @@ MainState = React.createClass({
           return counts[i][1] === 2;
         }).indexOf(true) : false;
         hrank = royalFlush ? RoyalFlush(ce) : straight && flush ? StraightFlush(ce, strtVal) : quad !== false && quad !== -1 ? FourOfAKind(ce, counts, quad) : FH !== false && FH !== -1 ? FullHouse(ce, counts, FH) : flush ? Flush(ce) : straight ? Straight(ce) : trips !== false && trips !== -1 ? ThreeOfAKind(ce, counts, trips) : twoPair !== false && twoPair[0] ? TwoPair(ce, twoPair[1]) : onePair !== false && onePair !== -1 ? OnePair(ce, counts, onePair) : HighCard(ce);
-        if (hrank.rankcmp(bestHand) >= 0) {
+        if (hrank.rankcmp(bestHand) > 0) {
           return hrank;
         } else {
           return bestHand;

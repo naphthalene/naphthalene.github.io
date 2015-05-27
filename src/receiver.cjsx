@@ -139,7 +139,7 @@ InitState = React.createClass
 
 MainState = React.createClass
     endHand: (winner) ->
-        console.log("Need to award somebody. Review their cards and...")
+        console.log("Awarding " + this.state.players[winner].name)
         this.awardPotTo(winner)
         table.deck = this.shuffle(this.generateSortedDeck())
         # Rotate the dealer to the next person
@@ -263,7 +263,7 @@ MainState = React.createClass
                         HighCard(ce)
 
                 # Return either the previous hand or a better one
-                if hrank.rankcmp(bestHand) >= 0 then hrank else bestHand
+                if hrank.rankcmp(bestHand) > 0 then hrank else bestHand
 
             bh = @combinations(e).reduce(combProcess, null)
             bhcmp = bh.rankcmp(bestPlayer[1])
