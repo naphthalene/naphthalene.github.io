@@ -159,6 +159,7 @@ MainState = React.createClass
 
     combinations: (arr, k) ->
         len = arr.length
+        t = this
         if k > len
             []
         else if !k
@@ -167,13 +168,14 @@ MainState = React.createClass
             [arr]
         else
             reduceFun = (acc, val, i) ->
-                acc.concat(@combinations(arr.slice(i+1),
+                acc.concat(t.combinations(arr.slice(i+1),
                     k-1).map((comb) -> [val].concat(comb)))
 
             arr.reduce(reduceFun, []);
 
     computeWinner: ->
-        cc = this.state.communityCards
+        t = this
+        cc = t.state.communityCards
         # TODO instead of using `slice`, make a container class for cards
         # Utility functions
         val = (c) -> CARDS.indexOf(c.slice(0,-1))
@@ -184,8 +186,8 @@ MainState = React.createClass
         evalRank = (bestPlayer, player, i, a) ->
             e = player.hand
             e = e.concat(cc.flop);e.push(cc.turn);e.push(cc.river)
-            e = @sortHand(e)
-            console.log("Player " + @state.players[i].name + \
+            e = t.sortHand(e)
+            console.log("Player " + t.state.players[i].name + \
                         " has this sorted hand: " + e)
             console.log("Current best player is: " + bestPlayer[1])
             # This is a reduction that finds the best ranked hand
@@ -194,7 +196,7 @@ MainState = React.createClass
             # Compare it with the previously best combination in bestHand
             combProcess = (bestHand, ce, ci, ca) ->
                 # Find duplicates and their quantities.
-                counts = @dupCounts(ce.map((e) -> val(e)))
+                counts = t.dupCounts(ce.map((e) -> val(e)))
 
                 # Checks if this is a flush
                 flush = ce.every((cae, cai, caa) ->
@@ -236,7 +238,7 @@ MainState = React.createClass
                     else
                         acc
                 twoPair = if tripsOrTwoPair then\
-                    @combinations([0,1,2], 2)\
+                    t.combinations([0,1,2], 2)\
                         .reduce(twoPairFinder, [false,null])
 
                 # 1 Pair
@@ -270,7 +272,7 @@ MainState = React.createClass
                 # Return either the previous hand or a better one
                 if hrank.rankcmp(bestHand) > 0 then hrank else bestHand
 
-            bh = @combinations(e).reduce(combProcess, null)
+            bh = t.combinations(e).reduce(combProcess, null)
             bhcmp = bh.rankcmp(bestPlayer.best)
             if bhcmp == 0
                 # Tied for best, append person to list

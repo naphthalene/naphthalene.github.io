@@ -205,8 +205,9 @@ MainState = React.createClass({
     return this.dealHand(this.state.dealer);
   },
   combinations: function(arr, k) {
-    var len, reduceFun;
+    var len, reduceFun, t;
     len = arr.length;
+    t = this;
     if (k > len) {
       return [];
     } else if (!k) {
@@ -215,7 +216,7 @@ MainState = React.createClass({
       return [arr];
     } else {
       reduceFun = function(acc, val, i) {
-        return acc.concat(this.combinations(arr.slice(i + 1), k - 1).map(function(comb) {
+        return acc.concat(t.combinations(arr.slice(i + 1), k - 1).map(function(comb) {
           return [val].concat(comb);
         }));
       };
@@ -223,8 +224,9 @@ MainState = React.createClass({
     }
   },
   computeWinner: function() {
-    var cc, evalRank, suit, val;
-    cc = this.state.communityCards;
+    var cc, evalRank, suit, t, val;
+    t = this;
+    cc = t.state.communityCards;
     val = function(c) {
       return CARDS.indexOf(c.slice(0, -1));
     };
@@ -237,12 +239,12 @@ MainState = React.createClass({
       e = e.concat(cc.flop);
       e.push(cc.turn);
       e.push(cc.river);
-      e = this.sortHand(e);
-      console.log("Player " + this.state.players[i].name + " has this sorted hand: " + e);
+      e = t.sortHand(e);
+      console.log("Player " + t.state.players[i].name + " has this sorted hand: " + e);
       console.log("Current best player is: " + bestPlayer[1]);
       combProcess = function(bestHand, ce, ci, ca) {
         var FH, checkStraight, counts, flush, hrank, onePair, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
-        counts = this.dupCounts(ce.map(function(e) {
+        counts = t.dupCounts(ce.map(function(e) {
           return val(e);
         }));
         flush = ce.every(function(cae, cai, caa) {
@@ -282,7 +284,7 @@ MainState = React.createClass({
             return acc;
           }
         };
-        twoPair = tripsOrTwoPair ? this.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : void 0;
+        twoPair = tripsOrTwoPair ? t.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : void 0;
         onePair = counts.length === 4 ? [0, 1].map(function(i) {
           return counts[i][1] === 2;
         }).indexOf(true) : false;
@@ -293,7 +295,7 @@ MainState = React.createClass({
           return bestHand;
         }
       };
-      bh = this.combinations(e).reduce(combProcess, null);
+      bh = t.combinations(e).reduce(combProcess, null);
       bhcmp = bh.rankcmp(bestPlayer.best);
       if (bhcmp === 0) {
         ls = bestPlayer.ls;
