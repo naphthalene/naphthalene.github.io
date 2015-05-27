@@ -882,6 +882,7 @@ table =
         switch m.action
             when "join"
                 if this.state == "init"
+                    console.log("init>join")
                     try
                         if isReconnecting(this.players) != null
                             if this.host == m.data.name

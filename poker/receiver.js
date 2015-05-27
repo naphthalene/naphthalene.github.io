@@ -1123,6 +1123,7 @@ table = {
     switch (m.action) {
       case "join":
         if (this.state === "init") {
+          console.log("Init");
           try {
             if (isReconnecting(this.players) !== null) {
               if (this.host === m.data.name) {
