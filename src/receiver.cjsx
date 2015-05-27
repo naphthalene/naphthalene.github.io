@@ -266,7 +266,7 @@ MainState = React.createClass
                         else if trips != false and trips != -1
                             new ThreeOfAKind(ce, counts, trips)
                         else if twoPair != false and twoPair[0]
-                            new TwoPair(ce, twoPair[1])
+                            new TwoPair(ce, counts, twoPair[1])
                         else if onePair != false and onePair != -1
                             new OnePair(ce, counts, onePair)
                         else
