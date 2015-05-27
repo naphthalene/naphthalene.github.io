@@ -235,6 +235,9 @@ MainState = React.createClass({
     };
     evalRank = function(bestPlayer, player, i, a) {
       var bh, bhcmp, combProcess, e, ls;
+      if (player.fold) {
+        return bestPlayer;
+      }
       e = player.hand;
       e = e.concat(cc.flop);
       e.push(cc.turn);

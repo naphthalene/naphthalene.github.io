@@ -184,6 +184,7 @@ MainState = React.createClass
         # {bestForPlayer} stores the best possible hand for an individual.
         # - it is overwritten if a player with a better hand is found
         evalRank = (bestPlayer, player, i, a) ->
+            if player.fold then return bestPlayer
             e = player.hand
             e = e.concat(cc.flop);e.push(cc.turn);e.push(cc.river)
             e = t.sortHand(e)
