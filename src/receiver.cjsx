@@ -196,7 +196,6 @@ MainState = React.createClass
             # After determining the best case for a particular combination,
             # Compare it with the previously best combination in bestHand
             combProcess = (bestHand, ce, ci, ca) ->
-                console.log("Best hand for player is : " + bestHand)
                 # Find duplicates and their quantities.
                 try
                     counts = t.dupCounts(ce.map((e) -> val(e)))
@@ -272,21 +271,32 @@ MainState = React.createClass
                         else
                             new HighCard(ce)
 
-                    console.log("hrank: " + hrank.rank)
                     # Return either the previous hand or a better one
-                    if hrank.rankcmp(bestHand) > 0 then hrank else bestHand
+                    cmp = hrank.rankcmp(bestHand)
+                    if cmp > 0
+                        console.log("new best: " + hrank.rank + ": "+hrank.hand);
+                        hrank
+                    else
+                        bestHand
+
                 catch e
                     console.error e.stack
 
             bh = t.combinations(e, 5).reduce(combProcess, null)
+            console.log("bestPlayer: " + bestPlayer.best + bestPlayer.ls);
             bhcmp = bh.rankcmp(bestPlayer.best)
+            console.log("bhcmp: " + bhcmp);
+            console.log("Best rank for player " + player.name + ": "
+                        + bh.rank + "(" + bh.hand + ")");
             if bhcmp == 0
                 # Tied for best, append person to list
+                console.log("Player has MATCHED " + bestPlayer.best);
                 ls = bestPlayer.ls
                 ls.push(i)
                 best: bestPlayer.best
                 ls: ls
-            else if bhcmp > 1
+            else if bhcmp > 0
+                console.log("Player has BEAT " + bestPlayer.best);
                 # If a better rank is achieved by current player,
                 # make him the only member of the array and set the new best
                 # current rank

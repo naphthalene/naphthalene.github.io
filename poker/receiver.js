@@ -244,8 +244,7 @@ MainState = React.createClass({
       console.log("Current best players are: " + bestPlayer.ls);
       console.log("Current best hand is: " + bestPlayer.hand);
       combProcess = function(bestHand, ce, ci, ca) {
-        var FH, checkStraight, counts, flush, hrank, onePair, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
-        console.log("Best hand for player is : " + bestHand);
+        var FH, checkStraight, cmp, counts, flush, hrank, onePair, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
         try {
           counts = t.dupCounts(ce.map(function(e) {
             return val(e);
@@ -292,8 +291,9 @@ MainState = React.createClass({
             return counts[i][1] === 2;
           }).indexOf(true) : false;
           hrank = royalFlush ? new RoyalFlush(ce) : straight && flush ? new StraightFlush(ce, strtVal) : quad !== false && quad !== -1 ? new FourOfAKind(ce, counts, quad) : FH !== false && FH !== -1 ? new FullHouse(ce, counts, FH) : flush ? new Flush(ce) : straight ? new Straight(ce) : trips !== false && trips !== -1 ? new ThreeOfAKind(ce, counts, trips) : twoPair !== false && twoPair[0] ? new TwoPair(ce, counts, twoPair[1]) : onePair !== false && onePair !== -1 ? new OnePair(ce, counts, onePair) : new HighCard(ce);
-          console.log("hrank: " + hrank.rank);
-          if (hrank.rankcmp(bestHand) > 0) {
+          cmp = hrank.rankcmp(bestHand);
+          if (cmp > 0) {
+            console.log("new best: " + hrank.rank + ": " + hrank.hand);
             return hrank;
           } else {
             return bestHand;
@@ -304,15 +304,20 @@ MainState = React.createClass({
         }
       };
       bh = t.combinations(e, 5).reduce(combProcess, null);
+      console.log("bestPlayer: " + bestPlayer.best + bestPlayer.ls);
       bhcmp = bh.rankcmp(bestPlayer.best);
+      console.log("bhcmp: " + bhcmp);
+      console.log("Best rank for player " + player.name + ": ", +bh.rank + "(" + bh.hand + ")");
       if (bhcmp === 0) {
+        console.log("Player has MATCHED " + bestPlayer.best);
         ls = bestPlayer.ls;
         ls.push(i);
         return {
           best: bestPlayer.best,
           ls: ls
         };
-      } else if (bhcmp > 1) {
+      } else if (bhcmp > 0) {
+        console.log("Player has BEAT " + bestPlayer.best);
         return {
           best: bh,
           ls: [i]
