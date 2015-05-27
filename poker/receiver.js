@@ -246,56 +246,61 @@ MainState = React.createClass({
       combProcess = function(bestHand, ce, ci, ca) {
         var FH, checkStraight, counts, flush, hrank, onePair, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
         console.log("Best hand for player is : " + bestHand);
-        counts = t.dupCounts(ce.map(function(e) {
-          return val(e);
-        }));
-        flush = ce.every(function(cae, cai, caa) {
-          return !cai || suit(cae) === suit(caa[0]);
-        });
-        checkStraight = function(sp, sc, si, sa) {
-          var cmp, ref, special, valcomp;
-          valcomp = function(x, y) {
-            var specialAce;
-            specialAce = x === 12 && si === 4 && !val(sa[0]);
-            return [specialAce || x === y + 1, specialAce];
+        try {
+          counts = t.dupCounts(ce.map(function(e) {
+            return val(e);
+          }));
+          flush = ce.every(function(cae, cai, caa) {
+            return !cai || suit(cae) === suit(caa[0]);
+          });
+          checkStraight = function(sp, sc, si, sa) {
+            var cmp, ref, special, valcomp;
+            valcomp = function(x, y) {
+              var specialAce;
+              specialAce = x === 12 && si === 4 && !val(sa[0]);
+              return [specialAce || x === y + 1, specialAce];
+            };
+            ref = valcomp(val(sc), sp[1]), cmp = ref[0], special = ref[1];
+            return [!si || (sp[0] && cmp), special ? 3 : val(sc)];
           };
-          ref = valcomp(val(sc), sp[1]), cmp = ref[0], special = ref[1];
-          return [!si || (sp[0] && cmp), special ? 3 : val(sc)];
-        };
-        ref = ce.reduce(checkStraight, [true, -1]), straight = ref[0], strtVal = ref[1];
-        royalFlush = flush && straight && strtVal === 12;
-        quadOrFH = counts.length === 2;
-        quad = quadOrFH ? [0, 1].map(function(i) {
-          return counts[i][1] === 4;
-        }).indexOf(true) : false;
-        FH = quadOrFH ? [0, 1].map(function(i) {
-          return counts[i][1] === 3;
-        }).indexOf(true) : false;
-        tripsOrTwoPair = counts.length === 3;
-        trips = tripsOrTwoPair ? [0, 1, 2].map(function(i) {
-          return counts[i][1] === 3;
-        }).indexOf(true) : false;
-        twoPairFinder = function(acc, ia) {
-          var twop;
-          twop = counts[ia[0]][1] === 2 && counts[ia[1]][1] === 2;
-          if (acc[0]) {
-            return acc;
-          } else if (twop) {
-            return [true, ia];
+          ref = ce.reduce(checkStraight, [true, -1]), straight = ref[0], strtVal = ref[1];
+          royalFlush = flush && straight && strtVal === 12;
+          quadOrFH = counts.length === 2;
+          quad = quadOrFH ? [0, 1].map(function(i) {
+            return counts[i][1] === 4;
+          }).indexOf(true) : false;
+          FH = quadOrFH ? [0, 1].map(function(i) {
+            return counts[i][1] === 3;
+          }).indexOf(true) : false;
+          tripsOrTwoPair = counts.length === 3;
+          trips = tripsOrTwoPair ? [0, 1, 2].map(function(i) {
+            return counts[i][1] === 3;
+          }).indexOf(true) : false;
+          twoPairFinder = function(acc, ia) {
+            var twop;
+            twop = counts[ia[0]][1] === 2 && counts[ia[1]][1] === 2;
+            if (acc[0]) {
+              return acc;
+            } else if (twop) {
+              return [true, ia];
+            } else {
+              return acc;
+            }
+          };
+          twoPair = tripsOrTwoPair ? t.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : void 0;
+          onePair = counts.length === 4 ? [0, 1].map(function(i) {
+            return counts[i][1] === 2;
+          }).indexOf(true) : false;
+          hrank = royalFlush ? new RoyalFlush(ce) : straight && flush ? new StraightFlush(ce, strtVal) : quad !== false && quad !== -1 ? new FourOfAKind(ce, counts, quad) : FH !== false && FH !== -1 ? new FullHouse(ce, counts, FH) : flush ? new Flush(ce) : straight ? new Straight(ce) : trips !== false && trips !== -1 ? new ThreeOfAKind(ce, counts, trips) : twoPair !== false && twoPair[0] ? new TwoPair(ce, twoPair[1]) : onePair !== false && onePair !== -1 ? new OnePair(ce, counts, onePair) : new HighCard(ce);
+          console.log("hrank: " + hrank.rank);
+          if (hrank.rankcmp(bestHand) > 0) {
+            return hrank;
           } else {
-            return acc;
+            return bestHand;
           }
-        };
-        twoPair = tripsOrTwoPair ? t.combinations([0, 1, 2], 2).reduce(twoPairFinder, [false, null]) : void 0;
-        onePair = counts.length === 4 ? [0, 1].map(function(i) {
-          return counts[i][1] === 2;
-        }).indexOf(true) : false;
-        hrank = royalFlush ? new RoyalFlush(ce) : straight && flush ? new StraightFlush(ce, strtVal) : quad !== false && quad !== -1 ? new FourOfAKind(ce, counts, quad) : FH !== false && FH !== -1 ? new FullHouse(ce, counts, FH) : flush ? new Flush(ce) : straight ? new Straight(ce) : trips !== false && trips !== -1 ? new ThreeOfAKind(ce, counts, trips) : twoPair !== false && twoPair[0] ? new TwoPair(ce, twoPair[1]) : onePair !== false && onePair !== -1 ? new OnePair(ce, counts, onePair) : new HighCard(ce);
-        console.log("hrank: " + hrank.rank);
-        if (hrank.rankcmp(bestHand) > 0) {
-          return hrank;
-        } else {
-          return bestHand;
+        } catch (_error) {
+          e = _error;
+          return console.error(e);
         }
       };
       bh = t.combinations(e, 5).reduce(combProcess, null);
