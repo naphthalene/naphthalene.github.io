@@ -874,16 +874,20 @@ table =
     handleMessage: (sender, m) ->
         isReconnecting = (players) ->
             reduceFun = (acc, p) ->
-                if acc and p.name == m.data.name
-                    [id,sid]=[p.id,sender].map((c)->c.split(':')[0])
-                    if id==sid then p.id else null
-            players.reduce(reduceFun, true)
+                if acc == null and p.name == m.data.name
+                    [id, sid] = [p.id, sender].map((c) -> c.split(':')[0])
+                    if id == sid then p.id else null
+                else
+                    acc
+            players.reduce(reduceFun, null)
 
         switch m.action
             when "join"
                 if this.state == "init"
                     console.log("init>join")
                     try
+                        reconnect = isReconnecting(this.players)
+                        console.log(reconnect)
                         if isReconnecting(this.players) != null
                             if this.host == m.data.name
                                 console.log("Reconnecting host" + m.data.name)

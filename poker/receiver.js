@@ -1107,7 +1107,7 @@ table = {
       var reduceFun;
       reduceFun = function(acc, p) {
         var id, ref, sid;
-        if (acc && p.name === m.data.name) {
+        if (acc === null && p.name === m.data.name) {
           ref = [p.id, sender].map(function(c) {
             return c.split(':')[0];
           }), id = ref[0], sid = ref[1];
@@ -1116,15 +1116,19 @@ table = {
           } else {
             return null;
           }
+        } else {
+          return acc;
         }
       };
-      return players.reduce(reduceFun, true);
+      return players.reduce(reduceFun, null);
     };
     switch (m.action) {
       case "join":
         if (this.state === "init") {
           console.log("init>join");
           try {
+            reconnect = isReconnecting(this.players);
+            console.log(reconnect);
             if (isReconnecting(this.players) !== null) {
               if (this.host === m.data.name) {
                 console.log("Reconnecting host" + m.data.name);
