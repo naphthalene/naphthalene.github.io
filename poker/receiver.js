@@ -517,7 +517,7 @@ MainState = React.createClass({
         if (p.remaining - withdraw >= 0) {
           p.bid = p.bid + withdraw;
           p.remaining = p.remaining - withdraw;
-          that.setState({
+          t.setState({
             lastRaised: pi,
             bid: p.bid,
             pot: t.state.pot + withdraw

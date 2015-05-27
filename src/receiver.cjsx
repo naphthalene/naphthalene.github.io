@@ -470,7 +470,7 @@ MainState = React.createClass
                     p.bid = p.bid + withdraw
                     p.remaining = p.remaining - withdraw
                     # Update table state
-                    that.setState(
+                    t.setState(
                         lastRaised: pi
                         bid: p.bid
                         pot: t.state.pot + withdraw
