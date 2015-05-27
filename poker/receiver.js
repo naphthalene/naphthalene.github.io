@@ -552,18 +552,18 @@ MainState = React.createClass({
     that = this;
     return this.playerAction(sender, "call", function(p, pi) {
       var withdraw;
-      withdraw = this.state.bid - p.bid;
+      withdraw = that.state.bid - p.bid;
       if (p.remaining - withdraw >= 0) {
         p.bid = p.bid + withdraw;
         p.remaining = p.remaining - withdraw;
         that.setState({
-          pot: this.state.pot + withdraw
+          pot: that.state.pot + withdraw
         });
         return window.messageBus.send(sender, JSON.stringify({
           status: "callok",
           data: {
             remaining: p.remaining,
-            pot: this.state.pot + withdraw,
+            pot: that.state.pot + withdraw,
             bid: p.bid
           }
         }));
@@ -581,7 +581,7 @@ MainState = React.createClass({
     var that;
     that = this;
     return this.playerAction(sender, "check", function(p, pi) {
-      if (p.bid === this.state.bid) {
+      if (p.bid === that.state.bid) {
         return window.messageBus.send(sender, JSON.stringify({
           status: "checkok",
           data: {}
