@@ -181,123 +181,121 @@ MainState = React.createClass
         val = (c) -> CARDS.indexOf(c.slice(0,-1))
         suit = (c) -> c.slice(-1)[0]
 
-        try
-            # {bestForPlayer} stores the best possible hand for an individual.
-            # - it is overwritten if a player with a better hand is found
-            evalRank = (bestPlayer, player, i, a) ->
-                e = player.hand
-                e = e.concat(cc.flop);e.push(cc.turn);e.push(cc.river)
-                e = t.sortHand(e)
-                console.log("Player " + t.state.players[i].name + \
-                            " has this sorted hand: " + e)
-                console.log("Current best players are: " + bestPlayer.ls)
-                console.log("Current best hand is: " + bestPlayer.hand)
-                # This is a reduction that finds the best ranked hand
-                # combination of the available combinations of 5/7 cards (ce)
-                # After determining the best case for a particular combination,
-                # Compare it with the previously best combination in bestHand
-                combProcess = (bestHand, ce, ci, ca) ->
-                    console.log("Best hand for player is : " + bestHand)
-                    # Find duplicates and their quantities.
-                    counts = t.dupCounts(ce.map((e) -> val(e)))
+        # {bestForPlayer} stores the best possible hand for an individual.
+        # - it is overwritten if a player with a better hand is found
+        evalRank = (bestPlayer, player, i, a) ->
+            e = player.hand
+            e = e.concat(cc.flop);e.push(cc.turn);e.push(cc.river)
+            e = t.sortHand(e)
+            console.log("Player " + t.state.players[i].name + \
+                        " has this sorted hand: " + e)
+            console.log("Current best players are: " + bestPlayer.ls)
+            console.log("Current best hand is: " + bestPlayer.hand)
+            # This is a reduction that finds the best ranked hand
+            # combination of the available combinations of 5/7 cards (ce)
+            # After determining the best case for a particular combination,
+            # Compare it with the previously best combination in bestHand
+            combProcess = (bestHand, ce, ci, ca) ->
+                console.log("Best hand for player is : " + bestHand)
+                # Find duplicates and their quantities.
+                counts = t.dupCounts(ce.map((e) -> val(e)))
 
-                    # Checks if this is a flush
-                    flush = ce.every((cae, cai, caa) ->
-                        !cai or suit(cae) == suit(caa[0]))
+                # Checks if this is a flush
+                flush = ce.every((cae, cai, caa) ->
+                    !cai or suit(cae) == suit(caa[0]))
 
-                    # Checks if its a straight and returns (straightp, high card)
-                    checkStraight = (sp, sc, si, sa) ->
-                        valcomp = (x, y) ->
-                            # Handle the special case when ace is low.
-                            # Must be the last card (in case multiple aces) and
-                            # the first card in array must be a 2
-                            specialAce = x == 12 and si == 4 and !val(sa[0])
-                            [specialAce or x == y + 1, specialAce]
-                        [cmp, special] = valcomp(val(sc), sp[1])
-                        [(!si or (sp[0] and cmp)), if special then 3 else val(sc)]
-                    [straight,strtVal] = ce.reduce(checkStraight,[true,-1])
-                    royalFlush = flush and straight and strtVal == 12
+                # Checks if its a straight and returns (straightp, high card)
+                checkStraight = (sp, sc, si, sa) ->
+                    valcomp = (x, y) ->
+                        # Handle the special case when ace is low.
+                        # Must be the last card (in case multiple aces) and
+                        # the first card in array must be a 2
+                        specialAce = x == 12 and si == 4 and !val(sa[0])
+                        [specialAce or x == y + 1, specialAce]
+                    [cmp, special] = valcomp(val(sc), sp[1])
+                    [(!si or (sp[0] and cmp)), if special then 3 else val(sc)]
+                [straight,strtVal] = ce.reduce(checkStraight,[true,-1])
+                royalFlush = flush and straight and strtVal == 12
 
-                    quadOrFH = counts.length == 2
-                    # 4 of a kind
-                    quad = if quadOrFH then\
-                        [0,1].map((i)->counts[i][1]==4).indexOf(true) else false
-                    # Full House
-                    FH = if quadOrFH then\
-                        [0,1].map((i)->counts[i][1]==3).indexOf(true) else false
+                quadOrFH = counts.length == 2
+                # 4 of a kind
+                quad = if quadOrFH then\
+                    [0,1].map((i)->counts[i][1]==4).indexOf(true) else false
+                # Full House
+                FH = if quadOrFH then\
+                    [0,1].map((i)->counts[i][1]==3).indexOf(true) else false
 
-                    tripsOrTwoPair = counts.length == 3
-                    # 3 of Kind (trip or set)
-                    trips = if tripsOrTwoPair then\
-                        [0,1,2].map((i)->counts[i][1]==3).indexOf(true) else false
+                tripsOrTwoPair = counts.length == 3
+                # 3 of Kind (trip or set)
+                trips = if tripsOrTwoPair then\
+                    [0,1,2].map((i)->counts[i][1]==3).indexOf(true) else false
 
-                    # Two Pair
-                    twoPairFinder = (acc, ia) ->
-                        twop = counts[ia[0]][1]==2 and counts[ia[1]][1]==2
-                        if acc[0]
-                            acc
-                        else if twop
-                            [true, ia]
-                        else
-                            acc
-                    twoPair = if tripsOrTwoPair then\
-                        t.combinations([0,1,2], 2)\
-                            .reduce(twoPairFinder, [false,null])
+                # Two Pair
+                twoPairFinder = (acc, ia) ->
+                    twop = counts[ia[0]][1]==2 and counts[ia[1]][1]==2
+                    if acc[0]
+                        acc
+                    else if twop
+                        [true, ia]
+                    else
+                        acc
+                twoPair = if tripsOrTwoPair then\
+                    t.combinations([0,1,2], 2)\
+                        .reduce(twoPairFinder, [false,null])
 
-                    # 1 Pair
-                    onePair = if counts.length == 4 then\
-                        [0,1].map((i)->counts[i][1]==2).indexOf(true) else false
+                # 1 Pair
+                onePair = if counts.length == 4 then\
+                    [0,1].map((i)->counts[i][1]==2).indexOf(true) else false
 
-                    # Now calculate the best ranking outcome for this combination
-                    # The result stored in hrank is the best rank
-                    hrank =
-                        if royalFlush
-                            new RoyalFlush(ce)
-                        else if straight and flush
-                            new StraightFlush(ce, strtVal)
-                        else if quad != false and quad != -1
-                            new FourOfAKind(ce, counts, quad)
-                        else if FH != false and FH != -1
-                            new FullHouse(ce, counts, FH)
-                        else if flush
-                            new Flush(ce)
-                        else if straight
-                            new Straight(ce)
-                        else if trips != false and trips != -1
-                            new ThreeOfAKind(ce, counts, trips)
-                        else if twoPair != false and twoPair[0]
-                            new TwoPair(ce, twoPair[1])
-                        else if onePair != false and onePair != -1
-                            new OnePair(ce, counts, onePair)
-                        else
-                            new HighCard(ce)
+                # Now calculate the best ranking outcome for this combination
+                # The result stored in hrank is the best rank
+                hrank =
+                    if royalFlush
+                        new RoyalFlush(ce)
+                    else if straight and flush
+                        new StraightFlush(ce, strtVal)
+                    else if quad != false and quad != -1
+                        new FourOfAKind(ce, counts, quad)
+                    else if FH != false and FH != -1
+                        new FullHouse(ce, counts, FH)
+                    else if flush
+                        new Flush(ce)
+                    else if straight
+                        new Straight(ce)
+                    else if trips != false and trips != -1
+                        new ThreeOfAKind(ce, counts, trips)
+                    else if twoPair != false and twoPair[0]
+                        new TwoPair(ce, twoPair[1])
+                    else if onePair != false and onePair != -1
+                        new OnePair(ce, counts, onePair)
+                    else
+                        new HighCard(ce)
 
-                    # Return either the previous hand or a better one
-                    if hrank.rankcmp(bestHand) > 0 then hrank else bestHand
+                console.log("hrank: " + hrank.rank)
+                # Return either the previous hand or a better one
+                if hrank.rankcmp(bestHand) > 0 then hrank else bestHand
 
-                bh = t.combinations(e).reduce(combProcess, null)
-                bhcmp = bh.rankcmp(bestPlayer.best)
-                if bhcmp == 0
-                    # Tied for best, append person to list
-                    ls = bestPlayer.ls
-                    ls.push(i)
-                    best: bestPlayer.best
-                    ls: ls
-                else if bhcmp > 1
-                    # If a better rank is achieved by current player,
-                    # make him the only member of the array and set the new best
-                    # current rank
-                    best: bh
-                    ls: [i]
-                else
-                    # Status quo
-                    bestPlayer
+            bh = t.combinations(e, 5).reduce(combProcess, null)
+            bhcmp = bh.rankcmp(bestPlayer.best)
+            if bhcmp == 0
+                # Tied for best, append person to list
+                ls = bestPlayer.ls
+                ls.push(i)
+                best: bestPlayer.best
+                ls: ls
+            else if bhcmp > 1
+                # If a better rank is achieved by current player,
+                # make him the only member of the array and set the new best
+                # current rank
+                best: bh
+                ls: [i]
+            else
+                # Status quo
+                bestPlayer
 
-            return this.state.players.reduce(evalRank,
-                best: null
-                ls: [])
-        catch e
-            console.error e
+        return this.state.players.reduce(evalRank,
+            best: null
+            ls: [])
 
     dupCounts: (arr) ->
         # arr must be computed values, not cards
@@ -718,7 +716,7 @@ class HighCard
         # Compare ranks, first by type, then do tiebreaker
         # Returns +1 if this > other, 0 if this == other else -1
         if other == null
-            return +1
+            return 1
         r1i=RANKS.indexOf(this.rank); r2i=RANKS.indexOf(other.rank)
         if r1i > r2i then 1 else (if r1i < r2i then -1 else\
             # They are equal, tiebreaker using available info
