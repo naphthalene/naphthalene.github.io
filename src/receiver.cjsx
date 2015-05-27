@@ -875,9 +875,8 @@ table =
         isReconnecting = (players) ->
             reduceFun = (acc, p) ->
                 if acc and p.name == m.data.name
-                    [id, sid] = [p.id, sender].map((c) ->
-                        c.split(':')[0])
-                    if id == sid then p.id else null
+                    [id,sid]=[p.id,sender].map((c)->c.split(':')[0])
+                    if id==sid then p.id else null
             players.reduce(reduceFun, true)
 
         switch m.action
@@ -891,6 +890,7 @@ table =
                                     data:{}))
                         else
                             # This is a new user
+                            console.log("Player joining " + m.data.name)
                             if this.players.length == 0
                                 console.log("First person joined: " + m.data.name)
                                 this.host = m.data.name

@@ -1132,6 +1132,7 @@ table = {
                 }));
               }
             } else {
+              console.log("Player joining " + m.data.name);
               if (this.players.length === 0) {
                 console.log("First person joined: " + m.data.name);
                 this.host = m.data.name;
