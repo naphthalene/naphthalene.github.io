@@ -288,7 +288,7 @@ MainState = React.createClass({
         onePair = counts.length === 4 ? [0, 1].map(function(i) {
           return counts[i][1] === 2;
         }).indexOf(true) : false;
-        hrank = royalFlush ? RoyalFlush(ce) : straight && flush ? StraightFlush(ce, strtVal) : quad !== false && quad !== -1 ? FourOfAKind(ce, counts, quad) : FH !== false && FH !== -1 ? FullHouse(ce, counts, FH) : flush ? Flush(ce) : straight ? Straight(ce) : trips !== false && trips !== -1 ? ThreeOfAKind(ce, counts, trips) : twoPair !== false && twoPair[0] ? TwoPair(ce, twoPair[1]) : onePair !== false && onePair !== -1 ? OnePair(ce, counts, onePair) : HighCard(ce);
+        hrank = royalFlush ? new RoyalFlush(ce) : straight && flush ? new StraightFlush(ce, strtVal) : quad !== false && quad !== -1 ? new FourOfAKind(ce, counts, quad) : FH !== false && FH !== -1 ? new FullHouse(ce, counts, FH) : flush ? new Flush(ce) : straight ? new Straight(ce) : trips !== false && trips !== -1 ? new ThreeOfAKind(ce, counts, trips) : twoPair !== false && twoPair[0] ? new TwoPair(ce, twoPair[1]) : onePair !== false && onePair !== -1 ? new OnePair(ce, counts, onePair) : new HighCard(ce);
         if (hrank.rankcmp(bestHand) > 0) {
           return hrank;
         } else {
