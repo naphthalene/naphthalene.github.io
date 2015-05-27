@@ -197,6 +197,7 @@ MainState = React.createClass
                 # After determining the best case for a particular combination,
                 # Compare it with the previously best combination in bestHand
                 combProcess = (bestHand, ce, ci, ca) ->
+                    console.log("Best hand for player is : " + bestHand)
                     # Find duplicates and their quantities.
                     counts = t.dupCounts(ce.map((e) -> val(e)))
 
@@ -400,52 +401,49 @@ MainState = React.createClass
         # dealHand)
 
     nextPlayersTurnOrEndHand: (currentPlayerIndex, action) ->
-        try
-            # Loop to find the next player who is eligible for a turn
-            nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
-            foundNextPlayer = false
-            biddingOver = true
-            while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
-                foundNextPlayer = !this.state.players[nextActivePlayer].fold
-                if foundNextPlayer
-                    # If we found another player, then the bidding
-                    biddingOver = false
-                    break
-                nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
-
+        # Loop to find the next player who is eligible for a turn
+        nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
+        foundNextPlayer = false
+        biddingOver = true
+        while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
+            foundNextPlayer = !this.state.players[nextActivePlayer].fold
             if foundNextPlayer
-                # Check if this is the last player in the hand
-                # If there is exactly one player left then everyone else
-                # has folded. Otherwise, rotate the turn
-                numActivePlayers = this.state.players.map((p) -> !p.fold).reduce(
-                    ((acc, c, i, a) -> if c then acc + 1 else acc), 0)
-                console.log("Number of active players: " + numActivePlayers)
-                if numActivePlayers > 1
-                    this.setState(
-                        turn: this.state.players[nextActivePlayer].name
-                    )
-                    window.messageBus.broadcast(JSON.stringify(
-                        status: "turn"
-                        data:
-                            turn: this.state.turn))
-                else
-                    handOver = true
-                    biddingOver = true
+                # If we found another player, then the bidding
+                biddingOver = false
+                break
+            nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
 
-            if action == "check" and this.state.lastRaised == currentPlayerIndex
+        if foundNextPlayer
+            # Check if this is the last player in the hand
+            # If there is exactly one player left then everyone else
+            # has folded. Otherwise, rotate the turn
+            numActivePlayers = this.state.players.map((p) -> !p.fold).reduce(
+                ((acc, c, i, a) -> if c then acc + 1 else acc), 0)
+            console.log("Number of active players: " + numActivePlayers)
+            if numActivePlayers > 1
+                this.setState(
+                    turn: this.state.players[nextActivePlayer].name
+                )
+                window.messageBus.broadcast(JSON.stringify(
+                    status: "turn"
+                    data:
+                        turn: this.state.turn))
+            else
+                handOver = true
                 biddingOver = true
 
-            if biddingOver
-                # The bidding is over. Either deal more community cards
-                # or announce winner
-                console.log("This round of bidding is over")
-                this.dealCommunityOrEnd()
-                if handOver
-                    console.log("handOver")
-                    console.log(this.state.players[nextActivePlayer].name + " has won")
-                    this.endHand(nextActivePlayer)
-        catch e
-            console.error(e.stack)
+        if action == "check" and this.state.lastRaised == currentPlayerIndex
+            biddingOver = true
+
+        if biddingOver
+            # The bidding is over. Either deal more community cards
+            # or announce winner
+            console.log("This round of bidding is over")
+            this.dealCommunityOrEnd()
+            if handOver
+                console.log("handOver")
+                console.log(this.state.players[nextActivePlayer].name + " has won")
+                this.endHand(nextActivePlayer)
 
     playerAction: (sender, action, updateFunc) ->
         pi = this.state.players.map((e) -> e.id).indexOf(sender)

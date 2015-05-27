@@ -246,6 +246,7 @@ MainState = React.createClass({
         console.log("Current best hand is: " + bestPlayer.hand);
         combProcess = function(bestHand, ce, ci, ca) {
           var FH, checkStraight, counts, flush, hrank, onePair, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
+          console.log("Best hand for player is : " + bestHand);
           counts = t.dupCounts(ce.map(function(e) {
             return val(e);
           }));
@@ -438,60 +439,55 @@ MainState = React.createClass({
     return console.log("Awarded pot...");
   },
   nextPlayersTurnOrEndHand: function(currentPlayerIndex, action) {
-    var biddingOver, e, foundNextPlayer, handOver, nextActivePlayer, numActivePlayers;
-    try {
-      nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
-      foundNextPlayer = false;
-      biddingOver = true;
-      while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
-        foundNextPlayer = !this.state.players[nextActivePlayer].fold;
-        if (foundNextPlayer) {
-          biddingOver = false;
-          break;
-        }
-        nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
-      }
+    var biddingOver, foundNextPlayer, handOver, nextActivePlayer, numActivePlayers;
+    nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
+    foundNextPlayer = false;
+    biddingOver = true;
+    while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
+      foundNextPlayer = !this.state.players[nextActivePlayer].fold;
       if (foundNextPlayer) {
-        numActivePlayers = this.state.players.map(function(p) {
-          return !p.fold;
-        }).reduce((function(acc, c, i, a) {
-          if (c) {
-            return acc + 1;
-          } else {
-            return acc;
-          }
-        }), 0);
-        console.log("Number of active players: " + numActivePlayers);
-        if (numActivePlayers > 1) {
-          this.setState({
-            turn: this.state.players[nextActivePlayer].name
-          });
-          window.messageBus.broadcast(JSON.stringify({
-            status: "turn",
-            data: {
-              turn: this.state.turn
-            }
-          }));
-        } else {
-          handOver = true;
-          biddingOver = true;
-        }
+        biddingOver = false;
+        break;
       }
-      if (action === "check" && this.state.lastRaised === currentPlayerIndex) {
+      nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
+    }
+    if (foundNextPlayer) {
+      numActivePlayers = this.state.players.map(function(p) {
+        return !p.fold;
+      }).reduce((function(acc, c, i, a) {
+        if (c) {
+          return acc + 1;
+        } else {
+          return acc;
+        }
+      }), 0);
+      console.log("Number of active players: " + numActivePlayers);
+      if (numActivePlayers > 1) {
+        this.setState({
+          turn: this.state.players[nextActivePlayer].name
+        });
+        window.messageBus.broadcast(JSON.stringify({
+          status: "turn",
+          data: {
+            turn: this.state.turn
+          }
+        }));
+      } else {
+        handOver = true;
         biddingOver = true;
       }
-      if (biddingOver) {
-        console.log("This round of bidding is over");
-        this.dealCommunityOrEnd();
-        if (handOver) {
-          console.log("handOver");
-          console.log(this.state.players[nextActivePlayer].name + " has won");
-          return this.endHand(nextActivePlayer);
-        }
+    }
+    if (action === "check" && this.state.lastRaised === currentPlayerIndex) {
+      biddingOver = true;
+    }
+    if (biddingOver) {
+      console.log("This round of bidding is over");
+      this.dealCommunityOrEnd();
+      if (handOver) {
+        console.log("handOver");
+        console.log(this.state.players[nextActivePlayer].name + " has won");
+        return this.endHand(nextActivePlayer);
       }
-    } catch (_error) {
-      e = _error;
-      return console.error(e.stack);
     }
   },
   playerAction: function(sender, action, updateFunc) {
