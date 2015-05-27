@@ -241,7 +241,7 @@ MainState = React.createClass({
       e.push(cc.river);
       e = t.sortHand(e);
       console.log("Player " + t.state.players[i].name + " has this sorted hand: " + e);
-      console.log("Current best player is: " + bestPlayer[1]);
+      console.log("Current best players are: " + bestPlayer.ls);
       combProcess = function(bestHand, ce, ci, ca) {
         var FH, checkStraight, counts, flush, hrank, onePair, quad, quadOrFH, ref, royalFlush, straight, strtVal, trips, tripsOrTwoPair, twoPair, twoPairFinder;
         counts = t.dupCounts(ce.map(function(e) {
@@ -405,7 +405,7 @@ MainState = React.createClass({
     });
   },
   awardPotTo: function(winners) {
-    var dividend, p, players;
+    var dividend, p, pi, players;
     players = this.state.players;
     if (winners.ls.length > 1) {
       dividend = this.splitEven(this.state.pot, winners.ls.length);
@@ -417,6 +417,7 @@ MainState = React.createClass({
         return players[c] = p;
       });
     } else {
+      pi = winners.ls[0];
       p = players[pi];
       p.remaining = p.remaining + this.state.pot;
       console.log("Awarding " + p.name + " $" + this.state.pot);

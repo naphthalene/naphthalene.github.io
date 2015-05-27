@@ -189,7 +189,7 @@ MainState = React.createClass
             e = t.sortHand(e)
             console.log("Player " + t.state.players[i].name + \
                         " has this sorted hand: " + e)
-            console.log("Current best player is: " + bestPlayer[1])
+            console.log("Current best players are: " + bestPlayer.ls)
             # This is a reduction that finds the best ranked hand
             # combination of the available combinations of 5/7 cards (ce)
             # After determining the best case for a particular combination,
@@ -379,6 +379,7 @@ MainState = React.createClass
                 players[c] = p
             )
         else
+            pi = winners.ls[0]
             p = players[pi]
             p.remaining = p.remaining + this.state.pot
             console.log("Awarding "+p.name+" $"+this.state.pot)
