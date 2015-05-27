@@ -47,12 +47,22 @@ h3 {
 .panel-transparent p {
   color: #ffffff;
 }
+.token {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  line-height: 30px;
+  text-align: center;
+}
 .dealer {
-  color: #ffaaaa;
+  color: #000000;
+  background: #ff1111;
 }
 .small-blind {
-  color: ##FFFFAA;
+  color: #000000;
+  background: #ffff11;
 }
 .big-blind {
-  color: ##FFAAFF;
+  color: #ffffff;
+  background: #1111ff;
 }

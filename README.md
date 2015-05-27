@@ -25,4 +25,7 @@ tmuxinator
 # Rules & resources #
 
 http://www.wsop.com/poker-games/texas-holdem/
+
 http://www.wsop.com/poker-games/texas-holdem/rules/
+
+http://www.casinoanswers.com/online-poker/poker-tournaments/chips-cover-small-blind.php

@@ -77,18 +77,17 @@ ConnectedPlayers = React.createClass
         </Table>
       </Panel>
 
-## TODO make these tokens of some sort
 DealerToken = React.createClass
     render: ->
-        <p className="dealer">Dealer</p>
+        <div className="dealer token">D</div>
 
 SmallBlindToken = React.createClass
     render: ->
-        <p className="small-blind">Small Blind</p>
+        <div className="small-blind token">S</div>
 
 BigBlindToken = React.createClass
     render: ->
-        <p className="big-blind">Big Blind</p>
+        <div className="big-blind token">B</div>
 
 Players = React.createClass
     render: ->
@@ -108,12 +107,16 @@ Players = React.createClass
                 (if this.props.turn == p.name then "player-turn" else "")
             angle += startAngle
             hdr = p.name
-            spans.push(<Panel key={i} className={cls} style={style} header={p.name}>
-                         {if !p.fold then <p>{"Bid: $" + p.bid}</p> else <p>FOLD</p>}
-                         {if p.dealer then <DealerToken/> else \
-                          if p.blind == "S" then <SmallBlindToken/> else \
-                          if p.blind == "B" then <BigBlindToken/> else ""}
-                       </Panel>)
+            spans.push(
+                <Panel key={i} className={cls} style={style} header={p.name}>
+                  {if !p.fold then <p>{"Bid: $" + p.bid}</p> else <p>FOLD</p>}
+                  <ul className="list-inline">
+                     {if p.dealer       then <li><DealerToken/></li>}
+                     {if p.blind == "S" then <li><SmallBlindToken/></li> else \
+                      if p.blind == "B" then <li><BigBlindToken/></li> else ""}
+                  </ul>
+                </Panel>
+            )
             i += 1
         <div id="player-display">{spans}</div>
 
@@ -388,7 +391,6 @@ MainState = React.createClass
         # NOTE, the player state, bid and pot will be updated again by
         # dealHand)
 
-    ## TODO clean up this logic
     nextPlayersTurnOrEndHand: (currentPlayerIndex, action) ->
         try
             # Loop to find the next player who is eligible for a turn
@@ -570,8 +572,15 @@ MainState = React.createClass
     dealHand: (dealer) ->
         players = []
         i = 0
-        smallBlind = (dealer + 1) % table.players.length
-        bigBlind = (smallBlind + 1) % table.players.length
+        if table.players.length == 2
+            ## When two player game, the dealer fronts the small blind
+            ## and is under the gun, the other player is the big blind
+            smallBlind = dealer
+            bigBlind = 1 - dealer
+        else
+            smallBlind = (dealer + 1) % table.players.length
+            bigBlind = (smallBlind + 1) % table.players.length
+
         for p in this.state.players
             bid = if smallBlind == i then table.rules.smallBlind else \
                   if bigBlind == i then table.rules.bigBlind else 0
@@ -621,9 +630,14 @@ MainState = React.createClass
         dealer = Math.floor(Math.random()*table.players.length)
 
         # Calculate the Small and Big blinds
-        # TODO what about 2 player games?
-        smallBlind = (dealer + 1) % table.players.length
-        bigBlind = (smallBlind + 1) % table.players.length
+        if table.players.length == 2
+            ## When two player game, the dealer fronts the small blind
+            ## and is under the gun, the other player is the big blind
+            smallBlind = dealer
+            bigBlind = 1 - dealer
+        else
+            smallBlind = (dealer + 1) % table.players.length
+            bigBlind = (smallBlind + 1) % table.players.length
 
         # The first player to go is to the left of the big blind
         firstTurn = table.players[(bigBlind + 1) % table.players.length].name
@@ -631,10 +645,9 @@ MainState = React.createClass
         i = 0
         players = []
         for p in table.players
+            ## TODO side pot...
             bid = if smallBlind == i then table.rules.smallBlind else \
                   if bigBlind == i then table.rules.bigBlind else 0
-            # TODO confirm there are enough funds to bid the
-            # small or big blinds
             player =
                 id: p.id
                 name: p.name

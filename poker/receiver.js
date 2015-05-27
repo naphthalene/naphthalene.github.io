@@ -105,25 +105,25 @@ ConnectedPlayers = React.createClass({
 
 DealerToken = React.createClass({
   render: function() {
-    return React.createElement("p", {
-      "className": "dealer"
-    }, "Dealer");
+    return React.createElement("div", {
+      "className": "dealer token"
+    }, "D");
   }
 });
 
 SmallBlindToken = React.createClass({
   render: function() {
-    return React.createElement("p", {
-      "className": "small-blind"
-    }, "Small Blind");
+    return React.createElement("div", {
+      "className": "small-blind token"
+    }, "S");
   }
 });
 
 BigBlindToken = React.createClass({
   render: function() {
-    return React.createElement("p", {
-      "className": "big-blind"
-    }, "Big Blind");
+    return React.createElement("div", {
+      "className": "big-blind token"
+    }, "B");
   }
 });
 
@@ -153,7 +153,9 @@ Players = React.createClass({
         "className": cls,
         "style": style,
         "header": p.name
-      }, (!p.fold ? React.createElement("p", null, "Bid: $" + p.bid) : React.createElement("p", null, "FOLD")), (p.dealer ? React.createElement(DealerToken, null) : p.blind === "S" ? React.createElement(SmallBlindToken, null) : p.blind === "B" ? React.createElement(BigBlindToken, null) : "")));
+      }, (!p.fold ? React.createElement("p", null, "Bid: $" + p.bid) : React.createElement("p", null, "FOLD")), React.createElement("ul", {
+        "className": "list-inline"
+      }, (p.dealer ? React.createElement("li", null, React.createElement(DealerToken, null)) : void 0), (p.blind === "S" ? React.createElement("li", null, React.createElement(SmallBlindToken, null)) : p.blind === "B" ? React.createElement("li", null, React.createElement(BigBlindToken, null)) : ""))));
       i += 1;
     }
     return React.createElement("div", {
@@ -636,8 +638,13 @@ MainState = React.createClass({
     var bid, bigBlind, e, firstTurn, i, l, len1, p, player, players, ref, smallBlind;
     players = [];
     i = 0;
-    smallBlind = (dealer + 1) % table.players.length;
-    bigBlind = (smallBlind + 1) % table.players.length;
+    if (table.players.length === 2) {
+      smallBlind = dealer;
+      bigBlind = 1 - dealer;
+    } else {
+      smallBlind = (dealer + 1) % table.players.length;
+      bigBlind = (smallBlind + 1) % table.players.length;
+    }
     ref = this.state.players;
     for (l = 0, len1 = ref.length; l < len1; l++) {
       p = ref[l];
@@ -694,8 +701,13 @@ MainState = React.createClass({
     var bid, bigBlind, dealer, firstTurn, i, l, len1, p, player, players, ref, smallBlind;
     table.deck = this.shuffle(this.generateSortedDeck());
     dealer = Math.floor(Math.random() * table.players.length);
-    smallBlind = (dealer + 1) % table.players.length;
-    bigBlind = (smallBlind + 1) % table.players.length;
+    if (table.players.length === 2) {
+      smallBlind = dealer;
+      bigBlind = 1 - dealer;
+    } else {
+      smallBlind = (dealer + 1) % table.players.length;
+      bigBlind = (smallBlind + 1) % table.players.length;
+    }
     firstTurn = table.players[(bigBlind + 1) % table.players.length].name;
     i = 0;
     players = [];
