@@ -300,7 +300,7 @@ MainState = React.createClass({
           }
         } catch (_error) {
           e = _error;
-          return console.error(e);
+          return console.error(e.stack);
         }
       };
       bh = t.combinations(e, 5).reduce(combProcess, null);

@@ -276,7 +276,7 @@ MainState = React.createClass
                     # Return either the previous hand or a better one
                     if hrank.rankcmp(bestHand) > 0 then hrank else bestHand
                 catch e
-                    console.error e
+                    console.error e.stack
 
             bh = t.combinations(e, 5).reduce(combProcess, null)
             bhcmp = bh.rankcmp(bestPlayer.best)
