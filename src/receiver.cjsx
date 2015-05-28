@@ -148,14 +148,17 @@ InitState = React.createClass
 
 MainState = React.createClass
     endHand: (winner) ->
-        this.awardPotTo(winner)
-        table.deck = this.shuffle(this.generateSortedDeck())
-        # Rotate the dealer to the next person
-        this.setState(
-            dealer: (this.state.dealer + 1) % this.state.players.length
-        )
-        # Deal a new hand of cards
-        this.dealHand(this.state.dealer)
+        try
+            this.awardPotTo(winner)
+            table.deck = this.shuffle(this.generateSortedDeck())
+            # Rotate the dealer to the next person
+            this.setState(
+                dealer: (this.state.dealer + 1) % this.state.players.length
+            )
+            # Deal a new hand of cards
+            this.dealHand(this.state.dealer)
+        catch e
+            console.error(e)
 
     combinations: (arr, k) ->
         len = arr.length

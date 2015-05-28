@@ -197,12 +197,18 @@ InitState = React.createClass({
 
 MainState = React.createClass({
   endHand: function(winner) {
-    this.awardPotTo(winner);
-    table.deck = this.shuffle(this.generateSortedDeck());
-    this.setState({
-      dealer: (this.state.dealer + 1) % this.state.players.length
-    });
-    return this.dealHand(this.state.dealer);
+    var e;
+    try {
+      this.awardPotTo(winner);
+      table.deck = this.shuffle(this.generateSortedDeck());
+      this.setState({
+        dealer: (this.state.dealer + 1) % this.state.players.length
+      });
+      return this.dealHand(this.state.dealer);
+    } catch (_error) {
+      e = _error;
+      return console.error(e);
+    }
   },
   combinations: function(arr, k) {
     var len, reduceFun, t;
