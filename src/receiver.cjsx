@@ -94,7 +94,7 @@ Players = React.createClass
         startAngle = Math.PI / this.props.players.length;
         angle = startAngle / 2;
         radius = 500;
-        offset = window.innerWidth / 2 - 100;
+        offset = window.innerWidth / 2 - 50;
         spans = []
         i = 0
         for p in this.props.players
@@ -451,11 +451,20 @@ MainState = React.createClass
             # The bidding is over. Either deal more community cards
             # or announce winner
             console.log("This round of bidding is over")
-            this.dealCommunityOrEnd()
             if handOver
                 console.log("handOver")
                 console.log(this.state.players[nextActivePlayer].name + " has won")
                 this.endHand(nextActivePlayer)
+                this.setState(
+                    communityCards:
+                        flop: [null,null,null]
+                        turn: null
+                        river: null
+                    community: "Preflop"
+                )
+
+            else
+                this.dealCommunityOrEnd()
 
     playerAction: (sender, action, updateFunc) ->
         pi = this.state.players.map((e) -> e.id).indexOf(sender)

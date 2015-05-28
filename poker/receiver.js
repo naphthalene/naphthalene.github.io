@@ -133,7 +133,7 @@ Players = React.createClass({
     startAngle = Math.PI / this.props.players.length;
     angle = startAngle / 2;
     radius = 500;
-    offset = window.innerWidth / 2 - 100;
+    offset = window.innerWidth / 2 - 50;
     spans = [];
     i = 0;
     ref = this.props.players;
@@ -491,11 +491,20 @@ MainState = React.createClass({
     }
     if (biddingOver) {
       console.log("This round of bidding is over");
-      this.dealCommunityOrEnd();
       if (handOver) {
         console.log("handOver");
         console.log(this.state.players[nextActivePlayer].name + " has won");
-        return this.endHand(nextActivePlayer);
+        this.endHand(nextActivePlayer);
+        return this.setState({
+          communityCards: {
+            flop: [null, null, null],
+            turn: null,
+            river: null
+          },
+          community: "Preflop"
+        });
+      } else {
+        return this.dealCommunityOrEnd();
       }
     }
   },
