@@ -457,7 +457,10 @@ MainState = React.createClass
             if handOver
                 console.log("handOver")
                 console.log(this.state.players[nextActivePlayer].name + " has won")
-                this.endHand(nextActivePlayer)
+                this.endHand(
+                    best: null
+                    ls: [nextActivePlayer]
+                )
                 this.setState(
                     communityCards:
                         flop: [null,null,null]
