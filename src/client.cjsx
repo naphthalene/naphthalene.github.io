@@ -264,7 +264,7 @@ MainState = React.createClass
             2: 10
             3: 25
             4: 50
-            5: this.remaining
+            5: this.state.remaining
         ## TODO confirm funds on this end too
         sendMessage(
             action: "raise"

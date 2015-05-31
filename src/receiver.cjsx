@@ -186,6 +186,7 @@ MainState = React.createClass
 
         # {bestForPlayer} stores the best possible hand for an individual.
         # - it is overwritten if a player with a better hand is found
+        # REVIEW Probably want to use a for loop here for (mem) efficiency
         evalRank = (bestPlayer, player, i, a) ->
             if player.fold then return bestPlayer
             e = player.hand
@@ -237,12 +238,7 @@ MainState = React.createClass
                     # Two Pair
                     twoPairFinder = (acc, ia) ->
                         twop = counts[ia[0]][1]==2 and counts[ia[1]][1]==2
-                        if acc[0]
-                            acc
-                        else if twop
-                            [true, ia]
-                        else
-                            acc
+                        if acc[0] then acc else if twop then [true, ia] else acc
                     twoPair = if tripsOrTwoPair then\
                         t.combinations([0,1,2], 2)\
                             .reduce(twoPairFinder, [false,null]) else false
@@ -499,7 +495,8 @@ MainState = React.createClass
                 console.log(p.name + " raised by " + data.amount)
                 withdraw = t.state.bid - p.bid + data.amount
                 console.log(p.name + " is adding " + withdraw + " to the pot")
-                if p.remaining - withdraw >= 0
+                if p.remaining - withdraw >= 0 and p.name == t.state.turn
+                    ## REVIEW using name instead of ID as the turn indicator
                     p.bid = p.bid + withdraw
                     p.remaining = p.remaining - withdraw
                     # Update table state

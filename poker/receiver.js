@@ -547,7 +547,7 @@ MainState = React.createClass({
         console.log(p.name + " raised by " + data.amount);
         withdraw = t.state.bid - p.bid + data.amount;
         console.log(p.name + " is adding " + withdraw + " to the pot");
-        if (p.remaining - withdraw >= 0) {
+        if (p.remaining - withdraw >= 0 && p.name === t.state.turn) {
           p.bid = p.bid + withdraw;
           p.remaining = p.remaining - withdraw;
           t.setState({
