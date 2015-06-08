@@ -1,0 +1,9 @@
+RulesDSL.eval(
+    modes:
+        
+        scoring:
+            # Player or team wins 
+            won: (sc) -> sc >= 11
+NumPlayers:
+
+Rules = 
