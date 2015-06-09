@@ -20,13 +20,37 @@ Row = ReactBootstrap.Row
 Col = ReactBootstrap.Col
 Nav = ReactBootstrap.Nav
 
-# ----------------------
+# --------CARDS---------
 
 SUITS = ["H","D","S","C"]
 CARDS = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"]
 RANKS = ["HC", "1P","2P","3K","ST","FL","FH","4K", "SF", "RF"]
 
-# ----------------------
+# ------Memoization-----
+
+# memoize.js
+# by @philogb and @addyosmani
+# with further optimizations by @mathias
+# and @DmitryBaranovsk
+# perf tests: http://bit.ly/q3zpG3
+# Released under an MIT license.
+
+memoize = (fn) ->
+    () ->
+        args = Array.prototype.slice.call(arguments)
+        hash = ""
+        i = args.length
+        currentArg = null
+        while i--
+            currentArg = args[i]
+            hash += if currentArg == Object(currentArg) \
+                then JSON.stringify(currentArg) \
+                else currentArg
+            fn.memoize || (fn.memoize = {})
+        if hash in fn.memoize then fn.memoize[hash] \
+        else fn.memoize[hash] = fn.apply(this, args)
+
+# ----React-Classes-----
 
 CardImage = React.createClass
     render: ->
@@ -181,8 +205,8 @@ MainState = React.createClass
         cc = t.state.communityCards
         # TODO instead of using `slice`, make a container class for cards
         # Utility functions
-        val = (c) -> CARDS.indexOf(c.slice(0,-1))
-        suit = (c) -> c.slice(-1)[0]
+        val = memoize((c) -> CARDS.indexOf(c.slice(0,-1)))
+        suit = memoize((c) -> c.slice(-1)[0])
 
         # {bestForPlayer} stores the best possible hand for an individual.
         # - it is overwritten if a player with a better hand is found
@@ -473,17 +497,22 @@ MainState = React.createClass
         players = this.state.players
         console.log("pi is " + pi)
         p = players[pi]
-        updateFunc(p, pi)
+        success = updateFunc(p, pi)
         players[pi] = p
         this.setState(
             players: players
         )
-        this.nextPlayersTurnOrEndHand(pi, action)
+        # Don't update turn if there was a failure in the action
+        if success then this.nextPlayersTurnOrEndHand(pi, action)
 
     foldPlayer: (sender) ->
         this.playerAction(sender, "fold", (p, pi) ->
             p.fold = true
             console.log(p.name + " has folded their hand")
+            window.messageBus.send(sender, JSON.stringify(
+                status: "foldok"
+                data: {}
+            ))
         )
 
     raisePlayer: (sender, data) ->
@@ -516,12 +545,14 @@ MainState = React.createClass
                         data:
                             maxbid: t.state.bid
                     ))
+                    true
                 else
                     window.messageBus.send(sender, JSON.stringify(
                         status: "raisefail"
                         data:
                             reason: "Insufficient funds to raise this much"
                     ))
+                    false
             catch e
                 console.error(e)
         )
@@ -544,12 +575,14 @@ MainState = React.createClass
                         pot: t.state.pot + withdraw
                         bid: p.bid
                 ))
+                true
             else
                 window.messageBus.send(sender, JSON.stringify(
                     status: "callfail"
                     data:
                         reason: "Insufficient funds to call the bid"
                 ))
+                false
         )
 
     checkPlayer: (sender) ->
@@ -561,6 +594,7 @@ MainState = React.createClass
                     status: "checkok"
                     data: {}
                 ))
+                true
             else
                 window.messageBus.send(sender, JSON.stringify(
                     status: "checkfail"
@@ -568,6 +602,7 @@ MainState = React.createClass
                         reason: "You must call or fold since "\
                                 + "your bid doesn't match current top bid"
                 ))
+                false
         )
 
     handleMessage: (tbl, sender, msg) ->
