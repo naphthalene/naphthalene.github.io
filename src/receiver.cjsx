@@ -202,7 +202,7 @@ MainState = React.createClass
 
     computeWinner: ->
         t = this
-        cc = t.state.communityCards
+        cc = t.state.communityCards # array of 5 cards
         # TODO instead of using `slice`, make a container class for cards
         # Utility functions
         val = memoize((c) -> CARDS.indexOf(c.slice(0,-1)))
