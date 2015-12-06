@@ -498,6 +498,7 @@ MainState = React.createClass
         console.log("player_index is " + player_index)
         p = players[player_index]
         success = updateFunc(p, player_index)
+        console.log("success? " + success)
         players[player_index] = p
         this.setState(
             players: players
