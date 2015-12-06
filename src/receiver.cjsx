@@ -438,15 +438,18 @@ MainState = React.createClass
     nextPlayersTurnOrEndHand: (currentPlayerIndex, action) ->
         # Loop to find the next player who is eligible for a turn
         nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
+        console.log("Computing next turn: cp: " + currentPlayerIndex + " nap: " + nextActivePlayer)
         foundNextPlayer = false
         biddingOver = true
         while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
             foundNextPlayer = !this.state.players[nextActivePlayer].fold
             if foundNextPlayer
-                # If we found another player, then the bidding
+                # If we found another player, then the bidding ends
                 biddingOver = false
                 break
             nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
+            console.log("nap: " + nextActivePlayer)
+
 
         if foundNextPlayer
             # Check if this is the last player in the hand
@@ -515,6 +518,7 @@ MainState = React.createClass
                 data: {}
             ))
         )
+        return true
 
     raisePlayer: (sender, data) ->
         # The "amount" is the amount raised, not the total

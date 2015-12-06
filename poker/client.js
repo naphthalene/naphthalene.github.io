@@ -310,6 +310,7 @@ MainState = React.createClass({
       case "raiseok":
       case "callok":
       case "checkok":
+      case "foldok":
         return this.setState(msg.data);
       case "raisefail":
       case "callfail":

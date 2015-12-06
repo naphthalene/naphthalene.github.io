@@ -477,6 +477,7 @@ MainState = React.createClass({
   nextPlayersTurnOrEndHand: function(currentPlayerIndex, action) {
     var biddingOver, foundNextPlayer, handOver, nextActivePlayer, numActivePlayers;
     nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length;
+    console.log("Computing next turn: cp: " + currentPlayerIndex + " nap: " + nextActivePlayer);
     foundNextPlayer = false;
     biddingOver = true;
     while (nextActivePlayer !== currentPlayerIndex && !foundNextPlayer) {
@@ -486,6 +487,7 @@ MainState = React.createClass({
         break;
       }
       nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length;
+      console.log("nap: " + nextActivePlayer);
     }
     if (foundNextPlayer) {
       numActivePlayers = this.state.players.map(function(p) {
@@ -557,7 +559,7 @@ MainState = React.createClass({
     }
   },
   foldPlayer: function(sender) {
-    return this.playerAction(sender, "fold", function(p, player_index) {
+    this.playerAction(sender, "fold", function(p, player_index) {
       p.fold = true;
       console.log(p.name + " has folded their hand");
       return window.messageBus.send(sender, JSON.stringify({
@@ -565,6 +567,7 @@ MainState = React.createClass({
         data: {}
       }));
     });
+    return true;
   },
   raisePlayer: function(sender, data) {
     var t;
