@@ -1,6 +1,6 @@
+/* TEXAS HOLDEM */
 @import "reset.css";
 @import "style.css";
-/* TEXAS HOLDEM */
 body {
   background: url("/images/table_felt.png") repeat;
 }
@@ -14,7 +14,7 @@ body {
   z-index: -1;
 }
 h3 {
-  color: #ffffff;
+  color: #FFF;
 }
 /* This is the handheld card display*/
 #card-container {

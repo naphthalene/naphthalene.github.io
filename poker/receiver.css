@@ -1,12 +1,12 @@
+/* TEXAS HOLDEM */
 @import "reset.css";
 @import "style.css";
-/* TEXAS HOLDEM */
 body {
   background: url("/images/table_felt.png") repeat;
   overflow: hidden;
 }
 h3 {
-  color: #ffffff;
+  color: #FFF;
 }
 #message {
   position: fixed;
@@ -34,18 +34,18 @@ h3 {
 }
 .panel-transparent .panel-heading {
   background: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
+  color: #FFF;
 }
 .player-turn {
   background: rgba(255, 100, 100, 0.4);
-  color: #ffff00 !important;
+  color: #FF0 !important;
 }
 .panel-transparent .panel-body {
   background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  color: #FFF;
 }
 .panel-transparent p {
-  color: #ffffff;
+  color: #FFF;
 }
 .token {
   width: 30px;
@@ -55,14 +55,14 @@ h3 {
   text-align: center;
 }
 .dealer {
-  color: #000000;
-  background: #ff1111;
+  color: #000;
+  background: #F11;
 }
 .small-blind {
-  color: #000000;
-  background: #ffff11;
+  color: #000;
+  background: #FF1;
 }
 .big-blind {
-  color: #ffffff;
-  background: #1111ff;
+  color: #FFF;
+  background: #11F;
 }
