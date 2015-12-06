@@ -554,9 +554,7 @@ MainState = React.createClass({
     this.setState({
       players: players
     });
-    if (success) {
-      return this.nextPlayersTurnOrEndHand(player_index, action);
-    }
+    return this.nextPlayersTurnOrEndHand(player_index, action);
   },
   foldPlayer: function(sender) {
     this.playerAction(sender, "fold", function(p, player_index) {

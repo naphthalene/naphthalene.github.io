@@ -507,7 +507,7 @@ MainState = React.createClass
             players: players
         )
         # Don't update turn if there was a failure in the action
-        if success then this.nextPlayersTurnOrEndHand(player_index, action)
+        this.nextPlayersTurnOrEndHand(player_index, action)
 
     foldPlayer: (sender) ->
         this.playerAction(sender, "fold", (p, player_index) ->
