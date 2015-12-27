@@ -241,7 +241,7 @@ MainState = React.createClass
                 this.setState(msg.data)
             when "maxbid"
                 this.setState(msg.data)
-            when "raiseok", "callok", "checkok"
+            when "raiseok", "callok", "checkok", "foldok"
                 this.setState(msg.data)
             when "raisefail", "callfail", "checkfail"
                 console.error(msg.data.reason)

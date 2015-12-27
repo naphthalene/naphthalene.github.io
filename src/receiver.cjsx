@@ -202,7 +202,7 @@ MainState = React.createClass
 
     computeWinner: ->
         t = this
-        cc = t.state.communityCards
+        cc = t.state.communityCards # array of 5 cards
         # TODO instead of using `slice`, make a container class for cards
         # Utility functions
         val = memoize((c) -> CARDS.indexOf(c.slice(0,-1)))
@@ -420,11 +420,11 @@ MainState = React.createClass
                 players[c] = p
             )
         else
-            pi = winners.ls[0]
-            p = players[pi]
+            player_index = winners.ls[0]
+            p = players[player_index]
             p.remaining = p.remaining + this.state.pot
             console.log("Awarding "+p.name+" $"+this.state.pot)
-            players[pi] = p
+            players[player_index] = p
 
         this.setState(
             players: players
@@ -438,15 +438,18 @@ MainState = React.createClass
     nextPlayersTurnOrEndHand: (currentPlayerIndex, action) ->
         # Loop to find the next player who is eligible for a turn
         nextActivePlayer = (currentPlayerIndex + 1) % this.state.players.length
+        console.log("Computing next turn: cp: " + currentPlayerIndex + " nap: " + nextActivePlayer)
         foundNextPlayer = false
         biddingOver = true
         while nextActivePlayer != currentPlayerIndex and !foundNextPlayer
             foundNextPlayer = !this.state.players[nextActivePlayer].fold
             if foundNextPlayer
-                # If we found another player, then the bidding
+                # If we found another player, then the bidding ends
                 biddingOver = false
                 break
             nextActivePlayer = (nextActivePlayer + 1) % this.state.players.length
+            console.log("nap: " + nextActivePlayer)
+
 
         if foundNextPlayer
             # Check if this is the last player in the hand
@@ -493,20 +496,21 @@ MainState = React.createClass
                 this.dealCommunityOrEnd()
 
     playerAction: (sender, action, updateFunc) ->
-        pi = this.state.players.map((e) -> e.id).indexOf(sender)
+        player_index = this.state.players.map((e) -> e.id).indexOf(sender)
         players = this.state.players
-        console.log("pi is " + pi)
-        p = players[pi]
-        success = updateFunc(p, pi)
-        players[pi] = p
+        console.log("player_index is " + player_index)
+        p = players[player_index]
+        success = updateFunc(p, player_index)
+        console.log("success? " + success)
+        players[player_index] = p
         this.setState(
             players: players
         )
         # Don't update turn if there was a failure in the action
-        if success then this.nextPlayersTurnOrEndHand(pi, action)
+        this.nextPlayersTurnOrEndHand(player_index, action)
 
     foldPlayer: (sender) ->
-        this.playerAction(sender, "fold", (p, pi) ->
+        this.playerAction(sender, "fold", (p, player_index) ->
             p.fold = true
             console.log(p.name + " has folded their hand")
             window.messageBus.send(sender, JSON.stringify(
@@ -514,12 +518,13 @@ MainState = React.createClass
                 data: {}
             ))
         )
+        return true
 
     raisePlayer: (sender, data) ->
         # The "amount" is the amount raised, not the total
         # addition to the pot
         t = this
-        this.playerAction(sender, "raise", (p, pi) ->
+        this.playerAction(sender, "raise", (p, player_index) ->
             try
                 console.log(p.name + " raised by " + data.amount)
                 withdraw = t.state.bid - p.bid + data.amount
@@ -530,7 +535,7 @@ MainState = React.createClass
                     p.remaining = p.remaining - withdraw
                     # Update table state
                     t.setState(
-                        lastRaised: pi
+                        lastRaised: player_index
                         bid: p.bid
                         pot: t.state.pot + withdraw
                     )
@@ -560,7 +565,7 @@ MainState = React.createClass
     callPlayer: (sender) ->
         # Confirm there are enough funds
         t = this
-        this.playerAction(sender, "call", (p, pi) ->
+        this.playerAction(sender, "call", (p, player_index) ->
             withdraw = t.state.bid - p.bid
             if p.remaining - withdraw >= 0
                 p.bid = p.bid + withdraw
@@ -588,7 +593,7 @@ MainState = React.createClass
     checkPlayer: (sender) ->
         # Confirm player is in position to check
         t = this
-        this.playerAction(sender, "check", (p, pi) ->
+        this.playerAction(sender, "check", (p, player_index) ->
             if p.bid == t.state.bid
                 window.messageBus.send(sender, JSON.stringify(
                     status: "checkok"
